@@ -1,3 +1,6 @@
+# Probot Settings file
+# @see https://probot.github.io/apps/settings/
+
 repository:
   has_issues: true
   has_wiki: false
@@ -6,6 +9,9 @@ repository:
   allow_merge_commit: true
   allow_rebase_merge: false
   delete_branch_on_merge: true
+
+# Do not set labels in this file as it will apply these labels to all repos and
+# remove any labels the repo had before
 
 teams:
   - name: axe-api-team
