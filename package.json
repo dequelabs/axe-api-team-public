@@ -1,0 +1,18 @@
+{
+  "name": "axe-api-team-public",
+  "version": "1.0.0",
+  "description": "Shared configuration, settings, and actions for the Axe API Team",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dequelabs/axe-api-team-public.git"
+  },
+  "author": "",
+  "license": "MPL-2.0",
+  "bugs": {
+    "url": "https://github.com/dequelabs/axe-api-team-public/issues"
+  },
+  "homepage": "https://github.com/dequelabs/axe-api-team-public#readme"
+}
