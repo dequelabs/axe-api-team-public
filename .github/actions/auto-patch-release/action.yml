@@ -22,7 +22,11 @@ inputs:
 runs:
   using: "composite"
   steps:
-
+    - name: Checkout repo
+      uses: actions/checkout@v3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
     - name: Exit early if odd numbered week
       shell: bash
       run: |
@@ -50,16 +54,6 @@ runs:
         DEFAULT_BRANCH: ${{ inputs.default-branch }}
         GITHUB_TOKEN: ${{ inputs.token }}
 
-    - name: WHY
-      shell: bash
-      run: |
-        echo 'PRINTING DEBUG'
-        ls .;
-        echo '-------------';
-        ls .github;
-        echo '-------------';
-        ls .github/scripts;
-        echo '=============';
     - name: Run preparation script
       shell: bash
       run: ${{ inputs.release-command }} patch
