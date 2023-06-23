@@ -32,11 +32,10 @@ runs:
       shell: bash
       run: |
         weekIsEven="$(expr $(date +%U) % 2)"
-        # TODO: Remove after debugging
         if [ "$weekIsEven" -eq 1 ]; then
           echo "Odd numbered week. Skipping";
-          gh run cancel ${{ github.run_id }};
-          gh run watch ${{ github.run_id }};
+          # gh run cancel ${{ github.run_id }};
+          # gh run watch ${{ github.run_id }};
         fi
       env:
         GITHUB_TOKEN: ${{ inputs.token }}
@@ -48,8 +47,8 @@ runs:
           git diff --name-only "origin/$RELEASE_BRANCH" "origin/$DEFAULT_BRANCH"
         else
           echo "No changes detected. Cancelling";
-          gh run cancel ${{ github.run_id }};
-          gh run watch ${{ github.run_id }};
+          # gh run cancel ${{ github.run_id }};
+          # gh run watch ${{ github.run_id }};
         fi
       env:
         RELEASE_BRANCH: ${{ inputs.release-branch }}
