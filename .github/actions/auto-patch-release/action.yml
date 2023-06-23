@@ -130,7 +130,7 @@ runs:
       env:
         json: ${{  steps.new-issue.outputs.json  }}
     - name: Move to board
-      uses: dequelabs/axe-api-team-public/.github/actions/add-to-board@ci-auto-patch-release
+      uses: dequelabs/axe-api-team-public/.github/actions/add-to-board@main
       with:
         token: ${{ inputs.project_token }}
         issue-id: ${{ steps.issue-id.outputs.id }}
