@@ -1,26 +1,24 @@
 name: Automatically create patch release every 2 weeks
 description: Triggered on schedule by our integrations to patch release
-on:
-  workflow_call:
-    inputs:
-      release-command:
-        required: true
-        type: string
-      release-branch:
-        required: true
-        type: string
-      default-branch:
-        required: true
-        type: string
-      token:
-        required: true
-        type: string
-      project_token:
-        required: true
-        type: string
-      slack_webhook:
-        required: true
-        type: string
+inputs:
+  release-command:
+    required: true
+    type: string
+  release-branch:
+    required: true
+    type: string
+  default-branch:
+    required: true
+    type: string
+  token:
+    required: true
+    type: string
+  project_token:
+    required: true
+    type: string
+  slack_webhook:
+    required: true
+    type: string
 runs:
   using: "composite"
   steps:
