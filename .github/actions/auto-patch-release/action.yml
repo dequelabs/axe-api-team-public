@@ -31,6 +31,7 @@ runs:
         fetch-depth: 0
 
     - name: Exit early if odd numbered week
+      shell: bash
       run: |
         weekIsEven="$(expr $(date +%U) % 2)"
         # TODO: Remove after debugging
@@ -42,6 +43,7 @@ runs:
       env:
         GITHUB_TOKEN: ${{ inputs.token }}
     - name: Exit early if unchanged
+      shell: bash
       run: |
         if [[ "$(git diff --name-only "origin/$RELEASE_BRANCH" "origin/$DEFAULT_BRANCH")" ]]; then
           echo "Changes detected. Creating patch release";
@@ -57,15 +59,18 @@ runs:
         GITHUB_TOKEN: ${{ inputs.token }}
 
     - name: Run preparation script
+      shell: bash
       run: ${{ inputs.release-command }} patch
     - name: Get version for later steps
       id: get-new-version
+      shell: bash
       run: echo version=$(node -pe 'require("./package.json").version') >> "$GITHUB_OUTPUT"
 
     - name: Generate commit list
       id: commit-list
         # Multi-line output format:
       # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#example-of-a-multiline-string
+      shell: bash
       run: |
         git fetch origin "$RELEASE_BRANCH";
         git fetch origin "$DEFAULT_BRANCH";
@@ -149,11 +154,13 @@ runs:
         MSG_MINIMAL: true
 
     - name: Create release commit
+      shell: bash
       run: |
         git config user.name "API Team CI User"
         git config user.email "aciattestteamci@deque.com"
         git commit -am "chore: release v${{ steps.get-new-version.outputs.version }}"
     - name: Update local master from develop
+      shell: bash
       run: |
         commitHash="$(git log -1 --format='%H')"
         git checkout "$RELEASE_BRANCH"
