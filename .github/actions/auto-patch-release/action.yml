@@ -53,9 +53,13 @@ runs:
     - name: WHY
       shell: bash
       run: |
-        ls .
-        ls .github
-        ls .github/scripts
+        echo 'PRINTING DEBUG'
+        ls .;
+        echo '-------------';
+        ls .github;
+        echo '-------------';
+        ls .github/scripts;
+        echo '=============';
     - name: Run preparation script
       shell: bash
       run: ${{ inputs.release-command }} patch
