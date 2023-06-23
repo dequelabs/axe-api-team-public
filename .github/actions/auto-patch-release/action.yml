@@ -87,7 +87,7 @@ runs:
       uses: dacbd/create-issue-action@ba4d1c45cccf9c483f2720cefb40e437f0ee6f7d
       id: new-docs-issue
       with:
-        token: ${{ inputs.project_token }}
+        token: ${{ inputs.token }}
         repo: docs-devtools-html
         assignees: enlarsen
         title: "${{ github.event.repository.name }} v${{ steps.get-new-version.outputs.version }} Release Notes Needed"
