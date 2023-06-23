@@ -12,13 +12,22 @@ on:
       default-branch:
         required: true
         type: string
+      token:
+        required: true
+        type: string
+      project_token:
+        required: true
+        type: string
+      slack_webhook:
+        required: true
+        type: string
 runs:
   using: "composite"
   steps:
     - name: Checkout repo
       uses: actions/checkout@v3
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ inputs.token }}
         fetch-depth: 0
 
     - name: Exit early if odd numbered week
@@ -31,7 +40,7 @@ runs:
           gh run watch ${{ github.run_id }};
         fi
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ inputs.token }}
     - name: Exit early if unchanged
       run: |
         if [[ "$(git diff --name-only "origin/$RELEASE_BRANCH" "origin/$DEFAULT_BRANCH")" ]]; then
@@ -45,7 +54,7 @@ runs:
       env:
         RELEASE_BRANCH: ${{ inputs.release-branch }}
         DEFAULT_BRANCH: ${{ inputs.default-branch }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ inputs.token }}
 
     - name: Run preparation script
       run: ${{ inputs.release-command }} patch
@@ -77,7 +86,7 @@ runs:
       uses: dacbd/create-issue-action@ba4d1c45cccf9c483f2720cefb40e437f0ee6f7d
       id: new-docs-issue
       with:
-        token: ${{ secrets.GH_PROJECT_TOKEN }}
+        token: ${{ inputs.project_token }}
         repo: docs-devtools-html
         assignees: enlarsen
         title: "${{ github.event.repository.name }} v${{ steps.get-new-version.outputs.version }} Release Notes Needed"
@@ -122,7 +131,7 @@ runs:
     - name: Move to board
       uses: dequelabs/axe-api-team-public/.github/actions/add-to-board@ci-auto-patch-release
       with:
-        token: ${{ secrets.GH_PROJECT_TOKEN }}
+        token: ${{ inputs.project_token }}
         issue-id: ${{ steps.issue-id.outputs.id }}
         # 66 taken from the url: https://github.com/orgs/dequelabs/projects/66
         project-number: 66
@@ -135,7 +144,7 @@ runs:
           The develop branch of ${{ github.event.repository.name }} is ready for QA.
           Issue: ${{ steps.issue-url.outputs.url }}
         SLACK_TITLE: "${{ github.event.repository.name }} v${{ steps.get-new-version.outputs.version }} QA Needed"
-        SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+        SLACK_WEBHOOK: ${{ inputs.slack_webhook }}
         SLACK_FOOTER: ''
         MSG_MINIMAL: true
 
@@ -155,7 +164,7 @@ runs:
       id: new-pr
       uses: peter-evans/create-pull-request@284f54f989303d2699d373481a0cfa13ad5a6666
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ inputs.token }}
         branch: release
         branch-suffix: timestamp
         base: ${{ inputs.release-branch }}
