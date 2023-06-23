@@ -33,8 +33,8 @@ runs:
         weekIsEven="$(expr $(date +%U) % 2)"
         if [ "$weekIsEven" -eq 1 ]; then
           echo "Odd numbered week. Skipping";
-          # gh run cancel ${{ github.run_id }};
-          # gh run watch ${{ github.run_id }};
+          gh run cancel ${{ github.run_id }};
+          gh run watch ${{ github.run_id }};
         fi
       env:
         GITHUB_TOKEN: ${{ inputs.token }}
@@ -46,8 +46,8 @@ runs:
           git diff --name-only "origin/$RELEASE_BRANCH" "origin/$DEFAULT_BRANCH"
         else
           echo "No changes detected. Cancelling";
-          # gh run cancel ${{ github.run_id }};
-          # gh run watch ${{ github.run_id }};
+          gh run cancel ${{ github.run_id }};
+          gh run watch ${{ github.run_id }};
         fi
       env:
         RELEASE_BRANCH: ${{ inputs.release-branch }}
@@ -172,7 +172,6 @@ runs:
         branch-suffix: timestamp
         base: ${{ inputs.release-branch }}
         labels: release
-        draft: true
         title: "chore: release v${{ steps.get-new-version.outputs.version }}"
         # If there are any changes not already committed, they will be added to
         # a commit with this as the message.
