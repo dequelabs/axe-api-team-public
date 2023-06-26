@@ -1,0 +1,97 @@
+name: Add to Board
+description: Move specific item into API Team board as 'Ready for QA'
+inputs:
+  token:
+    description: 'A Github PAT. The token needs repo, read:org, and project scopes'
+    required: true
+  issue-id:  # id of input
+    description: 'id of issue to add to the board'
+    required: true
+  project-number:
+    description: '# id of project to add to. Its in the URL'
+    required: true
+runs:
+  using: "composite"
+  steps:
+  - name: Add issue to board
+    env:
+      ISSUE_ID: ${{ inputs.issue-id }}
+      GITHUB_TOKEN: ${{ inputs.token }}
+      PROJECT_NUMBER: ${{ inputs.project-number }}
+    shell: bash
+    run: |
+      set -e
+
+      # Get information about our project. IDs of various components of it.
+      projectJson="$(gh api graphql -f query='
+      query($org: String!, $number: Int!) {
+        organization(login: $org){
+          projectV2(number: $number) {
+            id
+            fields(first:20) {
+              nodes {
+                ... on ProjectV2Field {
+                  id
+                  name
+                }
+                ... on ProjectV2SingleSelectField {
+                  id
+                  name
+                  options {
+                    id
+                    name
+                  }
+                }
+              }
+            }
+          }
+        }
+      }' -f org=dequelabs -F number=$PROJECT_NUMBER)"
+      PROJECT_ID=$(echo "$projectJson" | jq '.data.organization.projectV2.id')
+      STATUS_FIELD_ID=$(echo "$projectJson" | jq '.data.organization.projectV2.fields.nodes[] | select(.name== "Status") | .id')
+      READY_FOR_QA_OPTION_ID=$(echo "$projectJson" | jq -r '.data.organization.projectV2.fields.nodes[] | select(.name== "Status") | .options[] | select(.name=="Ready for QA") |.id')
+      echo project id = $PROJECT_ID
+      echo status field id = $STATUS_FIELD_ID
+      echo option id = $READY_FOR_QA_OPTION_ID
+
+
+      echo ''
+      echo 'ADDING ISSUE TO PROJECT'
+      ADDED_ISSUE_ID="$(gh api graphql -f query='
+      mutation (
+        $projectId: ID!
+        $issueId: ID!
+      ){
+        addProjectV2ItemById(input: {projectId: $projectId contentId:$issueId}) {
+          item {
+            id
+          }
+        }
+      }' -f projectId=$PROJECT_ID -f issueId=$ISSUE_ID --jq '.data.addProjectV2ItemById.item.id')"
+
+      echo added issue id = $ADDED_ISSUE_ID
+
+      echo ''
+      echo 'SETTING ISSUE STATUS TO QA READY'
+      gh api graphql -f query='
+      mutation (
+        $project: ID!
+        $item: ID!
+        $status_field: ID!
+        $status_value: String!
+      ) {
+        set_status: updateProjectV2ItemFieldValue(input: {
+          projectId: $project
+          itemId: $item
+          fieldId: $status_field
+          value: {
+            singleSelectOptionId: $status_value
+            }
+        }) {
+          projectV2Item {
+            id
+            }
+        }
+      }' -f project=$PROJECT_ID -f item=$ADDED_ISSUE_ID -f status_field=$STATUS_FIELD_ID -f status_value="$READY_FOR_QA_OPTION_ID"
+
+      echo 'Completed setting status'

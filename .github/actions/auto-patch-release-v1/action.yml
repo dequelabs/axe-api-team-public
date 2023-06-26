@@ -1,0 +1,179 @@
+name: Automatically create patch release every 2 weeks
+description: Triggered on schedule by our integrations to patch release
+inputs:
+  release-command:
+    required: true
+    type: string
+  release-branch:
+    required: true
+    type: string
+  default-branch:
+    required: true
+    type: string
+  token:
+    required: true
+    type: string
+  project_token:
+    required: true
+    type: string
+  slack_webhook:
+    required: true
+    type: string
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+      with:
+        token: ${{ inputs.token }}
+        fetch-depth: 0
+    - name: Exit early if odd numbered week
+      shell: bash
+      run: |
+        weekIsEven="$(expr $(date +%U) % 2)"
+        if [ "$weekIsEven" -eq 1 ]; then
+          echo "Odd numbered week. Skipping";
+          gh run cancel ${{ github.run_id }};
+          gh run watch ${{ github.run_id }};
+        fi
+      env:
+        GITHUB_TOKEN: ${{ inputs.token }}
+    - name: Exit early if unchanged
+      shell: bash
+      run: |
+        if [[ "$(git diff --name-only "origin/$RELEASE_BRANCH" "origin/$DEFAULT_BRANCH")" ]]; then
+          echo "Changes detected. Creating patch release";
+          git diff --name-only "origin/$RELEASE_BRANCH" "origin/$DEFAULT_BRANCH"
+        else
+          echo "No changes detected. Cancelling";
+          gh run cancel ${{ github.run_id }};
+          gh run watch ${{ github.run_id }};
+        fi
+      env:
+        RELEASE_BRANCH: ${{ inputs.release-branch }}
+        DEFAULT_BRANCH: ${{ inputs.default-branch }}
+        GITHUB_TOKEN: ${{ inputs.token }}
+
+    - name: Run preparation script
+      shell: bash
+      run: ${{ inputs.release-command }} patch
+    - name: Get version for later steps
+      id: get-new-version
+      shell: bash
+      run: echo version=$(node -pe 'require("./package.json").version') >> "$GITHUB_OUTPUT"
+
+    - name: Generate commit list
+      id: commit-list
+        # Multi-line output format:
+      # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#example-of-a-multiline-string
+      shell: bash
+      run: |
+        git fetch origin "$RELEASE_BRANCH";
+        git fetch origin "$DEFAULT_BRANCH";
+        MASTER_HASH="$(git rev-parse "origin/$RELEASE_BRANCH")"
+        DEV_HASH="$(git rev-parse "origin/$DEFAULT_BRANCH")"
+        COMMITS="$(git log --oneline --no-merges --graph --abbrev-commit $MASTER_HASH..$DEV_HASH)"
+        echo "Commits:"
+        echo "$COMMITS"
+
+        echo "commits<<AUTO_PATCH_RELEASE_HEREDOC" >> "$GITHUB_OUTPUT"
+        echo "$COMMITS" >> "$GITHUB_OUTPUT"
+        echo "AUTO_PATCH_RELEASE_HEREDOC" >> "$GITHUB_OUTPUT"
+      env:
+        RELEASE_BRANCH: ${{ inputs.release-branch }}
+        DEFAULT_BRANCH: ${{ inputs.default-branch }}
+
+    - name: Create Docs issue
+      uses: dacbd/create-issue-action@ba4d1c45cccf9c483f2720cefb40e437f0ee6f7d
+      id: new-docs-issue
+      with:
+        token: ${{ inputs.project_token }}
+        repo: docs-devtools-html
+        assignees: enlarsen
+        title: "${{ github.event.repository.name }} v${{ steps.get-new-version.outputs.version }} Release Notes Needed"
+        labels: release
+        body: |
+          Please create release notes for ${{ github.event.repository.name }}. Here are all changes since last release
+
+          The following commit(s) were added in this release:
+          ${{ steps.commit-list.outputs.commits }}
+
+
+    - name: Create QA issue
+      uses: dacbd/create-issue-action@ba4d1c45cccf9c483f2720cefb40e437f0ee6f7d
+      id: new-issue
+      with:
+        token: ${{ inputs.token }}
+        title: "${{ github.event.repository.name }} v${{ steps.get-new-version.outputs.version }} QA Needed"
+        labels: release
+        body: |
+          The develop branch of ${{ github.event.repository.name }} is ready for QA.
+
+          Please add comments in this Issue to state any bugs found and tag a developer. Once ${{ github.event.repository.name }} passes QA, please attach the report to the api-team-releases slack channel, close this Issue and move this Issue to the Done column.
+
+          The following commit(s) were added in this release:
+          ${{ steps.commit-list.outputs.commits }}
+    - name: Store issue URL
+      id: issue-url
+      shell: bash
+      run: |
+        url="$(echo $json | jq .html_url | sed 's/"//g' )"
+        echo "url=$url" >> $GITHUB_OUTPUT
+      env:
+        json: ${{  steps.new-issue.outputs.json  }}
+    - name: Save issue-id
+      id: issue-id
+      shell: bash
+      run: |
+        issueId="$(echo $json | jq -r .node_id)"
+        echo "id=$issueId" >> "$GITHUB_OUTPUT"
+      env:
+        json: ${{  steps.new-issue.outputs.json  }}
+    - name: Move to board
+      uses: dequelabs/axe-api-team-public/.github/actions/add-to-board-v1@main
+      with:
+        token: ${{ inputs.project_token }}
+        issue-id: ${{ steps.issue-id.outputs.id }}
+        # 66 taken from the url: https://github.com/orgs/dequelabs/projects/66
+        project-number: 66
+    - name: Slack Notification
+      uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7
+      env:
+        SLACK_CHANNEL: api-team-releases
+        SLACK_COLOR: ${{ job.status }} # or a specific color like 'good' or '#ff00ff'
+        SLACK_MESSAGE: |
+          The develop branch of ${{ github.event.repository.name }} is ready for QA.
+          Issue: ${{ steps.issue-url.outputs.url }}
+        SLACK_TITLE: "${{ github.event.repository.name }} v${{ steps.get-new-version.outputs.version }} QA Needed"
+        SLACK_WEBHOOK: ${{ inputs.slack_webhook }}
+        SLACK_FOOTER: ''
+        MSG_MINIMAL: true
+
+    - name: Create release commit
+      shell: bash
+      run: |
+        git config user.name "API Team CI User"
+        git config user.email "aciattestteamci@deque.com"
+        git commit -am "chore: release v${{ steps.get-new-version.outputs.version }}"
+    - name: Update local master from develop
+      shell: bash
+      run: |
+        commitHash="$(git log -1 --format='%H')"
+        git checkout "$RELEASE_BRANCH"
+        git reset --hard "$commitHash"
+      env:
+        RELEASE_BRANCH: ${{ inputs.release-branch }}
+    - name: Create pull request
+      id: new-pr
+      uses: peter-evans/create-pull-request@284f54f989303d2699d373481a0cfa13ad5a6666
+      with:
+        token: ${{ inputs.token }}
+        branch: release
+        branch-suffix: timestamp
+        base: ${{ inputs.release-branch }}
+        labels: release
+        title: "chore: release v${{ steps.get-new-version.outputs.version }}"
+        # If there are any changes not already committed, they will be added to
+        # a commit with this as the message.
+        # If there are no changes no commit will be created.
+        commit-message: "chore: applying release changes"
