@@ -19,6 +19,10 @@ inputs:
   slack_webhook:
     required: true
     type: string
+  odd_release:
+    required: false
+    type: string
+    default: 'false'
 runs:
   using: "composite"
   steps:
@@ -31,12 +35,18 @@ runs:
       shell: bash
       run: |
         weekIsEven="$(expr $(date +%U) % 2)"
-        if [ "$weekIsEven" -eq 1 ]; then
+        if [ "$ODD_RELEASE" = "true"]; then
+          target_mod=1;
+        else
+          target_mod=0;
+        fi
+        if [ "$weekIsEven" -eq "$target_mod" ]; then
           echo "Odd numbered week. Skipping";
           gh run cancel ${{ github.run_id }};
           gh run watch ${{ github.run_id }};
         fi
       env:
+        ODD_RELEASE: ${{ inputs.odd_release }}
         GITHUB_TOKEN: ${{ inputs.token }}
     - name: Exit early if unchanged
       shell: bash
