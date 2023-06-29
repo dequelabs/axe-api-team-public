@@ -7,13 +7,15 @@ inputs:
 runs:
   using: "composite"
   steps:
+    # Note: Must have repo checked out to use this action
     - name: Exit early if release PR exists
       shell: bash
       run: |
         # -z returns true if the string is empty.
         # If no PRs are found, `gh pr list` will be empty.
         if [ ! -z "$(gh pr list --label release)" ]; then
-          echo "Odd numbered week. Skipping";
+          echo "Found release PR. Cancelling this workflow.";
+          gh pr list --label release;
           gh run cancel ${{ github.run_id }};
           gh run watch ${{ github.run_id }};
         fi
