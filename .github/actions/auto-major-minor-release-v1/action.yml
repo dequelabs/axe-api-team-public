@@ -27,7 +27,7 @@ runs:
     # gets called.
 
     - name: Cancel if we already have a PR
-      uses: dequelabs/axe-api-team-public/.github/actions/cancel-if-release-pr-exists
+      uses: dequelabs/axe-api-team-public/.github/actions/cancel-if-release-pr-exists@main
       with:
         token: ${{ inputs.token }}
 
