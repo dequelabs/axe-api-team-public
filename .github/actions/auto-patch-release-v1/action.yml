@@ -26,6 +26,10 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Cancel if we already have a PR
+      uses: dequelabs/axe-api-team-public/.github/actions/cancel-if-release-pr-exists
+      with:
+        token: ${{ inputs.project_token }}
     - name: Checkout repo
       uses: actions/checkout@v3
       with:
