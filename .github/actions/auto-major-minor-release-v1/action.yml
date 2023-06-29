@@ -1,6 +1,9 @@
 name: Automatically create patch release every 2 weeks
 description: Triggered on schedule by our integrations to patch release
 inputs:
+  axe-version:
+    required: true
+    type: string
   release-command:
     required: true
     type: string
@@ -31,6 +34,14 @@ runs:
       with:
         token: ${{ inputs.token }}
 
+    - name: Create axe-core update commit
+      shell: bash
+      run: |
+        git config user.name "API Team CI User"
+        git config user.email "aciattestteamci@deque.com"
+        git commit -am "feat: update axe-core to v$version"
+      env:
+        version: ${{ inputs.axe-version }}
     - name: Run preparation script
       shell: bash
       run: ${{ inputs.release-command }}
