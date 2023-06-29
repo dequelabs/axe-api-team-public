@@ -32,7 +32,7 @@ runs:
         token: ${{ inputs.token }}
         fetch-depth: 0
     - name: Cancel if we already have a PR
-      uses: dequelabs/axe-api-team-public/.github/actions/cancel-if-release-pr-exists
+      uses: dequelabs/axe-api-team-public/.github/actions/cancel-if-release-pr-exists@main
       with:
         token: ${{ inputs.token }}
     - name: Exit early if odd numbered week
