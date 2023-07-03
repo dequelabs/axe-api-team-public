@@ -39,7 +39,7 @@ runs:
       shell: bash
       run: |
         weekIsEven="$(expr $(date +%U) % 2)"
-        if [ "$ODD_RELEASE" = "true"]; then
+        if [ "$ODD_RELEASE" = "true" ]; then
           target_mod=1;
         else
           target_mod=0;
