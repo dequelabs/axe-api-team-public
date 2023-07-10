@@ -41,7 +41,9 @@ runs:
         echo or = $ODD_RELEASE
         which date
         date +%U
-        weekIsEven="$(expr $(date +%U) % 2)"
+        weekOfYear="$(date +%U)"
+        echo woy = $weekOfYear
+        weekIsEven="$(expr $weekOfYear % 2)"
         echo wie = $weekIsEven
         if [ "$ODD_RELEASE" = "true" ]; then
           target_mod=1;
