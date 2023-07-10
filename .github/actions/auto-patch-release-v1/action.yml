@@ -29,7 +29,7 @@ runs:
     - name: Checkout repo
       uses: actions/checkout@v3
       with:
-        ref: ${{ default-branch }}
+        ref: ${{ inputs.default-branch }}
         token: ${{ inputs.token }}
         fetch-depth: 0
     - name: Cancel if we already have a PR
