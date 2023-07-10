@@ -39,6 +39,8 @@ runs:
       shell: bash
       run: |
         echo or = $ODD_RELEASE
+        which date
+        date +%U
         weekIsEven="$(expr $(date +%U) % 2)"
         echo wie = $weekIsEven
         if [ "$ODD_RELEASE" = "true" ]; then
