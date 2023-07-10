@@ -38,17 +38,21 @@ runs:
     - name: Exit early if odd numbered week
       shell: bash
       run: |
+        echo or = $ODD_RELEASE
         weekIsEven="$(expr $(date +%U) % 2)"
+        echo wie = $weekIsEven
         if [ "$ODD_RELEASE" = "true" ]; then
           target_mod=1;
         else
           target_mod=0;
         fi
+        echo target_mod = $target_mod
         if [ "$weekIsEven" -eq "$target_mod" ]; then
           echo "Odd numbered week. Skipping";
           gh run cancel ${{ github.run_id }};
           gh run watch ${{ github.run_id }};
         fi
+        echo done
       env:
         ODD_RELEASE: ${{ inputs.odd_release }}
         GITHUB_TOKEN: ${{ inputs.token }}
