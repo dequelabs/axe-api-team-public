@@ -43,6 +43,8 @@ runs:
         date +%U
         weekOfYear="$(date +%U)"
         echo woy = $weekOfYear
+        expr $weekOfYear % 2
+        echo getting and storing even
         weekIsEven="$(expr $weekOfYear % 2)"
         echo wie = $weekIsEven
         if [ "$ODD_RELEASE" = "true" ]; then
