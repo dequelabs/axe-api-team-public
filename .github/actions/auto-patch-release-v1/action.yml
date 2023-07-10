@@ -45,7 +45,7 @@ runs:
         echo woy = $weekOfYear
         expr $weekOfYear % 2
         echo getting and storing even
-        weekIsEven="$(expr $weekOfYear % 2)"
+        weekIsEven="$(bash -c 'expr $weekOfYear % 2')"
         echo wie = $weekIsEven
         if [ "$ODD_RELEASE" = "true" ]; then
           target_mod=1;
