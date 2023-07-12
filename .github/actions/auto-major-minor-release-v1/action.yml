@@ -78,7 +78,7 @@ runs:
         token: ${{ inputs.project_token }}
         repo: docs-devtools-html
         assignees: enlarsen
-        title: "[TEST] ${{ github.event.repository.name }} v${{ steps.get-new-version.outputs.version }} Release Notes Needed"
+        title: "${{ github.event.repository.name }} v${{ steps.get-new-version.outputs.version }} Release Notes Needed"
         labels: release
         body: |
           Please create release notes for ${{ github.event.repository.name }}. Here are all changes since last release
@@ -92,7 +92,7 @@ runs:
       id: new-issue
       with:
         token: ${{ inputs.token }}
-        title: "[TEST] ${{ github.event.repository.name }} v${{ steps.get-new-version.outputs.version }} QA Needed"
+        title: "${{ github.event.repository.name }} v${{ steps.get-new-version.outputs.version }} QA Needed"
         labels: release
         body: |
           The develop branch of ${{ github.event.repository.name }} is ready for QA.
@@ -130,7 +130,7 @@ runs:
         SLACK_CHANNEL: api-team-releases
         SLACK_COLOR: ${{ job.status }} # or a specific color like 'good' or '#ff00ff'
         SLACK_MESSAGE: |
-          [TEST] The develop branch of ${{ github.event.repository.name }} is ready for QA.
+          The develop branch of ${{ github.event.repository.name }} is ready for QA.
           Issue: ${{ steps.issue-url.outputs.url }}
         SLACK_TITLE: "${{ github.event.repository.name }} v${{ steps.get-new-version.outputs.version }} QA Needed"
         SLACK_WEBHOOK: ${{ inputs.slack_webhook }}
@@ -157,7 +157,6 @@ runs:
       with:
         token: ${{ inputs.token }}
         branch: release
-        draft: true
         branch-suffix: timestamp
         base: ${{ inputs.release-branch }}
         labels: release
