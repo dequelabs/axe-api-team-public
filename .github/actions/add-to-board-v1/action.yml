@@ -10,6 +10,10 @@ inputs:
   project-number:
     description: '# id of project to add to. Its in the URL'
     required: true
+  column-name:
+    description: 'Name of column to add to'
+    required: false
+    default: 'Ready for QA'
 runs:
   using: "composite"
   steps:
@@ -18,6 +22,7 @@ runs:
       ISSUE_ID: ${{ inputs.issue-id }}
       GITHUB_TOKEN: ${{ inputs.token }}
       PROJECT_NUMBER: ${{ inputs.project-number }}
+      COLUMN_NAME: ${{ inputs.column-name }}
     shell: bash
     run: |
       set -e
@@ -49,7 +54,7 @@ runs:
       }' -f org=dequelabs -F number=$PROJECT_NUMBER)"
       PROJECT_ID=$(echo "$projectJson" | jq '.data.organization.projectV2.id')
       STATUS_FIELD_ID=$(echo "$projectJson" | jq '.data.organization.projectV2.fields.nodes[] | select(.name== "Status") | .id')
-      READY_FOR_QA_OPTION_ID=$(echo "$projectJson" | jq -r '.data.organization.projectV2.fields.nodes[] | select(.name== "Status") | .options[] | select(.name=="Ready for QA") |.id')
+      READY_FOR_QA_OPTION_ID=$(echo "$projectJson" | jq -r '.data.organization.projectV2.fields.nodes[] | select(.name== "Status") | .options[] | select(.name=="$COLUMN_NAME") |.id')
       echo project id = $PROJECT_ID
       echo status field id = $STATUS_FIELD_ID
       echo option id = $READY_FOR_QA_OPTION_ID
