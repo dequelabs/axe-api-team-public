@@ -56,7 +56,7 @@ runs:
       env:
         json: ${{  steps.new-issue.outputs.json  }}
     - name: Move to board
-      uses: dequelabs/axe-api-team-public/.github/actions/add-to-board-v1@main
+      uses: dequelabs/axe-api-team-public/.github/actions/add-to-board-v1@test1
       with:
         token: ${{ inputs.project_token }}
         issue-id: ${{ steps.issue-id.outputs.id }}
