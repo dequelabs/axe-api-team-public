@@ -26,6 +26,7 @@ runs:
     shell: bash
     run: |
       set -e
+      echo "col name = '$COLUMN_NAME'"
 
       # Get information about our project. IDs of various components of it.
       projectJson="$(gh api graphql -f query='
