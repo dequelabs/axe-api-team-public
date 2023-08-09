@@ -59,6 +59,7 @@ runs:
       echo project id = $PROJECT_ID
       echo status field id = $STATUS_FIELD_ID
       echo option id = $READY_FOR_QA_OPTION_ID
+      echo $(echo "$projectJson" | jq -r '.data.organization.projectV2.fields.nodes[] | select(.name== "Status") | .options[]')
 
 
       echo ''
