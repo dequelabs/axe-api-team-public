@@ -22,6 +22,10 @@ inputs:
   slack_webhook:
     required: true
     type: string
+  skip_checks:
+    required: false
+    type: string
+    default: "false"
 runs:
   using: "composite"
   steps:
@@ -30,6 +34,7 @@ runs:
     # gets called.
 
     - name: Cancel if we already have a PR
+      if: ${{ inputs.skip_checks }} == "false"
       uses: dequelabs/axe-api-team-public/.github/actions/cancel-if-release-pr-exists@main
       with:
         token: ${{ inputs.token }}
