@@ -22,7 +22,11 @@ inputs:
   odd_release:
     required: false
     type: string
-    default: 'false'
+    default: "false"
+  skip_checks:
+    required: false
+    type: string
+    default: "false"
 runs:
   using: "composite"
   steps:
@@ -33,10 +37,12 @@ runs:
         token: ${{ inputs.token }}
         fetch-depth: 0
     - name: Cancel if we already have a PR
+      if: ${{ inputs.skip_checks }} == "false"
       uses: dequelabs/axe-api-team-public/.github/actions/cancel-if-release-pr-exists@main
       with:
         token: ${{ inputs.token }}
     - name: Exit early if odd numbered week
+      if: ${{ inputs.skip_checks }} == "false"
       shell: bash
       run: |
         weekOfYear="$(date +%U)"
@@ -55,6 +61,7 @@ runs:
         ODD_RELEASE: ${{ inputs.odd_release }}
         GITHUB_TOKEN: ${{ inputs.token }}
     - name: Exit early if unchanged
+      if: ${{ inputs.skip_checks }} == "false"
       shell: bash
       run: |
         if [[ "$(git diff --name-only "origin/$RELEASE_BRANCH" "origin/$DEFAULT_BRANCH")" ]]; then
