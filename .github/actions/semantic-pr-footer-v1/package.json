@@ -18,5 +18,24 @@
     "coverage": "nyc npm run test",
     "fmt": "prettier --write \"src/**/*.{js,ts,tsx,json,md,css,html}\"",
     "lint": "eslint \"src/**/*.{js,ts,tsx}\""
+  },
+  "nyc": {
+    "checkCoverage": true,
+    "extension": [
+      ".ts"
+    ],
+    "reporter": [
+      "text-summary",
+      "html"
+    ],
+    "statements": 100,
+    "branches": 100,
+    "functions": 100,
+    "lines": 100,
+    "exclude": [
+      "dist",
+      "coverage",
+      "**/*.test.ts"
+    ]
   }
 }
