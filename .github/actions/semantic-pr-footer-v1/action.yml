@@ -1,5 +1,5 @@
 name: 'Semantic PR Footer'
 description: 'Validate pull request footer against Conventional Commits'
 runs:
-  using: 'node16'
+  using: 'node20'
   main: 'dist/index.js'
