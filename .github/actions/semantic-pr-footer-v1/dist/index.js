@@ -9636,56 +9636,33 @@ function wrappy (fn, cb) {
 
 "use strict";
 
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const core = __importStar(__nccwpck_require__(2481));
-const github = __importStar(__nccwpck_require__(707));
+const core_1 = __importDefault(__nccwpck_require__(2481));
+const github_1 = __importDefault(__nccwpck_require__(707));
 const is_valid_footer_1 = __importDefault(__nccwpck_require__(1093));
-function main() {
+async function main() {
     try {
-        const body = github.context.payload &&
-            github.context.payload.pull_request &&
-            github.context.payload.pull_request.body;
+        const body = github_1.default.context.payload &&
+            github_1.default.context.payload.pull_request &&
+            github_1.default.context.payload.pull_request.body;
         if (!body) {
-            core.setFailed('PR does not have a body');
+            core_1.default.setFailed('PR does not have a body');
             return;
         }
         const bodyLines = body.split(/[\r\n]+/);
         const footer = bodyLines[bodyLines.length - 1];
-        core.info(`Validating PR footer: "${footer}"`);
+        core_1.default.info(`Validating PR footer: "${footer}"`);
         if (!(0, is_valid_footer_1.default)(footer)) {
-            core.setFailed('PR footer does not close an issue (`Closes: `), references an issue (`Ref: ` or `Refs: `), provides QA notes (`QA notes: `), or states that no QA is needed (`No QA needed` or `No QA required`)');
+            core_1.default.setFailed('PR footer does not close an issue (`Closes: `), reference an issue (`Ref: ` or `Refs: `), provide QA notes (`QA notes: `), or state that no QA is needed (`No QA needed` or `No QA required`)');
             return;
         }
-        core.info('Footer matches team policy');
+        core_1.default.info('Footer matches team policy');
     }
     catch (error) {
-        core.setFailed(error.message);
+        core_1.default.setFailed(error.message);
     }
 }
 main();
