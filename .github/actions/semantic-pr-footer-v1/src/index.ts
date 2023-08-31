@@ -1,5 +1,5 @@
-import * as core from '@actions/core'
-import * as github from '@actions/github'
+import core from '@actions/core'
+import github from '@actions/github'
 import isValidFooter from './is-valid-footer'
 
 async function main() {
@@ -21,7 +21,7 @@ async function main() {
 
     if (!isValidFooter(footer)) {
       core.setFailed(
-        'PR footer does not close an issue (`Closes: `), references an issue (`Ref: ` or `Refs: `), provides QA notes (`QA notes: `), or states that no QA is needed (`No QA needed` or `No QA required`)'
+        'PR footer does not close an issue (`Closes: `), reference an issue (`Ref: ` or `Refs: `), provide QA notes (`QA notes: `), or state that no QA is needed (`No QA needed` or `No QA required`)'
       )
       return
     }
