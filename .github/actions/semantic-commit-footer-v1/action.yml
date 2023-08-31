@@ -1,0 +1,5 @@
+name: 'Semantic Commit Footer'
+description: 'Validate pull request footer against Conventional Commits'
+runs:
+  using: 'node16'
+  main: 'dist/index.js'
