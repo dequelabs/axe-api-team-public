@@ -2,8 +2,24 @@ import * as core from '@actions/core'
 import * as github from '@actions/github'
 import isValidFooter from './is-valid-footer'
 
-function main() {
+async function main() {
   try {
+    core.info(`checking is user is a member of the team: "${github.context.actor}"`)
+
+    const result = await github.rest.teams.getMembershipForUserInOrg({
+      org: context.repo.owner,
+      team_slug: 'axe-api-team',
+      username: github.context.actor
+    })
+
+    console.log({result})
+
+    // pr creator is not part of our team so don't require a semantic pr footer
+    if (!result) {
+      core.info('User is not a member of the team')
+      return
+    }
+
     const body: string | undefined =
       github.context.payload &&
       github.context.payload.pull_request &&
