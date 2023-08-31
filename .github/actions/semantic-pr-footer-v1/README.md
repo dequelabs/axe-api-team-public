@@ -19,5 +19,5 @@ jobs:
   semantic-pr-footer:
     runs-on: ubuntu-latest
     steps:
-      - uses: dequelabs/axe-api-team-public/.github/actions/semantic-commit-footer-v1@main
+      - uses: dequelabs/axe-api-team-public/.github/actions/semantic-pr-footer-v1@main
 ```
