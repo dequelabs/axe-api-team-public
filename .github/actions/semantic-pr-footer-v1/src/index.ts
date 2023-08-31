@@ -9,7 +9,6 @@ function main() {
       github.context.payload.pull_request &&
       github.context.payload.pull_request.body
 
-    // not sure how this would happen but better safe than sorry
     if (!body) {
       core.setFailed('PR does not have a body')
       return
@@ -24,9 +23,10 @@ function main() {
       core.setFailed(
         'PR footer does not close an issue (`Closes: `), references an issue (`Ref: ` or `Refs: `), provides QA notes (`QA notes: `), or states that no QA is needed (`No QA needed` or `No QA required`)'
       )
+      return
     }
 
-    console.log('Footer matches team policy')
+    core.info('Footer matches team policy')
   } catch (error) {
     core.setFailed((error as Error).message)
   }
