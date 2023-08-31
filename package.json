@@ -2,9 +2,6 @@
   "name": "axe-api-team-public",
   "version": "1.0.0",
   "description": "Shared configuration, settings, and actions for the Axe API Team",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dequelabs/axe-api-team-public.git"
@@ -14,5 +11,36 @@
   "bugs": {
     "url": "https://github.com/dequelabs/axe-api-team-public/issues"
   },
-  "homepage": "https://github.com/dequelabs/axe-api-team-public#readme"
+  "homepage": "https://github.com/dequelabs/axe-api-team-public#readme",
+  "scripts": {
+    "test": "mocha .github/actions/**/*.test.ts",
+    "coverage": "nyc npm run test",
+    "fmt": "prettier --write \".github/actions/**/*.{js,ts,tsx,json,md,css,html}\"",
+    "lint": "eslint \".github/actions/**/*.{js,ts,tsx}\"",
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.3.4",
+    "@types/mocha": "^10.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.43.0",
+    "@typescript-eslint/parser": "^5.43.0",
+    "chai": "^4.3.7",
+    "eslint": "^8.27.0",
+    "husky": "^8.0.2",
+    "lint-staged": "^13.0.3",
+    "mocha": "^10.1.0",
+    "nyc": "^15.1.0",
+    "prettier": "^2.7.1",
+    "ts-node": "^10.9.1",
+    "typescript": "4.8"
+  },
+  "lint-staged": {
+    "*.{md,json,js,ts,html}": [
+      "prettier --write"
+    ],
+    "*.{js,ts}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  }
 }
