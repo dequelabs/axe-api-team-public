@@ -9680,8 +9680,9 @@ function main() {
         core.info(`Validating PR footer: "${footer}"`);
         if (!(0, is_valid_footer_1.default)(footer)) {
             core.setFailed('PR footer does not close an issue (`Closes: `), references an issue (`Ref: ` or `Refs: `), provides QA notes (`QA notes: `), or states that no QA is needed (`No QA needed` or `No QA required`)');
+            return;
         }
-        console.log('Footer matches team policy');
+        core.info('Footer matches team policy');
     }
     catch (error) {
         core.setFailed(error.message);

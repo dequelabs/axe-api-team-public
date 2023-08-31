@@ -18,6 +18,5 @@
     "resolveJsonModule": true,
     "removeComments": true
   },
-  "exclude": ["**/*.test.ts", "**/test/**/*.ts"],
-  "include": ["./github/actions/**"]
+  "exclude": ["**/*.test.ts", "**/test/**/*.ts"]
 }
