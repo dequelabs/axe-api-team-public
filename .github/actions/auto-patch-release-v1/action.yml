@@ -4,6 +4,11 @@ inputs:
   release-command:
     required: true
     type: string
+  # A JSON file with a top-level key "version"
+  version-json:
+    required: "false"
+    type: string
+    default: "package.json"
   release-branch:
     required: true
     type: string
@@ -83,7 +88,9 @@ runs:
     - name: Get version for later steps
       id: get-new-version
       shell: bash
-      run: echo version=$(node -pe 'require("./package.json").version') >> "$GITHUB_OUTPUT"
+      run: echo version=$(node -pe "require('./$JSON_FILE').version") >> "$GITHUB_OUTPUT"
+      env:
+        JSON_FILE: ${{ inputs.version-json }}
 
     - name: Generate commit list
       id: commit-list
