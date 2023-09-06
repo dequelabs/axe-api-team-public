@@ -1,0 +1,12 @@
+name: 'Check Release Week'
+description: 'Determine if release should continue to run or stop'
+inputs:
+  oddWeek:
+    description: 'True if the action should run on odd weeks, False if the action should run on even'
+    required: true
+outputs:
+  isReleaseWeek:
+    description: 'True if the week of year matches the `oddWeek` input, False otherwise'
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
