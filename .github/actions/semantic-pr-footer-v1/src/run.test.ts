@@ -2,12 +2,12 @@ import sinon from 'sinon';
 import { assert } from 'chai'
 import run, { type Core, type PayLoad } from './run'
 
-describe.only('run', () => {
+describe('run', () => {
   afterEach(() => {
     sinon.restore()
   })
 
-  it('should set failure if pr does not have body', () => {
+  it('fails if pr does not have body', () => {
     const core = {
       setFailed: sinon.spy()
     }
@@ -17,56 +17,62 @@ describe.only('run', () => {
     assert.isTrue(core.setFailed.calledWith('PR does not have a body'))
   })
 
-  // it('should set failure if pr has empty body', () => {
-  //   const core = {
-  //     setFailed: sinon.spy()
-  //   }
-  //   const payload: PayLoad = {
-  //     pull_request: {
-  //       body: ''
-  //     }
-  //   }
-  //   run(core as unknown as CoreType, payload)
+  it('fails if pr has empty body', () => {
+    const core = {
+      setFailed: sinon.spy()
+    }
+    const payload: PayLoad = {
+      pull_request: {
+        body: ''
+      }
+    }
+    run(core as unknown as Core, payload)
 
-  //   assert.isTrue(core.setFailed.calledOnce)
-  //   assert.isTrue(core.setFailed.calledWith('PR does not have a body'))
-  // })
+    assert.isTrue(core.setFailed.calledOnce)
+    assert.isTrue(core.setFailed.calledWith('PR does not have a body'))
+  })
 
-  // it('should log pr footer', () => {
-  //   const spy = sinon.spy(core, 'info')
-  //   sinon.stub(github.context, 'payload').value({
-  //     pull_request: {
-  //       body: 'closes: #1'
-  //     }
-  //   })
-  //   run()
+  it('logs the pr footer', () => {
+    const core = {
+      info: sinon.spy()
+    }
+    const payload: PayLoad = {
+      pull_request: {
+        body: 'This pr does some things.\n\ncloses: #1'
+      }
+    }
+    run(core as unknown as Core, payload)
 
-  //   assert.isTrue(spy.calledWith('Validating PR footer: "closes: #1"'))
-  // })
+    assert.isTrue(core.info.calledWith('Validating PR footer: "closes: #1"'))
+  })
 
-  // it('should pass if pr footer is valid', () => {
-  //   const spy = sinon.spy(core, 'info')
-  //   sinon.stub(github.context, 'payload').value({
-  //     pull_request: {
-  //       body: 'closes: #1'
-  //     }
-  //   })
-  //   const result = run()
+  it('passes if pr footer is valid', () => {
+    const core = {
+      info: sinon.spy()
+    }
+    const payload: PayLoad = {
+      pull_request: {
+        body: 'closes: #1'
+      }
+    }
+    run(core as unknown as Core, payload)
 
-  //   assert.isTrue(spy.calledWith('Footer matches team policy'))
-  //   assert.isUndefined(result)
-  // })
+    assert.isTrue(core.info.calledWith('Footer matches team policy'))
+  })
 
-  // it('should set failure if pr footer is not valid', () => {
-  //   const spy = sinon.spy(core, 'setFailed')
-  //   sinon.stub(github.context, 'payload').value({
-  //     pull_request: {
-  //       body: 'nothing to report'
-  //     }
-  //   })
-  //   const result = run()
+  it('fails if pr footer is not valid', () => {
+    const core = {
+      setFailed: sinon.spy(),
+      info: sinon.spy()
+    }
+    const payload: PayLoad = {
+      pull_request: {
+        body: 'nothing to close'
+      }
+    }
+    run(core as Core, payload)
 
-  //   assert.isTrue(spy.calledWithMatch(sinon.match('PR footer does not close an issue')))
-  //   assert.equal(result, 2)
-  // })
+    assert.isTrue(core.setFailed.calledOnce)
+    assert.isTrue(core.setFailed.calledWith(sinon.match('PR footer does not close an issue')))
+  })
 })
