@@ -1,6 +1,5 @@
 export function getWeekNumber(date: Date): number {
-  const firstDayOfYear: Date = new Date(date.getTime())
-  firstDayOfYear.setMonth(0, 1)
+  const firstDayOfYear: Date = new Date(date.getFullYear(), 0, 1)
   const dayOfYear =
     Math.floor(
       (date.getTime() - firstDayOfYear.getTime()) / (24 * 60 * 60 * 1000)

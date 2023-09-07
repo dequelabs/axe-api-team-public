@@ -17,13 +17,13 @@ describe('is-release-week-v1 utils', () => {
         assert.isTrue(isReleaseWeek(35, true))
       })
 
-      it('returns true if oddWeek is false', () => {
+      it('returns false if oddWeek is false', () => {
         assert.isFalse(isReleaseWeek(35, false))
       })
     })
 
     describe('when current week is even week', () => {
-      it('returns true if oddWeek is true', () => {
+      it('returns false if oddWeek is true', () => {
         assert.isFalse(isReleaseWeek(36, true))
       })
 

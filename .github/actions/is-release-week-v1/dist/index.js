@@ -2735,9 +2735,14 @@ const core_1 = __importDefault(__nccwpck_require__(481));
 const utils_1 = __nccwpck_require__(463);
 async function main() {
     try {
-        const oddWeek = core_1.default.getInput('oddWeek').toLocaleLowerCase() === 'true';
+        const oddWeek = core_1.default.getInput('oddWeek', { required: true }).toLowerCase();
+        if (!['true', 'false'].includes(oddWeek)) {
+            core_1.default.setFailed('`oddWeek` must be "true" or "false"');
+            return;
+        }
+        const isOddWeek = oddWeek === 'true';
         const weekNumber = (0, utils_1.getWeekNumber)(new Date());
-        core_1.default.setOutput('isReleaseWeek', (0, utils_1.isReleaseWeek)(weekNumber, oddWeek));
+        core_1.default.setOutput('isReleaseWeek', (0, utils_1.isReleaseWeek)(weekNumber, isOddWeek));
         core_1.default.info('Set isReleaseWeek output');
     }
     catch (error) {
@@ -2757,11 +2762,9 @@ main();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.isReleaseWeek = exports.getWeekNumber = void 0;
 function getWeekNumber(date) {
-    const firstDayOfYear = new Date(date.getTime());
-    firstDayOfYear.setMonth(0, 1);
-    const dayOfYear = Math.floor((date.getTime() - firstDayOfYear.getTime()) / (24 * 60 * 60 * 1000)) + 1;
-    const weekNumber = Math.ceil((firstDayOfYear.getDay() + dayOfYear) / 7);
-    return weekNumber;
+    const onejan = new Date(date.getFullYear(), 0, 1);
+    const week = Math.ceil(((date.getTime() - onejan.getTime()) / 86400000 + onejan.getDay() + 1) / 7);
+    return week;
 }
 exports.getWeekNumber = getWeekNumber;
 function isReleaseWeek(weekNumber, oddWeek) {

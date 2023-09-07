@@ -3,6 +3,7 @@ description: 'Determine if release should continue to run or stop'
 inputs:
   oddWeek:
     description: 'True if the action should run on odd weeks, False if the action should run on even'
+    default: 'false'
     required: true
 outputs:
   isReleaseWeek:

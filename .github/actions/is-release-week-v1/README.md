@@ -4,15 +4,15 @@ A GitHub Action to determine if release should continue to run or stop.
 
 ## Inputs
 
-### `oddWeek`
-
-**Required** `true` if the action should run on odd weeks, `false` if the action should run on even
+| Name      | Required | Description                                                                            | Default |
+| --------- | -------- | -------------------------------------------------------------------------------------- | ------- |
+| `oddWeek` | yes      | `true` if the action should run on odd weeks, `false` if the action should run on even | `false` |
 
 ## Outputs
 
-### `isReleaseWeek`
-
-`true` if the week of year matches the `oddWeek` input, `false` otherwise
+| Name            | Description                                            | Default |
+| --------------- | ------------------------------------------------------ | ------- |
+| `isReleaseWeek` | `true` if the week of year matches the `oddWeek` input | false   |
 
 ## Example usage
 
