@@ -79,4 +79,20 @@ describe('run', () => {
     assert.isTrue(core.setFailed.calledOnce)
     assert.isTrue(core.setFailed.calledWith(sinon.match('PR footer does not close an issue')))
   })
+
+  it('fails if anything throws', () => {
+    const core = {
+      setFailed: sinon.spy(),
+      info() { throw new Error('failure!') }
+    }
+    const payload = {
+      pull_request: {
+        number: 1,
+        body: 'nothing to close'
+      }
+    }
+    run(core as unknown as Core, payload)
+
+    assert.isTrue(core.setFailed.calledWith('failure!'))
+  })
 })
