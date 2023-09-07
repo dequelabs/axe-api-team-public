@@ -6,7 +6,7 @@
     "declaration": true,
     "outDir": "dist",
     "rootDir": "src",
-    "noImplicitReturns": false,
+    "noImplicitReturns": true,
     "esModuleInterop": true,
     "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
@@ -16,7 +16,7 @@
     "sourceMap": true,
     "noImplicitAny": true,
     "resolveJsonModule": true,
-    "removeComments": true,
+    "removeComments": true
   },
   "exclude": ["**/*.test.ts", "**/test/**/*.ts"]
 }

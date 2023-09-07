@@ -1,6 +1,6 @@
 import sinon from 'sinon';
 import { assert } from 'chai'
-import run, { type Core, type PayLoad } from './run'
+import run, { type Core } from './run'
 
 describe('run', () => {
   afterEach(() => {
@@ -21,8 +21,9 @@ describe('run', () => {
     const core = {
       setFailed: sinon.spy()
     }
-    const payload: PayLoad = {
+    const payload = {
       pull_request: {
+        number: 1,
         body: ''
       }
     }
@@ -36,8 +37,9 @@ describe('run', () => {
     const core = {
       info: sinon.spy()
     }
-    const payload: PayLoad = {
+    const payload = {
       pull_request: {
+        number: 1,
         body: 'This pr does some things.\n\ncloses: #1'
       }
     }
@@ -50,8 +52,9 @@ describe('run', () => {
     const core = {
       info: sinon.spy()
     }
-    const payload: PayLoad = {
+    const payload = {
       pull_request: {
+        number: 1,
         body: 'closes: #1'
       }
     }
@@ -65,8 +68,9 @@ describe('run', () => {
       setFailed: sinon.spy(),
       info: sinon.spy()
     }
-    const payload: PayLoad = {
+    const payload = {
       pull_request: {
+        number: 1,
         body: 'nothing to close'
       }
     }

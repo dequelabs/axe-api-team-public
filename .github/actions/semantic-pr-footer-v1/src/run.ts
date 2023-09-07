@@ -1,16 +1,12 @@
 import type core from '@actions/core'
+import type github from '@actions/github'
 import isValidFooter from './is-valid-footer'
 
 export type Core = Pick<typeof core, 'setFailed' | 'info'>
-export type PayLoad = {
-  pull_request: {
-    body: string
-  }
-}
 
 export default function run(
   core: Core,
-  payload?: PayLoad
+  payload?: typeof github.context.payload
 ) {
   try {
     const body: string | undefined =

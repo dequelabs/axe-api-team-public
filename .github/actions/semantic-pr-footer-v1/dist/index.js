@@ -9642,30 +9642,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core_1 = __importDefault(__nccwpck_require__(2481));
 const github_1 = __importDefault(__nccwpck_require__(707));
-const is_valid_footer_1 = __importDefault(__nccwpck_require__(1093));
-async function main() {
-    try {
-        const body = github_1.default.context.payload &&
-            github_1.default.context.payload.pull_request &&
-            github_1.default.context.payload.pull_request.body;
-        if (!body) {
-            core_1.default.setFailed('PR does not have a body');
-            return;
-        }
-        const bodyLines = body.split(/[\r\n]+/);
-        const footer = bodyLines[bodyLines.length - 1];
-        core_1.default.info(`Validating PR footer: "${footer}"`);
-        if (!(0, is_valid_footer_1.default)(footer)) {
-            core_1.default.setFailed('PR footer does not close an issue (`Closes: `), reference an issue (`Ref: ` or `Refs: `), provide QA notes (`QA notes: `), or state that no QA is needed (`No QA needed` or `No QA required`)');
-            return;
-        }
-        core_1.default.info('Footer matches team policy');
-    }
-    catch (error) {
-        core_1.default.setFailed(error.message);
-    }
-}
-main();
+const run_1 = __importDefault(__nccwpck_require__(1738));
+(0, run_1.default)(core_1.default, github_1.default.context.payload);
 
 
 /***/ }),
@@ -9686,6 +9664,43 @@ function isValidFooter(footer) {
         footer.startsWith('no qa needed'));
 }
 exports["default"] = isValidFooter;
+
+
+/***/ }),
+
+/***/ 1738:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const is_valid_footer_1 = __importDefault(__nccwpck_require__(1093));
+function run(core, payload) {
+    try {
+        const body = payload &&
+            payload.pull_request &&
+            payload.pull_request.body;
+        if (!body) {
+            core.setFailed('PR does not have a body');
+            return;
+        }
+        const bodyLines = body.split(/[\r\n]+/);
+        const footer = bodyLines[bodyLines.length - 1];
+        core.info(`Validating PR footer: "${footer}"`);
+        if (!(0, is_valid_footer_1.default)(footer)) {
+            core.setFailed('PR footer does not close an issue (`Closes: `), reference an issue (`Ref: ` or `Refs: `), provide QA notes (`QA notes: `), or state that no QA is needed (`No QA needed` or `No QA required`)');
+            return;
+        }
+        core.info('Footer matches team policy');
+    }
+    catch (error) {
+        core.setFailed(error.message);
+    }
+}
+exports["default"] = run;
 
 
 /***/ }),
