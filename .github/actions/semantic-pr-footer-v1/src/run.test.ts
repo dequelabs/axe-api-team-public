@@ -74,7 +74,7 @@ describe('run', () => {
         body: 'nothing to close'
       }
     }
-    run(core as Core, payload)
+    run(core, payload)
 
     assert.isTrue(core.setFailed.calledOnce)
     assert.isTrue(core.setFailed.calledWith(sinon.match('PR footer does not close an issue')))
@@ -91,7 +91,7 @@ describe('run', () => {
         body: 'nothing to close'
       }
     }
-    run(core as unknown as Core, payload)
+    run(core, payload)
 
     assert.isTrue(core.setFailed.calledWith('failure!'))
   })
