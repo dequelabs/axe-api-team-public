@@ -3,32 +3,49 @@ import { getWeekNumber, isReleaseWeek } from './utils'
 
 describe('is-release-week-v1 utils', () => {
   describe('getWeekNumber()', () => {
+    const testCases = [
+      { input: new Date(2023, 0, 1), output: 1 },
+      { input: new Date(2023, 0, 7), output: 1 },
+      { input: new Date(2023, 0, 8), output: 2 },
+      { input: new Date(2023, 8, 6), output: 36 }
+    ]
+
     it('returns week number of date correctly', () => {
-      assert.equal(getWeekNumber(new Date(2023, 0, 1)), 1)
-      assert.equal(getWeekNumber(new Date(2023, 0, 7)), 1)
-      assert.equal(getWeekNumber(new Date(2023, 0, 8)), 2)
-      assert.equal(getWeekNumber(new Date(2023, 8, 6)), 36)
+      testCases.map(({ input, output }) => {
+        assert.equal(getWeekNumber(input), output)
+      })
     })
   })
 
   describe('isReleaseWeek()', () => {
-    describe('when current week is odd week', () => {
-      it('returns true if oddWeek is true', () => {
-        assert.isTrue(isReleaseWeek(35, true))
-      })
+    const testCases = [
+      {
+        weekType: 'odd',
+        weekNumber: 35,
+        cases: [
+          { input: true, output: true },
+          { input: false, output: false }
+        ]
+      },
+      {
+        weekType: 'even',
+        weekNumber: 36,
+        cases: [
+          { input: true, output: false },
+          { input: false, output: true }
+        ]
+      }
+    ]
 
-      it('returns false if oddWeek is false', () => {
-        assert.isFalse(isReleaseWeek(35, false))
-      })
-    })
-
-    describe('when current week is even week', () => {
-      it('returns false if oddWeek is true', () => {
-        assert.isFalse(isReleaseWeek(36, true))
-      })
-
-      it('returns true if oddWeek is false', () => {
-        assert.isTrue(isReleaseWeek(36, false))
+    testCases.map(({ weekType, weekNumber, cases }) => {
+      describe(`when it is the ${weekType} week`, () => {
+        cases.map(({ input, output }) => {
+          describe(`when oddWeek is ${input}`, () => {
+            it(`returns ${output}`, () => {
+              assert.equal(isReleaseWeek(weekNumber, input), output)
+            })
+          })
+        })
       })
     })
   })

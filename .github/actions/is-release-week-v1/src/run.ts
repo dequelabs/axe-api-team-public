@@ -8,9 +8,9 @@ export type Core = Pick<
 
 export default function run(core: Core) {
   try {
-    const oddWeek = core.getInput('oddWeek', { required: true })
+    const oddWeek = core.getInput('oddWeek', { required: true }).toLowerCase()
 
-    if (!oddWeek || !['true', 'false'].includes(oddWeek.toLowerCase())) {
+    if (!['true', 'false'].includes(oddWeek)) {
       core.setFailed('`oddWeek` must be "true" or "false"')
       return
     }
