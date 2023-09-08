@@ -4,10 +4,10 @@ import { getWeekNumber, isReleaseWeek } from './utils'
 describe('is-release-week-v1 utils', () => {
   describe('getWeekNumber()', () => {
     it('returns week number of date correctly', () => {
-      assert.isTrue(getWeekNumber(new Date(2023, 0, 1)) === 1)
-      assert.isTrue(getWeekNumber(new Date(2023, 0, 7)) === 1)
-      assert.isTrue(getWeekNumber(new Date(2023, 0, 8)) === 2)
-      assert.isTrue(getWeekNumber(new Date(2023, 8, 6)) === 36)
+      assert.equal(getWeekNumber(new Date(2023, 0, 1)), 1)
+      assert.equal(getWeekNumber(new Date(2023, 0, 7)), 1)
+      assert.equal(getWeekNumber(new Date(2023, 0, 8)), 2)
+      assert.equal(getWeekNumber(new Date(2023, 8, 6)), 36)
     })
   })
 
