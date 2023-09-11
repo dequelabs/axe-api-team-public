@@ -32,7 +32,7 @@ describe('run', () => {
     const core = {
       getInput: sinon
         .stub()
-        .withArgs('oddWeek', { requied: true })
+        .withArgs('oddWeek', { required: true })
         .throws({ message: 'oddWeek input is not given' }),
       setFailed: sinon.spy()
     }
@@ -43,7 +43,10 @@ describe('run', () => {
 
   it('fails if oddWeek is not either true or false', () => {
     const core = {
-      getInput: sinon.stub().withArgs('oddWeek').returns('1'),
+      getInput: sinon
+        .stub()
+        .withArgs('oddWeek', { required: true })
+        .returns('1'),
       setFailed: sinon.spy()
     }
 
@@ -69,7 +72,7 @@ describe('run', () => {
             const core = {
               getInput: sinon
                 .stub()
-                .withArgs('oddWeek')
+                .withArgs('oddWeek', { required: true })
                 .returns(oddWeek.toString()),
               setOutput: sinon.spy(),
               info: sinon.spy()

@@ -10,9 +10,9 @@ A GitHub Action to determine if release should continue to run or stop.
 
 ## Outputs
 
-| Name            | Description                                            | Default |
-| --------------- | ------------------------------------------------------ | ------- |
-| `isReleaseWeek` | `true` if the week of year matches the `oddWeek` input | `false` |
+| Name            | Description                                            |
+| --------------- | ------------------------------------------------------ |
+| `isReleaseWeek` | `true` if the week of year matches the `oddWeek` input |
 
 ## Example usage
 
