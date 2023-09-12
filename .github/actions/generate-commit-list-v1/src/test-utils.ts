@@ -18,7 +18,7 @@ export const expectedRawCommitList = [
 ]
 
 export const rawRepositoryURL =
-  'https://github.com/dequelabs/axe-api-team-public'
+  'https://github.com/dequelabs/axe-api-team-public.git'
 
 export const expectedRepositoryURL =
   'https://github.com/dequelabs/axe-api-team-public'
