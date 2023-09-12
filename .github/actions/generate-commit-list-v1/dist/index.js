@@ -4126,6 +4126,7 @@ async function run(core) {
     try {
         const base = core.getInput('base', { required: true });
         const head = core.getInput('head', { required: true });
+        core.info(`Received base: ${base} and head: ${head}...`);
         const [doesBaseExist, doesHeadExist] = await Promise.all([
             (0, doesBranchExist_1.default)(base),
             (0, doesBranchExist_1.default)(head)

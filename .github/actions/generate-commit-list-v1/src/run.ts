@@ -9,6 +9,8 @@ export default async function run(core: Core) {
     const base = core.getInput('base', { required: true })
     const head = core.getInput('head', { required: true })
 
+    core.info(`Received base: ${base} and head: ${head}...`)
+
     const [doesBaseExist, doesHeadExist] = await Promise.all([
       doesBranchExist(base),
       doesBranchExist(head)
