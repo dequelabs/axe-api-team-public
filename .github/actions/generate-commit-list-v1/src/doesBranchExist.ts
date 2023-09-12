@@ -10,7 +10,11 @@ export default async function doesBranchExist(
   branchName: string
 ): Promise<boolean> {
   try {
-    await getExecOutput('git', ['rev-parse', '--verify', branchName])
+    await getExecOutput('git', [
+      'rev-parse',
+      '--verify',
+      `origin/${branchName}`
+    ])
     return true
   } catch (error) {
     /**

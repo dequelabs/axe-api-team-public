@@ -3962,7 +3962,11 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const exec_1 = __nccwpck_require__(1518);
 async function doesBranchExist(branchName) {
     try {
-        await (0, exec_1.getExecOutput)('git', ['rev-parse', '--verify', branchName]);
+        await (0, exec_1.getExecOutput)('git', [
+            'rev-parse',
+            '--verify',
+            `origin/${branchName}`
+        ]);
         return true;
     }
     catch (error) {
