@@ -22,6 +22,7 @@ export default function getParsedCommitList({
      */
     const regex = /([a-z0-9]{1,8}) (.*) \((#[0-9]*)\)/
     const commitMatches = commit.match(regex)
+    //eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const [, sha, title, id] = commitMatches!
     const idParsed = id.replace('#', '')
     const type = getCommitType(title)
