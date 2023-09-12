@@ -21,6 +21,16 @@ export default function getCommitType(title: string) {
   ] as const
 
   const commitTypeRegex = new RegExp(`^(${validCommitTypes.join('|')})`)
+  const commitType = title.match(commitTypeRegex)
 
-  return title.match(commitTypeRegex)![0]
+  // Unlikely, as we do not accept pull requests with commit titles that do not start with a valid commit type
+  if (!commitType) {
+    throw new Error(
+      `Unable to get commit type from title "${title}". Please make sure your commit title starts with one of the following: ${validCommitTypes.join(
+        ', '
+      )}`
+    )
+  }
+
+  return commitType[0]
 }

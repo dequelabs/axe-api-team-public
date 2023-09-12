@@ -15,7 +15,7 @@ export default async function getRepositoryURL(): Promise<string> {
     ])
 
     // remove .git from the end of the URL
-    return repositoryURL.replace(/\.git$/, '')
+    return repositoryURL.trim().replace(/\.git$/, '')
   } catch (error) {
     throw new Error(
       `Unable to get repository URL: \n${(error as Error).message}`

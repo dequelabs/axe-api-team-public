@@ -8,20 +8,19 @@ import { GetRawCommitListParams } from './types'
  * @throws An error if the raw commit list cannot be retrieved.
  */
 
-export default async function getRawCommits({
+export default async function getRawCommitList({
   base,
   head
 }: GetRawCommitListParams): Promise<string> {
   try {
-    const { stdout: rawCommits } = await getExecOutput('git log', [
+    const { stdout: rawCommitList } = await getExecOutput('git log', [
       `origin/${base}..${head}`,
       '--oneline',
       '--no-merges',
-      '--graph',
       '--abbrev-commit'
     ])
 
-    return rawCommits
+    return rawCommitList
   } catch (error) {
     throw new Error(
       `Unable to get raw commit list: \n${(error as Error).message}`
