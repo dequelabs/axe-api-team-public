@@ -14,7 +14,7 @@ export type GetRawCommitListParams = {
 
 export type GetParsedCommitListParams = {
   /* The raw commit list from the current git repository */
-  rawCommitList: string
+  rawCommitList: string[]
   /* The URL of the current git repository */
   repositoryURL: string
 }

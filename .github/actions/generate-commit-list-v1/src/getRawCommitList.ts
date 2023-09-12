@@ -11,7 +11,7 @@ import { GetRawCommitListParams } from './types'
 export default async function getRawCommitList({
   base,
   head
-}: GetRawCommitListParams): Promise<string> {
+}: GetRawCommitListParams): Promise<string[]> {
   try {
     const { stdout: rawCommitList } = await getExecOutput('git log', [
       `origin/${base}..origin/${head}`,
@@ -20,7 +20,7 @@ export default async function getRawCommitList({
       '--abbrev-commit'
     ])
 
-    return rawCommitList
+    return rawCommitList.trimEnd().split('\n')
   } catch (error) {
     throw new Error(
       `Unable to get raw commit list: \n${(error as Error).message}`

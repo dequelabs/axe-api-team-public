@@ -13,7 +13,7 @@ export default function getParsedCommitList({
 }: GetParsedCommitListParams): Array<ParsedCommitList> {
   const parsedCommits: Array<ParsedCommitList> = []
 
-  for (const commit of rawCommitList.trimEnd().split('\n')) {
+  for (const commit of rawCommitList) {
     /**
      * Regex to group the following:
      * 1. Commit SHA (e.g. 4d6220e) 8 characters long
@@ -22,12 +22,7 @@ export default function getParsedCommitList({
      */
     const regex = /([a-z0-9]{1,8}) (.*) \((#[0-9]*)\)/
     const commitMatches = commit.match(regex)
-
-    if (!commitMatches) {
-      continue
-    }
-
-    const [, sha, title, id] = commitMatches
+    const [, sha, title, id] = commitMatches!
     const idParsed = id.replace('#', '')
     const type = getCommitType(title)
     const link = `${repositoryURL}/pull/${idParsed}`

@@ -1,3 +1,18 @@
+//@see https://www.conventionalcommits.org/en/v1.0.0/
+export const validCommitTypes = [
+  'build',
+  'chore',
+  'ci',
+  'docs',
+  'feat',
+  'fix',
+  'perf',
+  'refactor',
+  'revert',
+  'style',
+  'test'
+] as const
+
 /**
  * Get the commit type from a commit title
  * @param title The commit title
@@ -5,21 +20,6 @@
  */
 
 export default function getCommitType(title: string) {
-  //@see https://www.conventionalcommits.org/en/v1.0.0/
-  const validCommitTypes = [
-    'build',
-    'chore',
-    'ci',
-    'docs',
-    'feat',
-    'fix',
-    'perf',
-    'refactor',
-    'revert',
-    'style',
-    'test'
-  ] as const
-
   const commitTypeRegex = new RegExp(`^(${validCommitTypes.join('|')})`)
   const commitType = title.match(commitTypeRegex)
 
