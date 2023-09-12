@@ -9,8 +9,10 @@ export default async function run(core: Core) {
     const base = core.getInput('base', { required: true })
     const head = core.getInput('head', { required: true })
 
-    const doesBaseExist = doesBranchExist(base)
-    const doesHeadExist = doesBranchExist(head)
+    const [doesBaseExist, doesHeadExist] = await Promise.all([
+      doesBranchExist(base),
+      doesBranchExist(head)
+    ])
 
     core.info(`Checking if ${base} exists...`)
     if (!doesBaseExist) {

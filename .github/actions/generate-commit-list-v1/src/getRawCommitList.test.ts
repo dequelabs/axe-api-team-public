@@ -1,8 +1,8 @@
 import 'mocha'
 import { assert } from 'chai'
 import sinon from 'sinon'
-import dedent from 'dedent'
 import * as exec from '@actions/exec'
+import { expectedRawCommitList, rawCommitList } from './test-utils'
 import getRawCommitList from './getRawCommitList'
 
 describe('getRawCommitList', () => {
@@ -20,22 +20,16 @@ describe('getRawCommitList', () => {
     it('returns the raw commit list', async () => {
       getExecOutputStub.resolves({
         exitCode: 0,
-        stdout: dedent`
-          061acd5 refactor(integrations/javascript): some refactor (#664)
-          4d6220e chore: Update dependencies (#680)
-        `,
+        stdout: rawCommitList,
         stderr: ''
       })
 
-      const rawCommitList = await getRawCommitList({
+      const rawCommitListParsed = await getRawCommitList({
         base: 'base-branch',
         head: 'head-branch'
       })
 
-      assert.lengthOf(rawCommitList, 2)
-      const [firstCommit, secondCommit] = rawCommitList
-      assert.include(firstCommit, '061acd5')
-      assert.include(secondCommit, '4d6220e')
+      assert.deepEqual(rawCommitListParsed, expectedRawCommitList)
     })
   })
 
@@ -44,7 +38,7 @@ describe('getRawCommitList', () => {
       getExecOutputStub.throws({
         exitCode: 1,
         stdout: '',
-        stderr: 'fatal: welp, guess something went wrong'
+        stderr: 'welp, guess something went wrong'
       })
 
       let error: Error | null = null

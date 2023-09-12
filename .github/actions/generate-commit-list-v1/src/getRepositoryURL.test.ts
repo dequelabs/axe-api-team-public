@@ -2,6 +2,7 @@ import 'mocha'
 import { assert } from 'chai'
 import sinon from 'sinon'
 import * as exec from '@actions/exec'
+import { expectedRepositoryURL, rawRepositoryURL } from './test-utils'
 import getRepositoryURL from './getRepositoryURL'
 
 describe('getRepositoryURL', () => {
@@ -19,16 +20,13 @@ describe('getRepositoryURL', () => {
     it('returns the repository URL', async () => {
       getExecOutputStub.resolves({
         exitCode: 0,
-        stdout: 'https://github.com/dequelabs/axe-api-team-public.git',
+        stdout: rawRepositoryURL,
         stderr: ''
       })
 
       const repositoryURL = await getRepositoryURL()
 
-      assert.equal(
-        repositoryURL,
-        'https://github.com/dequelabs/axe-api-team-public'
-      )
+      assert.equal(repositoryURL, expectedRepositoryURL)
     })
   })
 
