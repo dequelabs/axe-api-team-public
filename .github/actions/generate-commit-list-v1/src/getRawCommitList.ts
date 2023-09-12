@@ -14,7 +14,7 @@ export default async function getRawCommitList({
 }: GetRawCommitListParams): Promise<string> {
   try {
     const { stdout: rawCommitList } = await getExecOutput('git log', [
-      `origin/${base}..${head}`,
+      `origin/${base}..origin/${head}`,
       '--oneline',
       '--no-merges',
       '--abbrev-commit'
