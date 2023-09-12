@@ -5,6 +5,7 @@
     "lib": ["dom", "es2020"],
     "declaration": true,
     "outDir": "dist",
+    "rootDir": "src",
     "noImplicitReturns": true,
     "esModuleInterop": true,
     "noFallthroughCasesInSwitch": true,
