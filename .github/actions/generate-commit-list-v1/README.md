@@ -27,6 +27,10 @@ jobs:
   generate-commit-list:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          # Fetch all history
+          fetch-depth: 0
       - uses: dequelabs/axe-api-team-public/.github/actions/generate-commit-list-v1@main
         with:
           base: release
