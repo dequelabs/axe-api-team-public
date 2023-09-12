@@ -1,0 +1,15 @@
+name: 'Generate Commit List'
+description: 'Generate a list of commits between two branches'
+inputs:
+  base:
+    description: 'The base branch to compare against'
+    required: true
+  head:
+    description: 'The head branch to compare against'
+    required: true
+outputs:
+  commit-list:
+    description: 'A list of commits between the base and head branches'
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
