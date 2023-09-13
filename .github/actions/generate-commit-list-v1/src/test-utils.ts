@@ -7,6 +7,9 @@ export const rawCommitList = dedent`
   3d6220e fix(packages/axe-core): some fix (#1337)
   2d6220e feat(packages/axe-core): some feature (#42)
   1d6220e ci: some ci change (#123)
+  5d6220e BREAKING CHANGE: some breaking change (#124)
+  6d6220e feat!: some breaking change (#126)
+  7d6220e feat(package)!: some breaking change (#127)
 `
 
 export const expectedRawCommitList = [
@@ -14,7 +17,10 @@ export const expectedRawCommitList = [
   '4d6220e chore: Update dependencies (#680)',
   '3d6220e fix(packages/axe-core): some fix (#1337)',
   '2d6220e feat(packages/axe-core): some feature (#42)',
-  '1d6220e ci: some ci change (#123)'
+  '1d6220e ci: some ci change (#123)',
+  '5d6220e BREAKING CHANGE: some breaking change (#124)',
+  '6d6220e feat!: some breaking change (#126)',
+  '7d6220e feat(package)!: some breaking change (#127)'
 ]
 
 export const rawRepositoryURL =
@@ -63,5 +69,29 @@ export const expectedParsedCommitList: Array<ParsedCommitList> = [
     type: 'ci',
     id: '123',
     link: `${expectedRepositoryURL}/pull/123`
+  },
+  {
+    commit: '5d6220e BREAKING CHANGE: some breaking change (#124)',
+    title: 'BREAKING CHANGE: some breaking change',
+    sha: '5d6220e',
+    type: 'BREAKING CHANGE',
+    id: '124',
+    link: `${expectedRepositoryURL}/pull/124`
+  },
+  {
+    commit: '6d6220e feat!: some breaking change (#126)',
+    title: 'feat!: some breaking change',
+    sha: '6d6220e',
+    type: 'feat!',
+    id: '126',
+    link: `${expectedRepositoryURL}/pull/126`
+  },
+  {
+    commit: '7d6220e feat(package)!: some breaking change (#127)',
+    title: 'feat(package)!: some breaking change',
+    sha: '7d6220e',
+    type: 'feat!',
+    id: '127',
+    link: `${expectedRepositoryURL}/pull/127`
   }
 ]

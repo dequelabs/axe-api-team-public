@@ -10,7 +10,8 @@ export const validCommitTypes = [
   'refactor',
   'revert',
   'style',
-  'test'
+  'test',
+  'BREAKING CHANGE'
 ] as const
 
 /**
@@ -20,7 +21,9 @@ export const validCommitTypes = [
  */
 
 export default function getCommitType(title: string) {
-  const commitTypeRegex = new RegExp(`^(${validCommitTypes.join('|')})`)
+  const commitTypeRegex = new RegExp(
+    `^(feat\\(?.*\\)?!|${validCommitTypes.join('|')})`
+  )
   const commitType = title.match(commitTypeRegex)
 
   // Unlikely, as we do not accept pull requests with commit titles that do not start with a valid commit type
@@ -32,5 +35,6 @@ export default function getCommitType(title: string) {
     )
   }
 
-  return commitType[0]
+  // remove any "(scope)" that may be present
+  return commitType[0].replace(/\(.*\)/, '')
 }

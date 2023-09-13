@@ -3996,15 +3996,16 @@ exports.validCommitTypes = [
     'refactor',
     'revert',
     'style',
-    'test'
+    'test',
+    'BREAKING CHANGE'
 ];
 function getCommitType(title) {
-    const commitTypeRegex = new RegExp(`^(${exports.validCommitTypes.join('|')})`);
+    const commitTypeRegex = new RegExp(`^(feat\\(?.*\\)?!|${exports.validCommitTypes.join('|')})`);
     const commitType = title.match(commitTypeRegex);
     if (!commitType) {
         throw new Error(`Unable to get commit type from title "${title}". Please make sure your commit title starts with one of the following: ${exports.validCommitTypes.join(', ')}`);
     }
-    return commitType[0];
+    return commitType[0].replace(/\(.*\)/, '');
 }
 exports["default"] = getCommitType;
 
