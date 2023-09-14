@@ -1,3 +1,4 @@
+import type { PullRequest } from './types'
 /**
  * Check if there is a release pull request
  * by checking the labels of pull requests given.
@@ -11,10 +12,10 @@
  * @returns TRUE if there is a release pull request
  */
 export default function isReleaseInProgress(
-  pullRequests: Record<string, any>[] = []
+  pullRequests: PullRequest[] = []
 ): boolean {
   const releasePullRequests = pullRequests.filter(pr =>
-    pr.labels.some((label: { name: string }) => label.name === 'release')
+    pr.labels.some(label => label.name === 'release')
   )
 
   return releasePullRequests.length > 0

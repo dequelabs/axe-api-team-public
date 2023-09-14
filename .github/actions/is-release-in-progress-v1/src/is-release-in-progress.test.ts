@@ -1,26 +1,17 @@
 import { assert } from 'chai'
+import type { PullRequest } from './types'
 import isReleaseInProgress from './is-release-in-progress'
 
-export const BUG_PULL_REQUEST = {
+export const BUG_PULL_REQUEST: PullRequest = {
   id: 1,
   state: 'open',
-  labels: [
-    {
-      id: 12345,
-      name: 'bug'
-    }
-  ]
+  labels: [{ id: 12345, name: 'bug' }]
 }
 
-export const RELEASE_PULL_REQUEST = {
+export const RELEASE_PULL_REQUEST: PullRequest = {
   id: 2,
   state: 'open',
-  labels: [
-    {
-      id: 23456,
-      name: 'release'
-    }
-  ]
+  labels: [{ id: 23456, name: 'release' }]
 }
 
 const testCases = [

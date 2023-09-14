@@ -1,4 +1,4 @@
-import type { Core, Github } from './types'
+import type { Core, Github, PullRequest } from './types'
 import isReleaseInProgress from './is-release-in-progress'
 
 export default async function run(core: Core, github: Github) {
@@ -13,7 +13,10 @@ export default async function run(core: Core, github: Github) {
     })
 
     // Set output
-    core.setOutput('isReleaseInProgress', isReleaseInProgress(pullRequests))
+    core.setOutput(
+      'isReleaseInProgress',
+      isReleaseInProgress(pullRequests as unknown as PullRequest[])
+    )
     core.info('Set isReleaseInProgress output')
   } catch (error) {
     core.setFailed((error as Error).message)
