@@ -2817,12 +2817,11 @@ function shouldAutoRelease({ commitList, isVersionLocked }) {
     let hasMajorOrMinorChangesForAxeCore = false;
     let hasFeatOrFixChanges = false;
     for (const { type, title } of commitList) {
-        const isBreakingType = type === 'feat!' || type === 'BREAKING CHANGE';
-        if (isBreakingType) {
+        if (type === 'feat!') {
             hasBreakingChanges = true;
         }
         if (title.toLowerCase().includes('update axe-core to') &&
-            (type === 'feat' || isBreakingType)) {
+            (type === 'feat' || type === 'feat!')) {
             hasMajorOrMinorChangesForAxeCore = true;
         }
         if (type === 'feat' || type === 'fix') {
