@@ -2817,6 +2817,9 @@ function shouldAutoRelease({ commitList, isVersionLocked }) {
     let hasMajorOrMinorChangesForAxeCore = false;
     let hasFeatOrFixChanges = false;
     for (const { type, title } of commitList) {
+        if (hasBreakingChanges || hasMajorOrMinorChangesForAxeCore) {
+            break;
+        }
         if (type === 'feat!') {
             hasBreakingChanges = true;
         }

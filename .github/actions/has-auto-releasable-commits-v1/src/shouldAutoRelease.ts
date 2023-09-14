@@ -23,6 +23,11 @@ export default function shouldAutoRelease({
   let hasFeatOrFixChanges = false
 
   for (const { type, title } of commitList) {
+    // perf: we don't need to continue if we have breaking changes or major/minor changes for axe-core
+    if (hasBreakingChanges || hasMajorOrMinorChangesForAxeCore) {
+      break
+    }
+
     if (type === 'feat!') {
       hasBreakingChanges = true
     }
