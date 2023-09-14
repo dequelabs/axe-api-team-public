@@ -1,5 +1,9 @@
 name: 'Check if an open RC or a release PR already exists'
 description: 'Determine if a parent GHA should continue to run or stop'
+inputs:
+  githubToken:
+    description: 'GitHub Secret Token'
+    required: true
 outputs:
   isReleaseInProgress:
     description: 'True if an open RC or a release PR already exists'
