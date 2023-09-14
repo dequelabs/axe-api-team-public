@@ -23,15 +23,14 @@ export default function shouldAutoRelease({
   let hasFeatOrFixChanges = false
 
   for (const { type, title } of commitList) {
-    const isBreakingType = type === 'feat!' || type === 'BREAKING CHANGE'
-    if (isBreakingType) {
+    if (type === 'feat!') {
       hasBreakingChanges = true
     }
 
     // This seems brittle if the update axe action changes the title this will break >.>
     if (
       title.toLowerCase().includes('update axe-core to') &&
-      (type === 'feat' || isBreakingType)
+      (type === 'feat' || type === 'feat!')
     ) {
       hasMajorOrMinorChangesForAxeCore = true
     }

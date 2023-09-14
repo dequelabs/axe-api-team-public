@@ -5,24 +5,14 @@ import type { Core } from './types'
 import run from './run'
 
 describe('run', () => {
-  let core: Core
   let setFailed: sinon.SinonSpy
   let setOutput: sinon.SinonSpy
   let getInput: sinon.SinonStub
-  let info: sinon.SinonSpy
 
   beforeEach(() => {
     setFailed = sinon.spy()
     setOutput = sinon.spy()
     getInput = sinon.stub()
-    info = sinon.spy()
-
-    core = {
-      setFailed,
-      setOutput,
-      getInput,
-      info
-    }
   })
 
   afterEach(() => {
@@ -35,7 +25,12 @@ describe('run', () => {
         message: 'Input required and not supplied: commits'
       })
 
-      await run(core)
+      const core = {
+        getInput,
+        setFailed
+      }
+
+      await run(core as unknown as Core)
 
       assert.isTrue(setFailed.calledOnce)
       assert.isTrue(
@@ -51,7 +46,12 @@ describe('run', () => {
         message: 'Input required and not supplied: version-locked'
       })
 
-      await run(core)
+      const core = {
+        getInput,
+        setFailed
+      }
+
+      await run(core as unknown as Core)
 
       assert.isTrue(setFailed.calledOnce)
       assert.isTrue(
@@ -65,7 +65,12 @@ describe('run', () => {
       getInput.withArgs('commits', { required: true }).returns('[]')
       getInput.withArgs('version-locked', { required: true }).returns('foo')
 
-      await run(core)
+      const core = {
+        getInput,
+        setFailed
+      }
+
+      await run(core as unknown as Core)
 
       assert.isTrue(setFailed.calledOnce)
       assert.isTrue(
@@ -82,7 +87,11 @@ describe('run', () => {
         getInput.withArgs('commits', { required: true }).returns('[]')
         getInput.withArgs('version-locked', { required: true }).returns('false')
 
-        await run(core)
+        const core = {
+          getInput,
+          setOutput
+        }
+        await run(core as unknown as Core)
 
         assert.isTrue(setOutput.calledOnce)
         assert.isTrue(setOutput.calledWith('should-release', false))
@@ -105,7 +114,12 @@ describe('run', () => {
         )
         getInput.withArgs('version-locked', { required: true }).returns('false')
 
-        await run(core)
+        const core = {
+          getInput,
+          setOutput
+        }
+
+        await run(core as unknown as Core)
 
         assert.isTrue(setOutput.calledOnce)
         assert.isTrue(setOutput.calledWith('should-release', false))
@@ -136,7 +150,12 @@ describe('run', () => {
         )
         getInput.withArgs('version-locked', { required: true }).returns('false')
 
-        await run(core)
+        const core = {
+          getInput,
+          setOutput
+        }
+
+        await run(core as unknown as Core)
 
         assert.isTrue(setOutput.calledOnce)
         assert.isTrue(setOutput.calledWith('should-release', true))
@@ -150,7 +169,12 @@ describe('run', () => {
         getInput.withArgs('commits', { required: true }).returns('[]')
         getInput.withArgs('version-locked', { required: true }).returns('true')
 
-        await run(core)
+        const core = {
+          getInput,
+          setOutput
+        }
+
+        await run(core as unknown as Core)
 
         assert.isTrue(setOutput.calledOnce)
         assert.isTrue(setOutput.calledWith('should-release', false))
@@ -177,7 +201,12 @@ describe('run', () => {
               .withArgs('version-locked', { required: true })
               .returns('true')
 
-            await run(core)
+            const core = {
+              getInput,
+              setOutput
+            }
+
+            await run(core as unknown as Core)
 
             assert.isTrue(setOutput.calledOnce)
             assert.isTrue(setOutput.calledWith('should-release', false))
@@ -210,7 +239,12 @@ describe('run', () => {
               .withArgs('version-locked', { required: true })
               .returns('true')
 
-            await run(core)
+            const core = {
+              getInput,
+              setOutput
+            }
+
+            await run(core as unknown as Core)
 
             assert.isTrue(setOutput.calledOnce)
             assert.isTrue(setOutput.calledWith('should-release', true))
@@ -219,7 +253,7 @@ describe('run', () => {
       })
 
       describe('and there are major or minor changes for axe-core', () => {
-        describe('and there are no feat or fix commits', () => {
+        describe('and there are feat or fix commits', () => {
           it('should set should-release to false', async () => {
             getInput.withArgs('commits', { required: true }).returns(
               JSON.stringify([
@@ -237,7 +271,12 @@ describe('run', () => {
               .withArgs('version-locked', { required: true })
               .returns('true')
 
-            await run(core)
+            const core = {
+              getInput,
+              setOutput
+            }
+
+            await run(core as unknown as Core)
 
             assert.isTrue(setOutput.calledOnce)
             assert.isTrue(setOutput.calledWith('should-release', false))
