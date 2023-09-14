@@ -1,0 +1,8 @@
+name: 'Check if an open RC or a release PR already exists'
+description: 'Determine if a parent GHA should continue to run or stop'
+outputs:
+  isReleaseInProgress:
+    description: 'True if an open RC or a release PR already exists'
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
