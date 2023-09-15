@@ -1,2 +1,2 @@
-import type { Core } from './types';
-export default function run(core: Core): Promise<void>;
+import type { Core, Github } from './types';
+export default function run(core: Core, github: Github): Promise<void>;
