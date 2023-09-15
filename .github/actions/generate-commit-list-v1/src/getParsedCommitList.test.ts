@@ -15,8 +15,6 @@ describe('getParsedCommitList', () => {
         repository: expectedRepository
       })
 
-      console.log({ parsedCommitList })
-
       assert.deepEqual(parsedCommitList, expectedParsedCommitList)
     })
   })

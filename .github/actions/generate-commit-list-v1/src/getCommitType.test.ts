@@ -98,9 +98,21 @@ describe('getCommitType', () => {
     assert.equal(type, 'fix')
   })
 
-  it('allows breaking change `!` in PR title', () => {
-    const type = getCommitType('feat!: a breaking change')
+  describe('when the commit title contains a breaking change', () => {
+    describe('and is scoped', () => {
+      it('returns the type with a `!`', () => {
+        const type = getCommitType('feat(scope)!: a breaking change')
 
-    assert.equal(type, 'feat!')
+        assert.equal(type, 'feat!')
+      })
+    })
+
+    describe('and is not scoped', () => {
+      it('returns the type with a `!`', () => {
+        const type = getCommitType('feat!: a breaking change')
+
+        assert.equal(type, 'feat!')
+      })
+    })
   })
 })
