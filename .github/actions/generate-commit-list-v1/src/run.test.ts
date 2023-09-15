@@ -1,35 +1,33 @@
 import sinon from 'sinon'
 import { assert } from 'chai'
-import type { Core } from './types'
+import type { Core, Github } from './types'
 import * as exec from '@actions/exec'
 import run from './run'
 import {
   expectedParsedCommitList,
   rawCommitList,
-  rawRepositoryURL
+  expectedRepository
 } from './test-utils'
 
 describe('run', () => {
-  let core: Core
   let setFailed: sinon.SinonSpy
   let setOutput: sinon.SinonSpy
-  let getInput: sinon.SinonStub
   let info: sinon.SinonSpy
+  let getInput: sinon.SinonStub
   let getExecOutputStub: sinon.SinonStub
+  const [owner, repo] = expectedRepository.split('/')
+  const github = {
+    context: {
+      repo: { owner, repo }
+    }
+  }
 
   beforeEach(() => {
     getExecOutputStub = sinon.stub(exec, 'getExecOutput')
     setFailed = sinon.spy()
     setOutput = sinon.spy()
-    getInput = sinon.stub()
     info = sinon.spy()
-
-    core = {
-      setFailed,
-      setOutput,
-      getInput,
-      info
-    }
+    getInput = sinon.stub()
   })
 
   afterEach(() => {
@@ -42,7 +40,12 @@ describe('run', () => {
         message: 'Input required and not supplied: base'
       })
 
-      await run(core)
+      const core = {
+        getInput,
+        setFailed
+      }
+
+      await run(core as unknown as Core, github as unknown as Github)
 
       assert.isTrue(setFailed.calledOnce)
       assert.isTrue(
@@ -58,7 +61,12 @@ describe('run', () => {
         message: 'Input required and not supplied: head'
       })
 
-      await run(core)
+      const core = {
+        getInput,
+        setFailed
+      }
+
+      await run(core as unknown as Core, github as unknown as Github)
 
       assert.isTrue(setFailed.calledOnce)
       assert.isTrue(
@@ -76,8 +84,16 @@ describe('run', () => {
         stderr: 'welp, we tried'
       })
 
-      await run(core)
+      const core = {
+        getInput,
+        setFailed,
+        info
+      }
 
+      await run(core as unknown as Core, github as unknown as Github)
+
+      assert.isTrue(info.calledOnce)
+      assert.isTrue(info.calledWith('Checking if main exists...'))
       assert.isTrue(setFailed.calledOnce)
       assert.isTrue(
         setFailed.calledWith('The base branch main does not exist.')
@@ -102,11 +118,23 @@ describe('run', () => {
           stderr: 'welp, we tried'
         })
 
-      await run(core)
+      const core = {
+        getInput,
+        setFailed,
+        info
+      }
 
-      assert.isTrue(setFailed.calledOnce)
+      await run(core as unknown as Core, github as unknown as Github)
+
+      assert.isTrue(info.calledTwice)
       assert.isTrue(
-        setFailed.calledWith('The head branch my-branch-name does not exist.')
+        info.secondCall.calledWith('Checking if my-branch-name exists...')
+      )
+      assert.isTrue(core.setFailed.calledOnce)
+      assert.isTrue(
+        core.setFailed.calledWith(
+          'The head branch my-branch-name does not exist.'
+        )
       )
     })
   })
@@ -134,14 +162,16 @@ describe('run', () => {
         stdout: rawCommitList
       })
 
-      // Stub: getRepositoryURL
-      getExecOutputStub.onCall(3).resolves({
-        exitCode: 0,
-        stdout: rawRepositoryURL
-      })
+      const core = {
+        getInput,
+        setFailed,
+        setOutput,
+        info
+      }
 
-      await run(core)
+      await run(core as unknown as Core, github as unknown as Github)
 
+      assert.equal(info.callCount, 6)
       assert.isTrue(setOutput.calledOnce)
       assert.isTrue(setOutput.calledWith('commit-list'))
 

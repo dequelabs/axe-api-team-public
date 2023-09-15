@@ -1,55 +1,106 @@
 import 'mocha'
 import { assert } from 'chai'
-import getCommitType, { validCommitTypes } from './getCommitType'
+import * as conventionalCommitsTypes from 'conventional-commit-types'
+import getCommitType from './getCommitType'
 
 describe('getCommitType', () => {
-  describe('when the commit title is invalid', () => {
-    it('throws an error', () => {
-      assert.throws(() =>
-        getCommitType('invalid commit type: this is not a valid commit type')
-      )
+  /**
+   * TODO: borrowed and modified from https://github.com/dequelabs/semantic-pr-title/blob/v1/src/validate-title.test.ts#L5
+   * consolidate into one repository so we can use the same parser and keep things DRY
+   */
+  Object.keys(conventionalCommitsTypes.types).forEach(key => {
+    it(`returns true for ${key} type`, () => {
+      const type = getCommitType(`${key}: pr title`)
+
+      assert.equal(type, key)
     })
   })
 
-  describe('when the commit title is not scoped', () => {
-    validCommitTypes.forEach(commitType => {
-      it(`returns ${commitType}`, () => {
-        const result = getCommitType(
-          `${commitType}: this is not a scoped commit title`
-        )
+  it('returns true for revert commit', () => {
+    const type = getCommitType(
+      'Revert "fix(app): Add a Content Security Policy"'
+    )
 
-        assert.equal(result, commitType)
-      })
-    })
+    assert.equal(type, 'revert')
   })
 
-  describe('when the commit title is scoped', () => {
-    validCommitTypes.forEach(commitType => {
-      it(`returns ${commitType}`, () => {
-        const result = getCommitType(
-          `${commitType}(scope): this is a scoped commit title`
-        )
+  it('returns true for merge commit', () => {
+    const type = getCommitType(
+      'Merge pull request #1 from user/feature/feature-name'
+    )
 
-        assert.equal(result, commitType)
-      })
-    })
+    assert.equal(type, 'merge')
   })
 
-  describe('when the commit title is a breaking change', () => {
-    describe('when the commit title is not scoped', () => {
-      it('returns feat!', () => {
-        const result = getCommitType('feat!: this is a breaking change')
+  it('returns true for release commit', () => {
+    const type = getCommitType('Release v4.2.1')
 
-        assert.equal(result, 'feat!')
-      })
-    })
+    assert.equal(type, 'release')
+  })
 
-    describe('when the commit title is scoped', () => {
-      it('returns feat!', () => {
-        const result = getCommitType('feat(scope)!: this is a breaking change')
+  it('returns true for title with scope', () => {
+    const type = getCommitType('fix(scope,other): fix both')
 
-        assert.equal(result, 'feat!')
-      })
-    })
+    assert.equal(type, 'fix')
+  })
+
+  it('returns true for uppercase type', () => {
+    const type = getCommitType('FIX: fix uppercase')
+
+    assert.equal(type, 'fix')
+  })
+
+  it('returns false for title without a colon', () => {
+    const type = getCommitType('fix a bug')
+
+    assert.equal(type, null)
+  })
+
+  it('returns false for title without a whitespace after the colon', () => {
+    const type = getCommitType('fix:a bug')
+
+    assert.equal(type, null)
+  })
+
+  it('returns false for invalid type', () => {
+    const type = getCommitType('fixture: a bug fix')
+
+    assert.equal(type, 'fixture')
+  })
+
+  it('returns false for merge-like title', () => {
+    const type = getCommitType('merge mater into develop')
+
+    assert.equal(type, null)
+  })
+
+  it('returns false for release-like title', () => {
+    const type = getCommitType('release the kraken')
+
+    assert.equal(type, null)
+  })
+
+  it('returns false for revert-like title', () => {
+    const type = getCommitType('revert previous commit')
+
+    assert.equal(type, null)
+  })
+
+  it('allows comma in scope', () => {
+    const type = getCommitType('fix(thing1,thing2): a bug')
+
+    assert.equal(type, 'fix')
+  })
+
+  it('allows slash in scope', () => {
+    const type = getCommitType('fix(path/thing1,path/thing2): a bug')
+
+    assert.equal(type, 'fix')
+  })
+
+  it('allows breaking change `!` in PR title', () => {
+    const type = getCommitType('feat!: a breaking change')
+
+    assert.equal(type, 'feat!')
   })
 })

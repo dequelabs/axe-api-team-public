@@ -1,15 +1,12 @@
-import type { Core } from './types'
+import type { Core, Github } from './types'
 import getRawCommitList from './getRawCommitList'
 import getParsedCommitList from './getParsedCommitList'
-import getRepositoryURL from './getRepositoryURL'
 import doesBranchExist from './doesBranchExist'
 
-export default async function run(core: Core) {
+export default async function run(core: Core, github: Github) {
   try {
     const base = core.getInput('base', { required: true })
     const head = core.getInput('head', { required: true })
-
-    core.info(`Received base: ${base} and head: ${head}...`)
 
     const [doesBaseExist, doesHeadExist] = await Promise.all([
       doesBranchExist(base),
@@ -31,14 +28,10 @@ export default async function run(core: Core) {
     core.info(`${base} and ${head} exist.`)
     core.info(`Getting raw commits between ${base} and ${head}...`)
 
-    const [rawCommitList, repositoryURL] = await Promise.all([
-      getRawCommitList({ base, head }),
-      getRepositoryURL()
-    ])
-
+    const rawCommitList = await getRawCommitList({ base, head })
     const parsedCommitList = getParsedCommitList({
       rawCommitList,
-      repositoryURL
+      repository: `${github.context.repo.owner}/${github.context.repo.repo}`
     })
 
     core.info(`Found ${parsedCommitList.length} commits.`)

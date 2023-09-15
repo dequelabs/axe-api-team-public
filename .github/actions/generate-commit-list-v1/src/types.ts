@@ -1,9 +1,12 @@
 import type core from '@actions/core'
+import type github from '@actions/github'
 
 export type Core = Pick<
   typeof core,
   'getInput' | 'setOutput' | 'info' | 'setFailed'
 >
+
+export type Github = Pick<typeof github, 'context'>
 
 export type GetRawCommitListParams = {
   /* The branch that the PR will merge into */
@@ -15,8 +18,8 @@ export type GetRawCommitListParams = {
 export type GetParsedCommitListParams = {
   /* The raw commit list from the current git repository */
   rawCommitList: string[]
-  /* The URL of the current git repository */
-  repositoryURL: string
+  /* The current git repository */
+  repository: string
 }
 
 export type ParsedCommitList = {
@@ -27,9 +30,9 @@ export type ParsedCommitList = {
   /* The commit sha */
   sha: string
   /* The commit type */
-  type: string
+  type: string | null
   /* The PR number */
-  id: string
+  id: string | null
   /* The link to the PR */
-  link: string
+  link: string | null
 }

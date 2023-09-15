@@ -9,31 +9,26 @@ import { GetParsedCommitListParams, ParsedCommitList } from './types'
 
 export default function getParsedCommitList({
   rawCommitList,
-  repositoryURL
+  repository
 }: GetParsedCommitListParams): Array<ParsedCommitList> {
   const parsedCommits: Array<ParsedCommitList> = []
 
   for (const commit of rawCommitList) {
-    /**
-     * Regex to group the following:
-     * 1. Commit SHA (e.g. 4d6220e) 8 characters long
-     * 2. Commit message (e.g. "feat: add new feature")
-     * 3. Pull request ID (e.g. #1234)
-     */
-    const regex = /([a-z0-9]{1,8}) (.*) \((#[0-9]*)\)/
-    const commitMatches = commit.match(regex)
+    // group sha and title together
     //eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const [, sha, title, id] = commitMatches!
-    const idParsed = id.replace('#', '')
+    const shaAndTitle = commit.match(/^(.{7}) (.+?)(?:\s\(#\d+\))?$/)!
+    const sha = shaAndTitle[1]
+    const title = shaAndTitle[2]!
     const type = getCommitType(title)
-    const link = `${repositoryURL}/pull/${idParsed}`
+    const id = commit.match(/#(\d+)/)?.[0].replace('#', '') || null
+    const link = id ? `https://github.com/${repository}/pull/${id}` : null
 
     parsedCommits.push({
       commit,
       title,
       sha,
       type,
-      id: idParsed,
+      id,
       link
     })
   }
