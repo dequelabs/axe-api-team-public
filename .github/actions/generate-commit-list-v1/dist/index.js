@@ -11422,22 +11422,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.validCommitTypes = void 0;
 const conventionalCommitsParser = __importStar(__nccwpck_require__(5911));
-exports.validCommitTypes = [
-    'build',
-    'chore',
-    'ci',
-    'docs',
-    'feat',
-    'fix',
-    'perf',
-    'refactor',
-    'revert',
-    'style',
-    'test',
-    'BREAKING CHANGE'
-];
 function getCommitType(title) {
     const { type, header } = conventionalCommitsParser.sync(title, {
         mergePattern: /^Merge pull request #(\d+) from (.*)$/,

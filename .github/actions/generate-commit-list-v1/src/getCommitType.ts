@@ -1,21 +1,5 @@
 import * as conventionalCommitsParser from 'conventional-commits-parser'
 
-//@see https://www.conventionalcommits.org/en/v1.0.0/
-export const validCommitTypes = [
-  'build',
-  'chore',
-  'ci',
-  'docs',
-  'feat',
-  'fix',
-  'perf',
-  'refactor',
-  'revert',
-  'style',
-  'test',
-  'BREAKING CHANGE'
-] as const
-
 /**
  * Get the commit type from a commit title
  * @param title The commit title
