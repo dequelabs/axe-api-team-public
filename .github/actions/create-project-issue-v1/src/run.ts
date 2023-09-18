@@ -19,64 +19,51 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       return
     }
 
+    // default: `github.repository` is `owner/repo`, we just want the `repo`
+    const repo = repository.split('/')
     const octokit = github.getOctokit(token)
-    // const [{ data: issueCreated }, { data: project }] = await Promise.all([
-    //   octokit.rest.issues.create({
-    //     owner: github.context.repo.owner,
-    //     repo: repository || github.context.repo.repo,
-    //     title,
-    //     body,
-    //     labels: labels ? labels.split(',') : undefined,
-    //     assignees: assignees ? assignees.split(',') : undefined
-    //   }),
-    //   octokit.rest.projects.get({
-    //     project_id: projectId
-    //   })
-    // ])
-
-    core.info(
-      `${github.context.repo.owner}, ${repository}, ${github.context.repo.repo}, ${title}, ${body}, ${labels}, ${assignees}`
-    )
-
-    const { data: issueCreated } = await octokit.rest.issues.create({
-      owner: github.context.repo.owner,
-      repo: github.context.repo.repo,
-      title,
-      body,
-      labels: labels ? labels.split(',') : undefined,
-      assignees: assignees ? assignees.split(',') : undefined
-    })
-
-    core.info(`${issueCreated}`)
+    const [{ data: issueCreated }, { data: project }] = await Promise.all([
+      octokit.rest.issues.create({
+        owner: github.context.repo.owner,
+        repo: repo[1] ?? repo[0],
+        title,
+        body,
+        labels: labels ? labels.split(',') : undefined,
+        assignees: assignees ? assignees.split(',') : undefined
+      }),
+      octokit.rest.projects.get({
+        project_id: projectId
+      })
+    ])
 
     core.info(`Created issue ${issueCreated.number}`)
     core.info(`Adding issue ${issueCreated.number} to project ID ${projectId}`)
 
-    // const { data: projectColumns } = await octokit.rest.projects.listColumns({
-    //   project_id: project.id
-    // })
+    const { data: projectColumns } = await octokit.rest.projects.listColumns({
+      project_id: project.id
+    })
 
-    // let projectColumn = projectColumns.find(
-    //   column => column.name.toLowerCase() === columnName.toLowerCase()
-    // )
+    let projectColumn = projectColumns.find(
+      column => column.name.toLowerCase() === columnName.toLowerCase()
+    )
 
-    // if (!projectColumn) {
-    //   core.warning(
-    //     `Column ${columnName} not found, defaulting to Backlog column`
-    //   )
+    if (!projectColumn) {
+      core.warning(
+        `Column ${columnName} not found, defaulting to Backlog column`
+      )
 
-    //   // We should be aware that we can never rename or delete the Backlog column
-    //   //eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    //   projectColumn = projectColumns.find(
-    //     column => column.name.toLowerCase() === 'backlog'
-    //   )!
-    // }
+      // We should be aware that we can never rename or delete the Backlog column
+      //eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      projectColumn = projectColumns.find(
+        column => column.name.toLowerCase() === 'backlog'
+      )!
+    }
 
-    // await octokit.rest.projects.createCard({
-    //   column_id: projectColumn.id,
-    //   content_id: issueCreated.id,
-    //   content_type: 'Issue'
-    // })
+    await octokit.rest.projects.createCard({
+      column_id: projectColumn.id,
+      content_id: issueCreated.id,
+      content_type: 'Issue'
+    })
 
     core.setOutput('issue_url', issueCreated.url)
   } catch (error) {
