@@ -34,6 +34,10 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     //   })
     // ])
 
+    core.info(
+      `${github.context.repo.owner}, ${repository}, ${github.context.repo.repo}, ${title}, ${body}, ${labels}, ${assignees}`
+    )
+
     const { data: issueCreated } = await octokit.rest.issues.create({
       owner: github.context.repo.owner,
       repo: repository || github.context.repo.repo,
