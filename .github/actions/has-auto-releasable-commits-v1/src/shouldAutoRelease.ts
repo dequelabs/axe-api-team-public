@@ -9,7 +9,13 @@ export default function shouldAutoRelease({
   }
 
   if (!isVersionLocked) {
-    return commitList.some(({ type }) => type === 'feat' || type === 'fix')
+    return commitList.some(({ type }) => {
+      if (!type) {
+        return
+      }
+
+      return type.startsWith('feat') || type.startsWith('fix')
+    })
   }
 
   /**
@@ -18,45 +24,34 @@ export default function shouldAutoRelease({
    * 2. There are no major or minor changes for axe-core
    * 3. There are feat or fix changes
    */
-  let hasBreakingChanges = false
-  let hasMajorOrMinorChangesForAxeCore = false
-  let hasFeatOrFixChanges = false
-
+  let atLeastOneReleasableCommit = false
   for (const { type, title } of commitList) {
-    // perf: we don't need to continue if we have breaking changes or major/minor changes for axe-core
-    if (hasBreakingChanges || hasMajorOrMinorChangesForAxeCore) {
-      break
+    // if there PR ID is not available, continue
+    if (!type) {
+      continue
     }
 
-    if (type === 'feat!') {
-      hasBreakingChanges = true
-    }
+    const isBreakingChange = type.includes('!')
+    const isFeatOrFixChange = type === 'fix' || type === 'feat'
 
     // This seems brittle if the update axe action changes the title this will break >.>
-    if (
+    // @see https://github.com/dequelabs/axe-api-team-public/issues/30
+    const isMinorChangeForAxeCore =
       title.toLowerCase().includes('update axe-core to') &&
-      (type === 'feat' || type === 'feat!')
-    ) {
-      hasMajorOrMinorChangesForAxeCore = true
+      type.startsWith('feat')
+
+    if (isBreakingChange || isMinorChangeForAxeCore) {
+      return false
     }
 
-    if (type === 'feat' || type === 'fix') {
-      hasFeatOrFixChanges = true
+    if (isFeatOrFixChange) {
+      atLeastOneReleasableCommit = true
     }
   }
 
-  // If there are only chores, docs, or refactor commits etc, we don't need to release
-  const hasNone =
-    !hasBreakingChanges &&
-    !hasMajorOrMinorChangesForAxeCore &&
-    !hasFeatOrFixChanges
-
-  if (hasNone) {
+  if (!atLeastOneReleasableCommit) {
     return false
   }
 
-  return (
-    !hasBreakingChanges &&
-    (!hasMajorOrMinorChangesForAxeCore || !hasFeatOrFixChanges)
-  )
+  return true
 }

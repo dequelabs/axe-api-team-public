@@ -5,6 +5,7 @@ export type Core = Pick<
   'getInput' | 'setOutput' | 'info' | 'setFailed'
 >
 
+// TODO: replace with type from generate-commits-list-v1 type
 export type CommitList = {
   /* The commit message */
   commit: string
@@ -13,11 +14,11 @@ export type CommitList = {
   /* The commit sha */
   sha: string
   /* The commit type */
-  type: string
+  type: string | null
   /* The PR number */
-  id: string
+  id: string | null
   /* The link to the PR */
-  link: string
+  link: string | null
 }
 
 export type ShouldAutoReleaseParams = {

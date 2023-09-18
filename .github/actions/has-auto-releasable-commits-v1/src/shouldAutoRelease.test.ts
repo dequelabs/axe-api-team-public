@@ -2,10 +2,110 @@ import 'mocha'
 import { assert } from 'chai'
 import shouldAutoRelease from './shouldAutoRelease'
 
+const createCommit = (type: string | null) => ({
+  commit: 'PLACEHOLDER',
+  title: `PLACEHOLDER ${type}: abcd`,
+  sha: 'PLACEHOLDER',
+  type,
+  id: 'PLACEHOLDER',
+  link: 'PLACEHOLDER'
+})
+
+const createAxecoreCommit = (type: string | null) => ({
+  commit: 'update axe-core to',
+  title: `PLACEHOLDER ${type}: update axe-core to`,
+  sha: 'PLACEHOLDER',
+  type,
+  id: 'PLACEHOLDER',
+  link: 'PLACEHOLDER'
+})
+
+const TEST_CASES_WITHOUT_AXE_NOT_LOCKED = [
+  {
+    type: 'fix',
+    commitList: [createCommit('fix')],
+    isVersionLocked: false,
+    expected: true
+  },
+  {
+    type: 'feat',
+    commitList: [createCommit('feat')],
+    isVersionLocked: false,
+    expected: true
+  },
+  {
+    type: 'fix!',
+    commitList: [createCommit('fix!')],
+    isVersionLocked: false,
+    expected: true
+  },
+  {
+    type: 'feat!',
+    commitList: [createCommit('feat!')],
+    isVersionLocked: false,
+    expected: true
+  }
+]
+
+// version locked
+const TEST_CASES_WITHOUT_AXE = [
+  {
+    type: 'fix',
+    commitList: [createCommit('fix')],
+    isVersionLocked: true,
+    expected: true
+  },
+  {
+    type: 'feat',
+    commitList: [createCommit('feat')],
+    isVersionLocked: true,
+    expected: true
+  },
+  {
+    type: 'fix!',
+    commitList: [createCommit('fix!')],
+    isVersionLocked: true,
+    expected: false
+  },
+  {
+    type: 'feat!',
+    commitList: [createCommit('feat!')],
+    isVersionLocked: true,
+    expected: false
+  }
+]
+
+const TEST_CASES_WITH_AXE = [
+  {
+    type: 'fix',
+    commitList: [createCommit('fix'), createAxecoreCommit('fix')],
+    isVersionLocked: true,
+    expected: true
+  },
+  {
+    type: 'feat',
+    commitList: [createCommit('feat'), createAxecoreCommit('feat')],
+    isVersionLocked: true,
+    expected: false
+  },
+  {
+    type: 'fix!',
+    commitList: [createCommit('fix'), createAxecoreCommit('fix!')],
+    isVersionLocked: true,
+    expected: false
+  },
+  {
+    type: 'feat!',
+    commitList: [createCommit('feat'), createAxecoreCommit('feat!')],
+    isVersionLocked: true,
+    expected: false
+  }
+]
+
 describe('shouldAutoRelease', () => {
   describe('when there are no commits', () => {
     describe('and version is not locked', () => {
-      it('should return false', () => {
+      it('returns false', () => {
         const result = shouldAutoRelease({
           commitList: [],
           isVersionLocked: false
@@ -15,7 +115,7 @@ describe('shouldAutoRelease', () => {
     })
 
     describe('and version is locked', () => {
-      it('should return false', () => {
+      it('returns false', () => {
         const result = shouldAutoRelease({
           commitList: [],
           isVersionLocked: true
@@ -27,195 +127,66 @@ describe('shouldAutoRelease', () => {
 
   describe('when there are commits', () => {
     describe('and version is not locked', () => {
-      describe('and there are no feat or fix commits', () => {
-        it('should return false', () => {
-          const result = shouldAutoRelease({
-            commitList: [
-              {
-                commit: '061acd5 refactor(scope): some refactor (#664)',
-                title: 'refactor(scope): some refactor (#664)',
-                sha: '061acd5',
-                type: 'refactor',
-                id: '664',
-                link: 'something'
-              }
-            ],
-            isVersionLocked: false
-          })
-          assert.isFalse(result)
-        })
-      })
+      TEST_CASES_WITHOUT_AXE_NOT_LOCKED.forEach(
+        ({ type, commitList, expected, isVersionLocked }) => {
+          it(`should return ${expected} for ${type}`, () => {
+            const result = shouldAutoRelease({
+              commitList,
+              isVersionLocked
+            })
 
-      describe('and there are feat or fix commits', () => {
-        it('should return true', () => {
+            assert.equal(result, expected)
+          })
+        }
+      )
+
+      describe('and there is no commit type', () => {
+        it('returns false', () => {
           const result = shouldAutoRelease({
-            commitList: [
-              {
-                commit: '061acd5 refactor(scope): some refactor (#664)',
-                title: 'refactor(scope): some refactor (#664)',
-                sha: '061acd5',
-                type: 'refactor',
-                id: '664',
-                link: 'something'
-              },
-              {
-                commit: '061acd5 feat(scope): some feature (#664)',
-                title: 'feat(scope): some feature (#664)',
-                sha: '061acd5',
-                type: 'feat',
-                id: '664',
-                link: 'something'
-              }
-            ],
+            commitList: [createCommit(null)],
             isVersionLocked: false
           })
-          assert.isTrue(result)
+
+          assert.isFalse(result)
         })
       })
     })
 
     describe('and version is locked', () => {
-      describe('and there are no breaking changes', () => {
-        describe('and there are no major or minor changes for axe-core', () => {
-          describe('and there are feat or fix commits', () => {
-            it('should return true', () => {
+      describe('and there are no changes for axe-core', () => {
+        TEST_CASES_WITHOUT_AXE.forEach(
+          ({ type, commitList, expected, isVersionLocked }) => {
+            it(`should return ${expected} for ${type}`, () => {
               const result = shouldAutoRelease({
-                commitList: [
-                  {
-                    commit: '061acd5 refactor(scope): some refactor (#664)',
-                    title: 'refactor(scope): some refactor (#664)',
-                    sha: '061acd5',
-                    type: 'refactor',
-                    id: '664',
-                    link: 'something'
-                  },
-                  {
-                    commit: '061acd5 feat(scope): some feature (#664)',
-                    title: 'feat(scope): some feature (#664)',
-                    sha: '061acd5',
-                    type: 'feat',
-                    id: '664',
-                    link: 'something'
-                  }
-                ],
-                isVersionLocked: true
+                commitList,
+                isVersionLocked
               })
 
-              assert.isTrue(result)
+              assert.equal(result, expected)
             })
-          })
-        })
-
-        describe('and there are major or minor changes for axe-core', () => {
-          describe('and there are feat or fix commits', () => {
-            it('should return false', () => {
-              const result = shouldAutoRelease({
-                commitList: [
-                  {
-                    commit: '061acd5 refactor(scope): some refactor (#664)',
-                    title: 'refactor(scope): some refactor (#664)',
-                    sha: '061acd5',
-                    type: 'refactor',
-                    id: '664',
-                    link: 'something'
-                  },
-                  {
-                    commit: '061acd5 feat(scope): some feature (#664)',
-                    title: 'feat(scope): some feature (#664)',
-                    sha: '061acd5',
-                    type: 'feat',
-                    id: '664',
-                    link: 'something'
-                  },
-                  {
-                    commit:
-                      '061acd5 feat(scope): update axe-core to 4.0.0 (#664)',
-                    title: 'feat(scope): update axe-core to 4.0.0 (#664)',
-                    sha: '061acd5',
-                    type: 'feat',
-                    id: '664',
-                    link: 'something'
-                  }
-                ],
-                isVersionLocked: true
-              })
-
-              assert.isFalse(result)
-            })
-          })
-
-          describe('and there are no feat or fix commits', () => {
-            it('should return false', () => {
-              const result = shouldAutoRelease({
-                commitList: [
-                  {
-                    commit:
-                      '061acd5 feat(scope): update axe-core to 4.0.0 (#664)',
-                    title: 'feat(scope): update axe-core to 4.0.0 (#664)',
-                    sha: '061acd5',
-                    type: 'feat',
-                    id: '664',
-                    link: 'something'
-                  }
-                ],
-                isVersionLocked: true
-              })
-
-              assert.isFalse(result)
-            })
-          })
-        })
+          }
+        )
       })
 
-      describe('and there are breaking changes', () => {
-        it('should return false', () => {
-          const result = shouldAutoRelease({
-            commitList: [
-              {
-                commit: '061acd5 feat(scope)!: some feature (#664)',
-                title: 'feat(scope): some feature (#664)',
-                sha: '061acd5',
-                type: 'feat!',
-                id: '664',
-                link: 'something'
-              },
-              {
-                commit: '061acd5 feat(scope): some feature (#664)',
-                title: 'feat(scope): some feature (#664)',
-                sha: '061acd5',
-                type: 'feat',
-                id: '664',
-                link: 'something'
-              }
-            ],
-            isVersionLocked: true
-          })
+      describe('and there are changes for axe-core', () => {
+        TEST_CASES_WITH_AXE.forEach(
+          ({ type, commitList, expected, isVersionLocked }) => {
+            it(`should return ${expected} for ${type}`, () => {
+              const result = shouldAutoRelease({
+                commitList,
+                isVersionLocked
+              })
 
-          assert.isFalse(result)
-        })
+              assert.equal(result, expected)
+            })
+          }
+        )
       })
 
-      describe('and there are breaking changes for axe-core', () => {
-        it('should return false', () => {
+      describe('and there is no commit type', () => {
+        it('returns false', () => {
           const result = shouldAutoRelease({
-            commitList: [
-              {
-                commit: '061acd5 feat(scope): some feature (#664)',
-                title: 'feat(scope): some feature (#664)',
-                sha: '061acd5',
-                type: 'feat',
-                id: '664',
-                link: 'something'
-              },
-              {
-                commit: '061acd5 feat(scope)!: update axe-core to 4.0.0 (#664)',
-                title: 'feat(scope)!: update axe-core to 4.0.0 (#664)',
-                sha: '061acd5',
-                type: 'feat!',
-                id: '664',
-                link: 'something'
-              }
-            ],
+            commitList: [createCommit(null)],
             isVersionLocked: true
           })
 
