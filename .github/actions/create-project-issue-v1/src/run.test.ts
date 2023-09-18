@@ -9,7 +9,6 @@ describe('run', () => {
   let info: sinon.SinonSpy
   let warning: sinon.SinonSpy
   let getInput: sinon.SinonStub
-
   const github = {
     context: {
       repo: {

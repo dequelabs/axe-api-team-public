@@ -10,12 +10,12 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     const labels = core.getInput('labels')
     const assignees = core.getInput('assignees')
     /* default: 66 */
-    const projectNumber = parseInt(core.getInput('project_number'))
+    const projectId = parseInt(core.getInput('project_id'))
     /* default: Backlog */
     const columnName = core.getInput('column_name')
 
-    if (isNaN(projectNumber)) {
-      core.setFailed('project_number must be a number')
+    if (isNaN(projectId)) {
+      core.setFailed('project_id must be a number')
       return
     }
 
@@ -32,12 +32,12 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
         assignees: assignees ? assignees.split(',') : undefined
       }),
       octokit.rest.projects.get({
-        project_id: projectNumber
+        project_id: projectId
       })
     ])
 
     core.info(`Created issue ${issueCreated.number}`)
-    core.info(`Adding issue ${issueCreated.number} to project ${projectNumber}`)
+    core.info(`Adding issue ${issueCreated.number} to project ID ${projectId}`)
 
     const { data: projectColumns } = await octokit.rest.projects.listColumns({
       project_id: project.id
@@ -65,7 +65,6 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       content_type: 'Issue'
     })
 
-    core.info(`Added issue ${issueCreated.number} to project ${projectNumber}`)
     core.setOutput('issue_url', issueCreated.url)
   } catch (error) {
     core.setFailed((error as Error).message)
