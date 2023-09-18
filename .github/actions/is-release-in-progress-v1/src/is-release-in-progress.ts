@@ -15,9 +15,7 @@ import type { PullRequest } from './types'
 export default function isReleaseInProgress(
   pullRequests: PullRequest[]
 ): boolean {
-  const releasePullRequests = pullRequests.filter(pr =>
+  return pullRequests.some(pr =>
     pr.labels.some(label => label.name === 'release')
   )
-
-  return releasePullRequests.length > 0
 }

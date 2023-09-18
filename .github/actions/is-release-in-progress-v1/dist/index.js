@@ -9655,8 +9655,7 @@ const run_1 = __importDefault(__nccwpck_require__(1738));
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 function isReleaseInProgress(pullRequests) {
-    const releasePullRequests = pullRequests.filter(pr => pr.labels.some(label => label.name === 'release'));
-    return releasePullRequests.length > 0;
+    return pullRequests.some(pr => pr.labels.some(label => label.name === 'release'));
 }
 exports["default"] = isReleaseInProgress;
 
