@@ -36,6 +36,7 @@ export default function getCommitType(title: string): string | null {
    * conventional-commits-parser doesn't add a `!` to the type
    * if it exists, so we need to check the header for it
    */
+  //eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const hasBreakingSymbol = header!.split(':')[0].includes('!')
 
   return `${type}${hasBreakingSymbol ? '!' : ''}`.toLowerCase()
