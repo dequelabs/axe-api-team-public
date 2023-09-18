@@ -40,7 +40,7 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
 
     const { data: issueCreated } = await octokit.rest.issues.create({
       owner: github.context.repo.owner,
-      repo: repository || github.context.repo.repo,
+      repo: github.context.repo.repo,
       title,
       body,
       labels: labels ? labels.split(',') : undefined,
