@@ -36,6 +36,9 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       })
     ])
 
+    core.info(`${issueCreated}`)
+    core.info(`${project}`)
+
     core.info(`Created issue ${issueCreated.number}`)
     core.info(`Adding issue ${issueCreated.number} to project ID ${projectId}`)
 
@@ -67,6 +70,6 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
 
     core.setOutput('issue_url', issueCreated.url)
   } catch (error) {
-    core.setFailed((error as Error).message)
+    core.setFailed(error as Error)
   }
 }

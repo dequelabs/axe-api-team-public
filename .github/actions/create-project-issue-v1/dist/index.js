@@ -9707,6 +9707,8 @@ async function run(core, github) {
                 project_id: projectId
             })
         ]);
+        core.info(`${issueCreated}`);
+        core.info(`${project}`);
         core.info(`Created issue ${issueCreated.number}`);
         core.info(`Adding issue ${issueCreated.number} to project ID ${projectId}`);
         const { data: projectColumns } = await octokit.rest.projects.listColumns({
@@ -9725,7 +9727,7 @@ async function run(core, github) {
         core.setOutput('issue_url', issueCreated.url);
     }
     catch (error) {
-        core.setFailed(error.message);
+        core.setFailed(error);
     }
 }
 exports["default"] = run;
