@@ -1,7 +1,7 @@
 {
   "name": "create-project-issue-v1",
   "version": "1.0.0",
-  "description": "A GitHub Action that generates the commit list between two branches",
+  "description": "To generate a github issue on a certain board in a certain column",
   "bugs": {
     "url": "https://github.com/dequelabs/axe-api-team-public/issues"
   },
