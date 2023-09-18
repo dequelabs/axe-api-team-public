@@ -1,7 +1,7 @@
 name: create-project-issue
 description: 'To generate a github issue on a certain board in a certain column'
 inputs:
-  github-token:
+  github_token:
     description: 'The GitHub token to use for authentication'
     required: true
   title:
