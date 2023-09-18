@@ -2811,34 +2811,33 @@ function shouldAutoRelease({ commitList, isVersionLocked }) {
         return false;
     }
     if (!isVersionLocked) {
-        return commitList.some(({ type }) => type === 'feat' || type === 'fix');
+        return commitList.some(({ type }) => {
+            if (!type) {
+                return;
+            }
+            return type.startsWith('feat') || type.startsWith('fix');
+        });
     }
-    let hasBreakingChanges = false;
-    let hasMajorOrMinorChangesForAxeCore = false;
-    let hasFeatOrFixChanges = false;
+    let atLeastOneReleasableCommit = false;
     for (const { type, title } of commitList) {
-        if (hasBreakingChanges || hasMajorOrMinorChangesForAxeCore) {
-            break;
+        if (!type) {
+            continue;
         }
-        if (type === 'feat!') {
-            hasBreakingChanges = true;
+        const isBreakingChange = type.includes('!');
+        const isFeatOrFixChange = type === 'fix' || type === 'feat';
+        const isMinorChangeForAxeCore = title.toLowerCase().includes('update axe-core to') &&
+            type.startsWith('feat');
+        if (isBreakingChange || isMinorChangeForAxeCore) {
+            return false;
         }
-        if (title.toLowerCase().includes('update axe-core to') &&
-            (type === 'feat' || type === 'feat!')) {
-            hasMajorOrMinorChangesForAxeCore = true;
-        }
-        if (type === 'feat' || type === 'fix') {
-            hasFeatOrFixChanges = true;
+        if (isFeatOrFixChange) {
+            atLeastOneReleasableCommit = true;
         }
     }
-    const hasNone = !hasBreakingChanges &&
-        !hasMajorOrMinorChangesForAxeCore &&
-        !hasFeatOrFixChanges;
-    if (hasNone) {
+    if (!atLeastOneReleasableCommit) {
         return false;
     }
-    return (!hasBreakingChanges &&
-        (!hasMajorOrMinorChangesForAxeCore || !hasFeatOrFixChanges));
+    return true;
 }
 exports["default"] = shouldAutoRelease;
 
