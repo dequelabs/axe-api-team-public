@@ -65,12 +65,7 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
         query ($organization: String!, $projectId: Int!) {
           organization(login: $organization) {
             projectV2(number: $projectId) {
-              columns(first: 20) {
-                nodes {
-                  id
-                  name
-                }
-              }
+              id
             }
           }
         }
