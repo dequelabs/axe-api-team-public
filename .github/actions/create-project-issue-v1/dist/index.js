@@ -9702,15 +9702,21 @@ async function run(core, github) {
             assignees: assignees ? assignees.split(',') : undefined
         });
         core.info(`Created issue ${issueCreated.number}`);
-        let { data: projects } = await octokit.rest.projects.listForRepo({
+        const { data: projects } = await octokit.rest.projects.listForRepo({
             owner: github.context.repo.owner,
             repo: repo[1] ?? repo[0]
         });
-        let project = projects.find(project => project.id === projectId);
+        for (const project of projects) {
+            core.info(`Found project ${project.name} with ID ${project.id}`);
+        }
+        const project = projects.find(project => project.id === projectId);
         core.info(`Adding issue ${issueCreated.number} to project ID ${projectId}`);
         const { data: projectColumns } = await octokit.rest.projects.listColumns({
             project_id: project.id
         });
+        for (const column of projectColumns) {
+            core.info(`Found column ${column.name} with ID ${column.id}`);
+        }
         let projectColumn = projectColumns.find(column => column.name.toLowerCase() === columnName.toLowerCase());
         if (!projectColumn) {
             core.warning(`Column ${columnName} not found, defaulting to Backlog column`);
