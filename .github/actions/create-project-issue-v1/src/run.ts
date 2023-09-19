@@ -35,22 +35,39 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     core.info(`Created issue ${issueCreated.number}`)
 
     //@see https://docs.github.com/en/issues/planning-and-tracking-with-projects/automating-your-project/using-the-api-to-manage-projects#finding-information-about-projects
-    const project = await octokit.graphql(
-      `
-      query($projectId: ID!) {
-        organization(login: $org) {
-          projectV2(number: $projectId) {
-            id
-            fields(first: 20) {
-              nodes {
-                name
-              }
+    /**
+     * Get organization project by ID
+     * Get all of the column names in the project
+     *
+     */
+    const project = await graphql<{
+      organization: {
+        project: {
+          columns: {
+            nodes: {
+              id: string
+              name: string
+            }[]
           }
         }
       }
-    `,
+    }>(
+      `
+        query ($organization: String!, $projectId: Int!) {
+          organization(login: $organization) {
+            project(number: $projectId) {
+              columns(first: 100) {
+                nodes {
+                  id
+                  name
+                }
+              }
+            }
+          }
+        }
+      `,
       {
-        org: github.context.repo.owner,
+        organization: github.context.repo.owner,
         projectId
       }
     )
