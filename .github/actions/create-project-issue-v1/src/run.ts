@@ -71,12 +71,12 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       }
     )) as GraphQlQueryResponseData
 
-    const nodes = project.organization.projectV2.fields.nodes
-    core.info(JSON.stringify(nodes, null, 2))
+    //eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const status = project.organization.projectV2.fields.nodes.find(
+      node => node.name === 'Status'
+    )!
 
-    const columnID = nodes.find(
-      node => node.name.toLowerCase() === columnName.toLowerCase()
-    )?.id
+    const columnID = status.options.find(option => option.name === columnName)
 
     if (!columnID) {
       core.setFailed(`Column ${columnName} not found`)

@@ -9733,9 +9733,8 @@ async function run(core, github) {
                 authorization: `token ${token}`
             }
         }));
-        const nodes = project.organization.projectV2.fields.nodes;
-        core.info(JSON.stringify(nodes, null, 2));
-        const columnID = nodes.find(node => node.name.toLowerCase() === columnName.toLowerCase())?.id;
+        const status = project.organization.projectV2.fields.nodes.find(node => node.name === 'Status');
+        const columnID = status.options.find(option => option.name === columnName);
         if (!columnID) {
             core.setFailed(`Column ${columnName} not found`);
             return;
