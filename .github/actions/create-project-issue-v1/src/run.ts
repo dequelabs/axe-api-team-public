@@ -57,29 +57,27 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       }
     )) as GraphQlQueryResponseData
 
-    const column = project.repository.project.columns.nodes.find(
-      (column: { name: string }) => column.name === columnName
-    )
+    core.info(JSON.stringify(project, null, 2))
 
-    if (!column) {
-      core.setFailed(`Could not find column ${columnName}`)
-      return
-    }
+    // if (!column) {
+    //   core.setFailed(`Could not find column ${columnName}`)
+    //   return
+    // }
 
-    await octokit.graphql(
-      `
-      mutation($contentId: ID!, $columnId: ID!) {
-        moveIssueToColumn(input: {cardId: $contentId, columnId: $columnId}) {
-          clientMutationId
-        }
-      }
-    `,
+    // await octokit.graphql(
+    //   `
+    //   mutation($contentId: ID!, $columnId: ID!) {
+    //     moveIssueToColumn(input: {cardId: $contentId, columnId: $columnId}) {
+    //       clientMutationId
+    //     }
+    //   }
+    // `,
 
-      {
-        issueId: issueCreated.node_id,
-        columnId: column.id
-      }
-    )
+    //   {
+    //     issueId: issueCreated.node_id,
+    //     columnId: column.id
+    //   }
+    // )
 
     core.setOutput('issue_url', issueCreated.url)
   } catch (error) {

@@ -9721,21 +9721,7 @@ async function run(core, github) {
             owner: github.context.repo.owner,
             repo: repo[1] ?? repo[0]
         }));
-        const column = project.repository.project.columns.nodes.find((column) => column.name === columnName);
-        if (!column) {
-            core.setFailed(`Could not find column ${columnName}`);
-            return;
-        }
-        await octokit.graphql(`
-      mutation($contentId: ID!, $columnId: ID!) {
-        moveIssueToColumn(input: {cardId: $contentId, columnId: $columnId}) {
-          clientMutationId
-        }
-      }
-    `, {
-            issueId: issueCreated.node_id,
-            columnId: column.id
-        });
+        core.info(JSON.stringify(project, null, 2));
         core.setOutput('issue_url', issueCreated.url);
     }
     catch (error) {
