@@ -10528,7 +10528,7 @@ async function run(core, github) {
         core.info(`Created issue ${issueCreated.number}`);
         core.info(`Looking for project ${projectId} in ${github.context.repo.owner}`);
         const project = await (0, graphql_1.graphql)(`
-        query ($org: String!, $number: Int!) {
+        query ($number: Int!) {
           organization(login: "dequelabs") {
             projectV2(number: $number) {
               id

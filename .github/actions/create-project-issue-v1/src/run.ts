@@ -39,7 +39,7 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     //@see https://docs.github.com/en/issues/planning-and-tracking-with-projects/automating-your-project/using-the-api-to-manage-projects#finding-information-about-projects
     const project = await graphql(
       `
-        query ($org: String!, $number: Int!) {
+        query ($number: Int!) {
           organization(login: "dequelabs") {
             projectV2(number: $number) {
               id
