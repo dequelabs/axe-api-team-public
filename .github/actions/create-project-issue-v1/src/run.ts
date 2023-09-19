@@ -64,7 +64,10 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       `,
       {
         owner: github.context.repo.owner,
-        projectId
+        projectId,
+        headers: {
+          authorization: `token ${token}`
+        }
       }
     )
 
