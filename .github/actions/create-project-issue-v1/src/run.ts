@@ -1,5 +1,5 @@
 import type { Core, GitHub } from './types'
-import { RequestError } from '@octokit/request-error'
+import { graphql } from '@octokit/graphql'
 
 export default async function run(core: Core, github: GitHub): Promise<void> {
   try {
@@ -34,51 +34,53 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
 
     core.info(`Created issue ${issueCreated.number}`)
 
-    // TODO: remove for Org
-    const { data: projects } = await octokit.rest.projects.listForUser({
-      username: github.context.repo.owner
-    })
+    const project = await octokit.graphql(
+      `
+      query($owner: String!, $repo: String!, $number: Int!) {
+        repository(owner: $owner, name: $repo) {
+          project(number: ${projectId}) {
+            id
+            name
+            columns(first: 100) {
+              nodes {
+                id
+                name
+              }
+            }
+          }
+        }
+      }
+    `,
+      {
+        owner: github.context.repo.owner,
+        repo: repo[1] ?? repo[0],
+        number: issueCreated.number
+      }
+    )
 
-    for (const project of projects) {
-      core.info(
-        `Found project ${project.name} with ID ${JSON.stringify(project)}`
-      )
+    //@ts-expect-error - graphql is not typed
+    const column = project.repository.project.columns.nodes.find(
+      (column: { name: string }) => column.name === columnName
+    )
+
+    if (!column) {
+      core.setFailed(`Could not find column ${columnName}`)
+      return
     }
 
-    // const project = projects.find(project => project.id === projectId)!
-
-    // core.info(`Adding issue ${issueCreated.number} to project ID ${projectId}`)
-
-    // const { data: projectColumns } = await octokit.rest.projects.listColumns({
-    //   project_id: project.id
-    // })
-
-    // for (const column of projectColumns) {
-    //   core.info(`Found column ${column.name} with ID ${column.id}`)
-    // }
-
-    // let projectColumn = projectColumns.find(
-    //   column => column.name.toLowerCase() === columnName.toLowerCase()
-    // )
-
-    // if (!projectColumn) {
-    //   core.warning(
-    //     `Column ${columnName} not found, defaulting to Backlog column`
-    //   )
-
-    //   // We should be aware that we can never rename or delete the Backlog column
-    //   //eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    //   projectColumn = projectColumns.find(
-    //     column => column.name.toLowerCase() === 'backlog'
-    //   )!
-    // }
-
-    // await octokit.rest.projects.createCard({
-    //   column_id: projectColumn.id,
-    //   content_id: issueCreated.id,
-    //   note: issueCreated.title,
-    //   content_type: 'Issue'
-    // })
+    await octokit.graphql(
+      `
+      mutation($contentId: ID!, $columnId: ID!) {
+        moveIssueToColumn(input: {cardId: $contentId, columnId: $columnId}) {
+          clientMutationId
+        }
+      }
+    `,
+      {
+        contentId: issueCreated.node_id,
+        columnId: column.id
+      }
+    )
 
     core.setOutput('issue_url', issueCreated.url)
   } catch (error) {

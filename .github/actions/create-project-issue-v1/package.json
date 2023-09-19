@@ -36,5 +36,8 @@
       "coverage",
       "**/*.test.ts"
     ]
+  },
+  "devDependencies": {
+    "@octokit/graphql": "^7.0.1"
   }
 }

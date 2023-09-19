@@ -9702,12 +9702,41 @@ async function run(core, github) {
             assignees: assignees ? assignees.split(',') : undefined
         });
         core.info(`Created issue ${issueCreated.number}`);
-        const { data: projects } = await octokit.rest.projects.listForUser({
-            username: github.context.repo.owner
-        });
-        for (const project of projects) {
-            core.info(`Found project ${project.name} with ID ${JSON.stringify(project)}`);
+        const project = await octokit.graphql(`
+      query($owner: String!, $repo: String!, $number: Int!) {
+        repository(owner: $owner, name: $repo) {
+          project(number: ${projectId}) {
+            id
+            name
+            columns(first: 100) {
+              nodes {
+                id
+                name
+              }
+            }
+          }
         }
+      }
+    `, {
+            owner: github.context.repo.owner,
+            repo: repo[1] ?? repo[0],
+            number: issueCreated.number
+        });
+        const column = project.repository.project.columns.nodes.find((column) => column.name === columnName);
+        if (!column) {
+            core.setFailed(`Could not find column ${columnName}`);
+            return;
+        }
+        await octokit.graphql(`
+      mutation($contentId: ID!, $columnId: ID!) {
+        moveIssueToColumn(input: {cardId: $contentId, columnId: $columnId}) {
+          clientMutationId
+        }
+      }
+    `, {
+            contentId: issueCreated.node_id,
+            columnId: column.id
+        });
         core.setOutput('issue_url', issueCreated.url);
     }
     catch (error) {
