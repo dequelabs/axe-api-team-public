@@ -40,10 +40,11 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       query($projectId: ID!) {
         organization(login: $org) {
           projectV2(number: $projectId) {
-            nodes {
-              id
-              name
-            }
+            id
+            fields(first: 20) {
+              nodes {
+                name
+              }
           }
         }
       }
