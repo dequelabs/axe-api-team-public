@@ -1,5 +1,8 @@
 import type { Core, GitHub } from './types'
-import { graphql, type GraphQlQueryResponseData } from '@octokit/graphql'
+import {
+  graphql as Graphql,
+  type GraphQlQueryResponseData
+} from '@octokit/graphql'
 
 export default async function run(core: Core, github: GitHub): Promise<void> {
   try {
@@ -34,13 +37,16 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
 
     core.info(`Created issue ${issueCreated.number}`)
 
+    //@see https://github.com/octokit/graphql.js/#authentication
+    const graph = Graphql.defaults({
+      headers: {
+        authorization: `token ${token}`
+      }
+    })
+
     //@see https://docs.github.com/en/issues/planning-and-tracking-with-projects/automating-your-project/using-the-api-to-manage-projects#finding-information-about-projects
-    /**
-     * Get organization project by ID
-     * Get all of the column names in the project
-     *
-     */
-    const project = await graphql<{
+    const project = await graph<// TODO: type this
+    {
       organization: {
         project: {
           columns: {

@@ -10526,7 +10526,12 @@ async function run(core, github) {
             assignees: assignees ? assignees.split(',') : undefined
         });
         core.info(`Created issue ${issueCreated.number}`);
-        const project = await (0, graphql_1.graphql)(`
+        const graph = graphql_1.graphql.defaults({
+            headers: {
+                authorization: `token ${token}`
+            }
+        });
+        const project = await graph(`
         query ($organization: String!, $projectId: Int!) {
           organization(login: $organization) {
             project(number: $projectId) {
