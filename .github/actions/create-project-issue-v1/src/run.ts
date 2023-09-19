@@ -34,9 +34,13 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
 
     core.info(`Created issue ${issueCreated.number}`)
 
-    const { data: project } = await octokit.rest.projects.get({
-      project_id: projectId
+    // TODO: remove for Org
+    let { data: projects } = await octokit.rest.projects.listForRepo({
+      owner: github.context.repo.owner,
+      repo: repo[1] ?? repo[0]
     })
+
+    let project = projects.find(project => project.id === projectId)!
 
     core.info(`Adding issue ${issueCreated.number} to project ID ${projectId}`)
 

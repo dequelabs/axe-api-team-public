@@ -9702,9 +9702,11 @@ async function run(core, github) {
             assignees: assignees ? assignees.split(',') : undefined
         });
         core.info(`Created issue ${issueCreated.number}`);
-        const { data: project } = await octokit.rest.projects.get({
-            project_id: projectId
+        let { data: projects } = await octokit.rest.projects.listForRepo({
+            owner: github.context.repo.owner,
+            repo: repo[1] ?? repo[0]
         });
+        let project = projects.find(project => project.id === projectId);
         core.info(`Adding issue ${issueCreated.number} to project ID ${projectId}`);
         const { data: projectColumns } = await octokit.rest.projects.listColumns({
             project_id: project.id
