@@ -10533,16 +10533,16 @@ async function run(core, github) {
         });
         core.info(`Looking for project ${projectId} in ${github.context.repo.owner}`);
         const project = await graph(`
-        query ($organization: String!, $projectId: Int!) {
-          organization(login: $organization) {
-            projectV2(number: $projectId) {
-              id
-            }
+      query($org: String!, $number: Int!) {
+        organization(login: $org){
+          projectV2(number: $number) {
+            id
           }
         }
+      }
       `, {
-            organization: github.context.repo.owner,
-            projectId
+            org: github.context.repo.owner,
+            number: projectId
         });
         core.info(JSON.stringify(project, null, 2));
         core.setOutput('issue_url', issueCreated.url);

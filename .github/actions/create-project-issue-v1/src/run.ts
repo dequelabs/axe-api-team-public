@@ -48,31 +48,19 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       `Looking for project ${projectId} in ${github.context.repo.owner}`
     )
     //@see https://docs.github.com/en/issues/planning-and-tracking-with-projects/automating-your-project/using-the-api-to-manage-projects#finding-information-about-projects
-    const project = await graph<// TODO: type this
-    {
-      organization: {
-        project: {
-          columns: {
-            nodes: {
-              id: string
-              name: string
-            }[]
+    const project = await graph(
+      `
+      query($org: String!, $number: Int!) {
+        organization(login: $org){
+          projectV2(number: $number) {
+            id
           }
         }
       }
-    }>(
-      `
-        query ($organization: String!, $projectId: Int!) {
-          organization(login: $organization) {
-            projectV2(number: $projectId) {
-              id
-            }
-          }
-        }
       `,
       {
-        organization: github.context.repo.owner,
-        projectId
+        org: github.context.repo.owner,
+        number: projectId
       }
     )
 
