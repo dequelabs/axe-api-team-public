@@ -8,13 +8,11 @@ declare type Nodes = {
     options: Omit<Nodes, 'options'>[];
 };
 export declare type GraphQlQueryResponseData = {
-    data: {
-        organization: {
-            projectV2: {
-                id: string;
-                fields: {
-                    nodes: Nodes[];
-                };
+    organization: {
+        projectV2: {
+            id: string;
+            fields: {
+                nodes: Nodes[];
             };
         };
     };

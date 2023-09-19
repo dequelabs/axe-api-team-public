@@ -85,14 +85,14 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       `,
       {
         issueId: issueCreated.node_id,
-        projectId: project.data.organization.projectV2.id,
+        projectId: project.organization.projectV2.id,
         headers: {
           authorization: `token ${token}`
         }
       }
     )
 
-    const nodes = project.data.organization.projectV2.fields.nodes
+    const nodes = project.organization.projectV2.fields.nodes
     const columnID = nodes.find(node => node.name === columnName)?.id
 
     if (!columnID) {
