@@ -69,12 +69,8 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
 
     core.setOutput('issue_url', issueCreated.url)
   } catch (error) {
-    if (error instanceof RequestError) {
-      core.warning(
-        `RequestError: ${error.message}\n Status: ${error.status}\n Stack: ${error.stack}\n `
-      )
-
-      return
-    }
+    core.setFailed(
+      `Message: ${(error as Error).message}\n Stack: ${(error as Error).stack}`
+    )
   }
 }
