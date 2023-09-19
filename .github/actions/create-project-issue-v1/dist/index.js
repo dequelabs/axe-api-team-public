@@ -9703,7 +9703,7 @@ async function run(core, github) {
         });
         core.info(`Created issue ${issueCreated.number}`);
         core.info(`Looking for project ${projectId} in ${github.context.repo.owner}`);
-        const project = await octokit.graphql(`query($owner: String!, $projectId: Int!) {
+        const project = (await octokit.graphql(`query($owner: String!, $projectId: Int!) {
         organization(login: $owner) {
           projectV2(number: $projectId) {
             id
@@ -9732,8 +9732,46 @@ async function run(core, github) {
             headers: {
                 authorization: `token ${token}`
             }
+        }));
+        await octokit.graphql(`mutation($issueId: ID!, $projectId: ID!) {
+        addProjectCard(input: {contentId: $issueId, projectColumnId: $projectId}) {
+          cardEdge {
+            node {
+              id
+            }
+          }
+        }
+      }
+      `, {
+            issueId: issueCreated.node_id,
+            projectId: project.data.organization.projectV2.id,
+            headers: {
+                authorization: `token ${token}`
+            }
         });
-        core.info(JSON.stringify(project, null, 2));
+        const nodes = project.data.organization.projectV2.fields.nodes;
+        const columnID = nodes.find(node => node.name === columnName)?.id;
+        if (!columnID) {
+            core.setFailed(`Column ${columnName} not found`);
+            return;
+        }
+        core.info(`Found column ${columnName} with id ${columnID}`);
+        await octokit.graphql(`mutation($issueId: ID!, $columnId: ID!) {
+        moveProjectCard(input: {cardId: $issueId, columnId: $columnId}) {
+          cardEdge {
+            node {
+              id
+            }
+          }
+        }
+      }
+      `, {
+            issueId: issueCreated.node_id,
+            columnId: columnID,
+            headers: {
+                authorization: `token ${token}`
+            }
+        });
         core.setOutput('issue_url', issueCreated.url);
     }
     catch (error) {

@@ -1,5 +1,5 @@
-import type { Core, GitHub } from './types'
-import { graphql, type GraphQlQueryResponseData } from '@octokit/graphql'
+import type { Core, GitHub, GraphQlQueryResponseData } from './types'
+import { graphql } from '@octokit/graphql'
 
 export default async function run(core: Core, github: GitHub): Promise<void> {
   try {
@@ -37,7 +37,7 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       `Looking for project ${projectId} in ${github.context.repo.owner}`
     )
     //@see https://docs.github.com/en/issues/planning-and-tracking-with-projects/automating-your-project/using-the-api-to-manage-projects#finding-the-node-id-of-a-field
-    const project = await octokit.graphql(
+    const project = (await octokit.graphql(
       `query($owner: String!, $projectId: Int!) {
         organization(login: $owner) {
           projectV2(number: $projectId) {
@@ -69,29 +69,58 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
           authorization: `token ${token}`
         }
       }
+    )) as GraphQlQueryResponseData
+
+    // add issue to project
+    await octokit.graphql(
+      `mutation($issueId: ID!, $projectId: ID!) {
+        addProjectCard(input: {contentId: $issueId, projectColumnId: $projectId}) {
+          cardEdge {
+            node {
+              id
+            }
+          }
+        }
+      }
+      `,
+      {
+        issueId: issueCreated.node_id,
+        projectId: project.data.organization.projectV2.id,
+        headers: {
+          authorization: `token ${token}`
+        }
+      }
     )
 
-    core.info(JSON.stringify(project, null, 2))
+    const nodes = project.data.organization.projectV2.fields.nodes
+    const columnID = nodes.find(node => node.name === columnName)?.id
 
-    // if (!column) {
-    //   core.setFailed(`Could not find column ${columnName}`)
-    //   return
-    // }
+    if (!columnID) {
+      core.setFailed(`Column ${columnName} not found`)
+      return
+    }
 
-    // await octokit.graphql(
-    //   `
-    //   mutation($contentId: ID!, $columnId: ID!) {
-    //     moveIssueToColumn(input: {cardId: $contentId, columnId: $columnId}) {
-    //       clientMutationId
-    //     }
-    //   }
-    // `,
+    core.info(`Found column ${columnName} with id ${columnID}`)
 
-    //   {
-    //     issueId: issueCreated.node_id,
-    //     columnId: column.id
-    //   }
-    // )
+    await octokit.graphql(
+      `mutation($issueId: ID!, $columnId: ID!) {
+        moveProjectCard(input: {cardId: $issueId, columnId: $columnId}) {
+          cardEdge {
+            node {
+              id
+            }
+          }
+        }
+      }
+      `,
+      {
+        issueId: issueCreated.node_id,
+        columnId: columnID,
+        headers: {
+          authorization: `token ${token}`
+        }
+      }
+    )
 
     core.setOutput('issue_url', issueCreated.url)
   } catch (error) {

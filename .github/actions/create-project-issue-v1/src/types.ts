@@ -6,3 +6,22 @@ export type Core = Pick<
   'getInput' | 'setFailed' | 'info' | 'warning' | 'setOutput'
 >
 export type GitHub = Pick<typeof github, 'getOctokit' | 'context'>
+
+type Nodes = {
+  id: string
+  name: string
+  options: Omit<Nodes, 'options'>[]
+}
+
+export type GraphQlQueryResponseData = {
+  data: {
+    organization: {
+      projectV2: {
+        id: string
+        fields: {
+          nodes: Nodes[]
+        }
+      }
+    }
+  }
+}
