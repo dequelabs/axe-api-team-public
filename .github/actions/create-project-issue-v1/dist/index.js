@@ -10526,20 +10526,15 @@ async function run(core, github) {
             assignees: assignees ? assignees.split(',') : undefined
         });
         core.info(`Created issue ${issueCreated.number}`);
-        const graph = graphql_1.graphql.defaults({
-            headers: {
-                authorization: `token ${token}`
-            }
-        });
         core.info(`Looking for project ${projectId} in ${github.context.repo.owner}`);
-        const project = await graph(`
-      query($org: String!, $number: Int!) {
-        organization(login: $org){
-          projectV2(number: $number) {
-            id
+        const project = await (0, graphql_1.graphql)(`
+        query ($org: String!, $number: Int!) {
+          organization(login: $org) {
+            projectV2(number: $number) {
+              id
+            }
           }
         }
-      }
       `, {
             org: github.context.repo.owner,
             number: projectId
