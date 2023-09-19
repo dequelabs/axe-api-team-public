@@ -10537,7 +10537,10 @@ async function run(core, github) {
         }
       `, {
             org: github.context.repo.owner,
-            number: projectId
+            number: projectId,
+            headers: {
+                authorization: `token ${token}`
+            }
         });
         core.info(JSON.stringify(project, null, 2));
         core.setOutput('issue_url', issueCreated.url);
