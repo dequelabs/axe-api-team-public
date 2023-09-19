@@ -10531,11 +10531,12 @@ async function run(core, github) {
                 authorization: `token ${token}`
             }
         });
+        core.info(`Looking for project ${projectId} in ${github.context.repo.owner}`);
         const project = await graph(`
         query ($organization: String!, $projectId: Int!) {
           organization(login: $organization) {
-            project(number: $projectId) {
-              columns(first: 100) {
+            projectV2(number: $projectId) {
+              columns(first: 20) {
                 nodes {
                   id
                   name
