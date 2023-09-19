@@ -1,4 +1,5 @@
 import type { Core, GitHub } from './types'
+import { RequestError } from '@octokit/request-error'
 
 export default async function run(core: Core, github: GitHub): Promise<void> {
   try {
@@ -22,21 +23,21 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     // default: `github.repository` is `owner/repo`, we just want the `repo`
     const repo = repository.split('/')
     const octokit = github.getOctokit(token)
-    const [{ data: issueCreated }, { data: project }] = await Promise.all([
-      octokit.rest.issues.create({
-        owner: github.context.repo.owner,
-        repo: repo[1] ?? repo[0],
-        title,
-        body,
-        labels: labels ? labels.split(',') : undefined,
-        assignees: assignees ? assignees.split(',') : undefined
-      }),
-      octokit.rest.projects.get({
-        project_id: projectId
-      })
-    ])
+    const { data: issueCreated } = await octokit.rest.issues.create({
+      owner: github.context.repo.owner,
+      repo: repo[1] ?? repo[0],
+      title,
+      body,
+      labels: labels ? labels.split(',') : undefined,
+      assignees: assignees ? assignees.split(',') : undefined
+    })
 
     core.info(`Created issue ${issueCreated.number}`)
+
+    const { data: project } = await octokit.rest.projects.get({
+      project_id: projectId
+    })
+
     core.info(`Adding issue ${issueCreated.number} to project ID ${projectId}`)
 
     const { data: projectColumns } = await octokit.rest.projects.listColumns({
@@ -62,11 +63,18 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     await octokit.rest.projects.createCard({
       column_id: projectColumn.id,
       content_id: issueCreated.id,
+      note: issueCreated.title,
       content_type: 'Issue'
     })
 
     core.setOutput('issue_url', issueCreated.url)
   } catch (error) {
-    core.setFailed(error as Error)
+    if (error instanceof RequestError) {
+      core.warning(
+        `RequestError: ${error.message}\n Status: ${error.status}\n Stack: ${error.stack}\n `
+      )
+
+      return
+    }
   }
 }
