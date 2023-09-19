@@ -9702,13 +9702,13 @@ async function run(core, github) {
             assignees: assignees ? assignees.split(',') : undefined
         });
         core.info(`Created issue ${issueCreated.number}`);
-        const project = await octokit.graphql(`
-      query($owner: String!, $repo: String!, $number: Int!) {
+        const project = (await octokit.graphql(`
+      query($owner: String!, $repo: String!) {
         repository(owner: $owner, name: $repo) {
           project(number: ${projectId}) {
             id
             name
-            columns(first: 100) {
+            columns(first: 20) {
               nodes {
                 id
                 name
@@ -9719,9 +9719,8 @@ async function run(core, github) {
       }
     `, {
             owner: github.context.repo.owner,
-            repo: repo[1] ?? repo[0],
-            number: issueCreated.number
-        });
+            repo: repo[1] ?? repo[0]
+        }));
         const column = project.repository.project.columns.nodes.find((column) => column.name === columnName);
         if (!column) {
             core.setFailed(`Could not find column ${columnName}`);
@@ -9734,7 +9733,7 @@ async function run(core, github) {
         }
       }
     `, {
-            contentId: issueCreated.node_id,
+            issueId: issueCreated.node_id,
             columnId: column.id
         });
         core.setOutput('issue_url', issueCreated.url);

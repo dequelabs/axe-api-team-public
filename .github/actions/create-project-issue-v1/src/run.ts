@@ -1,5 +1,5 @@
 import type { Core, GitHub } from './types'
-import { graphql } from '@octokit/graphql'
+import { graphql, type GraphQlQueryResponseData } from '@octokit/graphql'
 
 export default async function run(core: Core, github: GitHub): Promise<void> {
   try {
@@ -34,14 +34,14 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
 
     core.info(`Created issue ${issueCreated.number}`)
 
-    const project = await octokit.graphql(
+    const project = (await octokit.graphql(
       `
-      query($owner: String!, $repo: String!, $number: Int!) {
+      query($owner: String!, $repo: String!) {
         repository(owner: $owner, name: $repo) {
           project(number: ${projectId}) {
             id
             name
-            columns(first: 100) {
+            columns(first: 20) {
               nodes {
                 id
                 name
@@ -53,12 +53,10 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     `,
       {
         owner: github.context.repo.owner,
-        repo: repo[1] ?? repo[0],
-        number: issueCreated.number
+        repo: repo[1] ?? repo[0]
       }
-    )
+    )) as GraphQlQueryResponseData
 
-    //@ts-expect-error - graphql is not typed
     const column = project.repository.project.columns.nodes.find(
       (column: { name: string }) => column.name === columnName
     )
@@ -76,8 +74,9 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
         }
       }
     `,
+
       {
-        contentId: issueCreated.node_id,
+        issueId: issueCreated.node_id,
         columnId: column.id
       }
     )
