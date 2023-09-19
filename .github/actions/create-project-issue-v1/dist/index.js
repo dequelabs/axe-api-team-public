@@ -9733,22 +9733,6 @@ async function run(core, github) {
                 authorization: `token ${token}`
             }
         }));
-        await octokit.graphql(`mutation($issueId: ID!, $projectId: ID!) {
-        addProjectCard(input: {contentId: $issueId, projectColumnId: $projectId}) {
-          cardEdge {
-            node {
-              id
-            }
-          }
-        }
-      }
-      `, {
-            issueId: issueCreated.node_id,
-            projectId: project.organization.projectV2.id,
-            headers: {
-                authorization: `token ${token}`
-            }
-        });
         const nodes = project.organization.projectV2.fields.nodes;
         const columnID = nodes.find(node => node.name === columnName)?.id;
         if (!columnID) {
@@ -9756,17 +9740,11 @@ async function run(core, github) {
             return;
         }
         core.info(`Found column ${columnName} with id ${columnID}`);
-        await octokit.graphql(`mutation($issueId: ID!, $columnId: ID!) {
-        moveProjectCard(input: {cardId: $issueId, columnId: $columnId}) {
-          cardEdge {
-            node {
-              id
-            }
-          }
-        }
-      }
-      `, {
-            issueId: issueCreated.node_id,
+        await octokit.graphql(`mutation($contentId: ID!, $columnId: ID!) {
+        addProjectCard(input: {contentId: $contentId, projectColumnId: $columnId}) {
+        } 
+      }`, {
+            contentId: issueCreated.node_id,
             columnId: columnID,
             headers: {
                 authorization: `token ${token}`
