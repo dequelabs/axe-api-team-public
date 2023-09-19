@@ -46,40 +46,40 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       )
     }
 
-    const project = projects.find(project => project.id === projectId)!
+    // const project = projects.find(project => project.id === projectId)!
 
-    core.info(`Adding issue ${issueCreated.number} to project ID ${projectId}`)
+    // core.info(`Adding issue ${issueCreated.number} to project ID ${projectId}`)
 
-    const { data: projectColumns } = await octokit.rest.projects.listColumns({
-      project_id: project.id
-    })
+    // const { data: projectColumns } = await octokit.rest.projects.listColumns({
+    //   project_id: project.id
+    // })
 
-    for (const column of projectColumns) {
-      core.info(`Found column ${column.name} with ID ${column.id}`)
-    }
+    // for (const column of projectColumns) {
+    //   core.info(`Found column ${column.name} with ID ${column.id}`)
+    // }
 
-    let projectColumn = projectColumns.find(
-      column => column.name.toLowerCase() === columnName.toLowerCase()
-    )
+    // let projectColumn = projectColumns.find(
+    //   column => column.name.toLowerCase() === columnName.toLowerCase()
+    // )
 
-    if (!projectColumn) {
-      core.warning(
-        `Column ${columnName} not found, defaulting to Backlog column`
-      )
+    // if (!projectColumn) {
+    //   core.warning(
+    //     `Column ${columnName} not found, defaulting to Backlog column`
+    //   )
 
-      // We should be aware that we can never rename or delete the Backlog column
-      //eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      projectColumn = projectColumns.find(
-        column => column.name.toLowerCase() === 'backlog'
-      )!
-    }
+    //   // We should be aware that we can never rename or delete the Backlog column
+    //   //eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    //   projectColumn = projectColumns.find(
+    //     column => column.name.toLowerCase() === 'backlog'
+    //   )!
+    // }
 
-    await octokit.rest.projects.createCard({
-      column_id: projectColumn.id,
-      content_id: issueCreated.id,
-      note: issueCreated.title,
-      content_type: 'Issue'
-    })
+    // await octokit.rest.projects.createCard({
+    //   column_id: projectColumn.id,
+    //   content_id: issueCreated.id,
+    //   note: issueCreated.title,
+    //   content_type: 'Issue'
+    // })
 
     core.setOutput('issue_url', issueCreated.url)
   } catch (error) {

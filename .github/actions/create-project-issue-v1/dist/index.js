@@ -9709,25 +9709,6 @@ async function run(core, github) {
         for (const project of projects) {
             core.info(`Found project ${project.name} with ID ${JSON.stringify(project)}`);
         }
-        const project = projects.find(project => project.id === projectId);
-        core.info(`Adding issue ${issueCreated.number} to project ID ${projectId}`);
-        const { data: projectColumns } = await octokit.rest.projects.listColumns({
-            project_id: project.id
-        });
-        for (const column of projectColumns) {
-            core.info(`Found column ${column.name} with ID ${column.id}`);
-        }
-        let projectColumn = projectColumns.find(column => column.name.toLowerCase() === columnName.toLowerCase());
-        if (!projectColumn) {
-            core.warning(`Column ${columnName} not found, defaulting to Backlog column`);
-            projectColumn = projectColumns.find(column => column.name.toLowerCase() === 'backlog');
-        }
-        await octokit.rest.projects.createCard({
-            column_id: projectColumn.id,
-            content_id: issueCreated.id,
-            note: issueCreated.title,
-            content_type: 'Issue'
-        });
         core.setOutput('issue_url', issueCreated.url);
     }
     catch (error) {
