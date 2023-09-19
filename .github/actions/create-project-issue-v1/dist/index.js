@@ -9734,7 +9734,7 @@ async function run(core, github) {
             }
         }));
         const status = project.organization.projectV2.fields.nodes.find(node => node.name === 'Status');
-        const columnID = status.options.find(option => option.name === columnName);
+        const columnID = status.options.find(option => option.name === columnName)?.id;
         if (!columnID) {
             core.setFailed(`Column ${columnName} not found`);
             return;
@@ -9742,6 +9742,11 @@ async function run(core, github) {
         core.info(`Found column ${columnName} with id ${columnID}`);
         await octokit.graphql(`mutation($contentId: ID!, $columnId: ID!) {
         addProjectCard(input: {contentId: $contentId, projectColumnId: $columnId}) {
+          cardEdge {
+            node {
+              id
+            }
+          }
         } 
       }`, {
             contentId: issueCreated.node_id,

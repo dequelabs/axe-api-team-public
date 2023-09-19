@@ -76,7 +76,9 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       node => node.name === 'Status'
     )!
 
-    const columnID = status.options.find(option => option.name === columnName)
+    const columnID = status.options.find(
+      option => option.name === columnName
+    )?.id
 
     if (!columnID) {
       core.setFailed(`Column ${columnName} not found`)
@@ -89,6 +91,11 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     await octokit.graphql(
       `mutation($contentId: ID!, $columnId: ID!) {
         addProjectCard(input: {contentId: $contentId, projectColumnId: $columnId}) {
+          cardEdge {
+            node {
+              id
+            }
+          }
         } 
       }`,
       {
