@@ -9702,25 +9702,21 @@ async function run(core, github) {
             assignees: assignees ? assignees.split(',') : undefined
         });
         core.info(`Created issue ${issueCreated.number}`);
-        const project = (await octokit.graphql(`
-      query($owner: String!, $repo: String!) {
-        repository(owner: $owner, name: $repo) {
-          project(number: ${projectId}) {
-            id
-            name
-            columns(first: 20) {
-              nodes {
-                id
-                name
-              }
+        const project = await octokit.graphql(`
+      query($projectId: ID!) {
+        organization(login: $org) {
+          projectV2(number: $projectId) {
+            nodes {
+              id
+              name
             }
           }
         }
       }
     `, {
-            owner: github.context.repo.owner,
-            repo: repo[1] ?? repo[0]
-        }));
+            org: github.context.repo.owner,
+            projectId
+        });
         core.info(JSON.stringify(project, null, 2));
         core.setOutput('issue_url', issueCreated.url);
     }
