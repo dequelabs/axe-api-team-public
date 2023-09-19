@@ -36,22 +36,35 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     core.info(
       `Looking for project ${projectId} in ${github.context.repo.owner}`
     )
-    //@see https://docs.github.com/en/issues/planning-and-tracking-with-projects/automating-your-project/using-the-api-to-manage-projects#finding-information-about-projects
-    const project = await graphql(
-      `
-        query ($number: Int!) {
-          organization(login: "dequelabs") {
-            projectV2(number: $number) {
-              id
+    //@see https://docs.github.com/en/issues/planning-and-tracking-with-projects/automating-your-project/using-the-api-to-manage-projects#finding-the-node-id-of-a-field
+    const project = await octokit.graphql(
+      `query($owner: String!, $projectId: Int!) {
+        organization(login: $owner) {
+          projectV2(number: $projectId) {
+            id
+            fields(first:20) {
+              nodes {
+                ... on ProjectV2Field {
+                  id
+                  name
+                }
+                ... on ProjectV2SingleSelectField {
+                  id
+                  name
+                  options {
+                    id
+                    name
+                  }
+                }
+              }
             }
           }
         }
+      }
       `,
       {
-        number: projectId,
-        headers: {
-          authorization: `token ${token}`
-        }
+        owner: github.context.repo.owner,
+        projectId
       }
     )
 
