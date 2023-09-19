@@ -40,7 +40,7 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     const project = await graphql(
       `
         query ($org: String!, $number: Int!) {
-          organization(login: $org) {
+          organization(login: "dequelabs") {
             projectV2(number: $number) {
               id
             }
@@ -48,7 +48,6 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
         }
       `,
       {
-        org: github.context.repo.owner,
         number: projectId,
         headers: {
           authorization: `token ${token}`

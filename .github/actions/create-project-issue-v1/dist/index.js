@@ -10529,14 +10529,13 @@ async function run(core, github) {
         core.info(`Looking for project ${projectId} in ${github.context.repo.owner}`);
         const project = await (0, graphql_1.graphql)(`
         query ($org: String!, $number: Int!) {
-          organization(login: $org) {
+          organization(login: "dequelabs") {
             projectV2(number: $number) {
               id
             }
           }
         }
       `, {
-            org: github.context.repo.owner,
             number: projectId,
             headers: {
                 authorization: `token ${token}`
