@@ -41,7 +41,9 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     })
 
     for (const project of projects) {
-      core.info(`Found project ${project.name} with ID ${project.id}`)
+      core.info(
+        `Found project ${project.name} with ID ${JSON.stringify(project)}`
+      )
     }
 
     const project = projects.find(project => project.id === projectId)!

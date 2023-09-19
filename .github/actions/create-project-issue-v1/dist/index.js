@@ -9707,7 +9707,7 @@ async function run(core, github) {
             repo: repo[1] ?? repo[0]
         });
         for (const project of projects) {
-            core.info(`Found project ${project.name} with ID ${project.id}`);
+            core.info(`Found project ${project.name} with ID ${JSON.stringify(project)}`);
         }
         const project = projects.find(project => project.id === projectId);
         core.info(`Adding issue ${issueCreated.number} to project ID ${projectId}`);
