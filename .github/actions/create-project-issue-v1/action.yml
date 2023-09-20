@@ -1,0 +1,36 @@
+name: create-project-issue
+description: 'To generate a github issue on a certain board in a certain column'
+inputs:
+  github_token:
+    description: 'The GitHub token to use for authentication'
+    required: true
+  title:
+    description: 'The title of the issue'
+    required: true
+  body:
+    description: 'The body of the issue'
+    required: true
+  repository:
+    description: 'The repository to create the issue in'
+    default: ${{ github.repository }}
+    required: false
+  labels:
+    description: 'Comma delimited list of labels to add to the issue'
+    required: false
+  assignees:
+    description: 'Comma delimited list of assignees to add to the issue'
+    required: false
+  project_number:
+    description: 'The project board number to create the issue in'
+    default: '66'
+    required: false
+  column_name:
+    description: 'The column name to create the issue in'
+    default: 'Backlog'
+    required: false
+outputs:
+  issue_url:
+    description: 'The URL of the created issue'
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
