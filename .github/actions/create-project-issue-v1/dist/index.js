@@ -9733,16 +9733,19 @@ async function run(core, github) {
         core.info(JSON.stringify(issueCreated, null, 2));
         core.info(JSON.stringify(project, null, 2));
         await octokit.graphql(`
-        mutation ($issueId: ID!, $projectId: ID!) {
-          updateIssue(input: { id: $issueId, projectIds: [$projectId] }) {
-            issue {
-              id
-            }
+      mutation (
+        $projectId: ID!
+        $issueId: ID!
+      ){
+        addProjectV2ItemById(input: {projectId: $projectId contentId:$issueId}) {
+          item {
+            id
           }
         }
+      }
       `, {
-            issueId: issueCreated.node_id,
-            projectId: project.organization.projectV2.id
+            projectId: project.organization.projectV2.id,
+            issueId: issueCreated.node_id
         });
         core.setOutput('issue_url', issueCreated.url);
     }

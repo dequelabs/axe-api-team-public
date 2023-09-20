@@ -74,17 +74,20 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     //@see https://docs.github.com/en/graphql/reference/mutations#updateissue
     await octokit.graphql(
       `
-        mutation ($issueId: ID!, $projectId: ID!) {
-          updateIssue(input: { id: $issueId, projectIds: [$projectId] }) {
-            issue {
-              id
-            }
+      mutation (
+        $projectId: ID!
+        $issueId: ID!
+      ){
+        addProjectV2ItemById(input: {projectId: $projectId contentId:$issueId}) {
+          item {
+            id
           }
         }
+      }
       `,
       {
-        issueId: issueCreated.node_id,
-        projectId: project.organization.projectV2.id
+        projectId: project.organization.projectV2.id,
+        issueId: issueCreated.node_id
       }
     )
 
