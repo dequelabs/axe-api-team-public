@@ -1,9 +1,8 @@
+import dedent from 'dedent'
 import { getOctokit } from '@actions/github'
 import type { AddProjectCardResponse, ProjectBoardResponse } from './types'
 
-// TODO: Refactor .github/actions/add-to-board to use this
-
-import dedent from 'dedent'
+// TODO: Refactor .github/actions/add-to-board to use this: https://github.com/dequelabs/axe-api-team/issues/369
 
 // @see //@see https://docs.github.com/en/issues/planning-and-tracking-with-projects/automating-your-project/using-the-api-to-manage-projects#finding-information-about-projects
 export const GET_PROJECT_BOARD_BY_NUMBER = dedent`
