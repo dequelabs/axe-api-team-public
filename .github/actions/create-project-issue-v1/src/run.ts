@@ -103,24 +103,26 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       node => node.name === 'Status'
     )!
 
-    const columnID = columns.options.find(
+    const column = columns.options.find(
       option => option.name.toLowerCase() === columnName.toLowerCase()
-    )?.id
+    )
 
-    if (!columnID) {
+    if (!column) {
       core.setFailed(`Column ${columnName} not found`)
       return
     }
 
     // Move issue to the correct column
     //@see https://docs.github.com/en/graphql/reference/mutations#updateprojectv2itemfieldvalue
+    // project id, item id, field id
     await octokit.graphql(
       `
       mutation (
-        $cardId: ID!
-        $columnId: ID!
+        $projectId: ID!
+        $itemId: ID!
+        $fieldId: ID!
       ){
-        updateProjectV2ItemFieldValue(input: {cardId: $cardId fieldId: $columnId}) {
+        updateProjectV2ItemFieldValue(input: {projectId: $projectId itemId: $itemId fieldId: $fieldId}) {
           item {
             id
           }
@@ -128,8 +130,9 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       }
       `,
       {
-        cardId: projectCard.addProjectV2ItemById.item.id,
-        columnId: columnID
+        projectId: project.organization.projectV2.id,
+        itemId: projectCard.addProjectV2ItemById.item.id,
+        fieldId: columns.id
       }
     )
 

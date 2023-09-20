@@ -9749,25 +9749,27 @@ async function run(core, github) {
         });
         core.info(JSON.stringify(projectCard, null, 2));
         const columns = project.organization.projectV2.fields.nodes.find(node => node.name === 'Status');
-        const columnID = columns.options.find(option => option.name.toLowerCase() === columnName.toLowerCase())?.id;
-        if (!columnID) {
+        const column = columns.options.find(option => option.name.toLowerCase() === columnName.toLowerCase());
+        if (!column) {
             core.setFailed(`Column ${columnName} not found`);
             return;
         }
         await octokit.graphql(`
       mutation (
-        $cardId: ID!
-        $columnId: ID!
+        $projectId: ID!
+        $itemId: ID!
+        $fieldId: ID!
       ){
-        updateProjectV2ItemFieldValue(input: {cardId: $cardId fieldId: $columnId}) {
+        updateProjectV2ItemFieldValue(input: {projectId: $projectId itemId: $itemId fieldId: $fieldId}) {
           item {
             id
           }
         }
       }
       `, {
-            cardId: projectCard.addProjectV2ItemById.item.id,
-            columnId: columnID
+            projectId: project.organization.projectV2.id,
+            itemId: projectCard.addProjectV2ItemById.item.id,
+            fieldId: columns.id
         });
         core.setOutput('issue_url', issueCreated.url);
     }
