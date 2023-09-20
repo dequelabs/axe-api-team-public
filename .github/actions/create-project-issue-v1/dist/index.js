@@ -10566,7 +10566,7 @@ async function run(core, github) {
           }
         }
       `, {
-            issueId: issueCreated.id,
+            issueId: issueCreated.node_id,
             projectId: project.organization.projectV2.id,
             headers: {
                 authorization: `token ${token}`

@@ -84,7 +84,7 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
         }
       `,
       {
-        issueId: issueCreated.id,
+        issueId: issueCreated.node_id,
         projectId: project.organization.projectV2.id,
         headers: {
           authorization: `token ${token}`
