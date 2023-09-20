@@ -63,7 +63,7 @@ describe('run', () => {
         setFailed
       }
 
-      await run(core as unknown as Core, {} as any)
+      await run(core as unknown as Core, github as unknown as GitHub)
 
       assert.isTrue(setFailed.calledOnce)
       assert.isTrue(
@@ -83,7 +83,7 @@ describe('run', () => {
         setFailed
       }
 
-      await run(core as unknown as Core, {} as any)
+      await run(core as unknown as Core, github as unknown as GitHub)
 
       assert.isTrue(setFailed.calledOnce)
       assert.isTrue(
@@ -103,7 +103,7 @@ describe('run', () => {
         setFailed
       }
 
-      await run(core as unknown as Core, {} as any)
+      await run(core as unknown as Core, github as unknown as GitHub)
 
       assert.isTrue(setFailed.calledOnce)
       assert.isTrue(
@@ -126,15 +126,6 @@ describe('run', () => {
       const core = {
         getInput,
         setFailed
-      }
-
-      const github = {
-        context: {
-          repo: {
-            owner: 'owner',
-            repo: 'repo'
-          }
-        }
       }
 
       await run(core as unknown as Core, github as unknown as GitHub)
