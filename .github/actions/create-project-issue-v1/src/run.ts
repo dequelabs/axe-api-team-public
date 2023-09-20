@@ -23,6 +23,7 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     // default: `github.repository` is `owner/repo`, we just want the `repo`
     const repo = repository.split('/')
     const octokit = github.getOctokit(token)
+
     const { data: issueCreated } = await octokit.rest.issues.create({
       owner: github.context.repo.owner,
       repo: repo[1] ?? repo[0],
@@ -32,13 +33,15 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       assignees: assignees ? assignees.split(',') : undefined
     })
 
-    await addToBoard({
+    const res = await addToBoard({
       octokit,
       repositoryOwner: github.context.repo.owner,
       projectNumber,
       columnName,
       issueNodeId: issueCreated.node_id
     })
+
+    core.info(JSON.stringify(res))
 
     core.setOutput('issue_url', issueCreated.url)
   } catch (error) {

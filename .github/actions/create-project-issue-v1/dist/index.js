@@ -9706,36 +9706,6 @@ function wrappy (fn, cb) {
 /***/ }),
 
 /***/ 6154:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const constants_1 = __nccwpck_require__(4090);
-async function addToBoard({ octokit, repositoryOwner, projectNumber, columnName, issueNodeId }) {
-    const projectBoard = await octokit.graphql(constants_1.GET_PROJECT_BOARD_BY_NUMBER, {
-        owner: repositoryOwner,
-        projectNumber
-    });
-    const projectCard = await octokit.graphql(constants_1.ADD_ISSUE_TO_PROJECT_BOARD, {
-        projectId: projectBoard.organization.projectV2.id,
-        issueId: issueNodeId
-    });
-    const statusColumn = projectBoard.organization.projectV2.fields.nodes.find(node => node.name === 'Status');
-    const column = statusColumn.options.find(option => option.name.toLowerCase() === columnName.toLowerCase());
-    await octokit.graphql(constants_1.MOVE_CARD_TO_COLUMN, {
-        projectId: projectBoard.organization.projectV2.id,
-        itemId: projectCard.addProjectV2ItemById.item.id,
-        fieldId: statusColumn.id,
-        value: column.id
-    });
-}
-exports["default"] = addToBoard;
-
-
-/***/ }),
-
-/***/ 4090:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -9799,6 +9769,34 @@ exports.MOVE_CARD_TO_COLUMN = (0, dedent_1.default) `
     }
   }
 `;
+async function addToBoard({ octokit, repositoryOwner, projectNumber, columnName, issueNodeId }) {
+    try {
+        const projectBoard = await octokit.graphql(exports.GET_PROJECT_BOARD_BY_NUMBER, {
+            owner: repositoryOwner,
+            projectNumber
+        });
+        const projectCard = await octokit.graphql(exports.ADD_ISSUE_TO_PROJECT_BOARD, {
+            projectId: projectBoard.organization.projectV2.id,
+            issueId: issueNodeId
+        });
+        const statusColumn = projectBoard.organization.projectV2.fields.nodes.find(node => node.name === 'Status');
+        const column = statusColumn.options.find(option => option.name.toLowerCase() === columnName.toLowerCase());
+        if (!column) {
+            throw new Error(`Column ${columnName} not found`);
+        }
+        const response = await octokit.graphql(exports.MOVE_CARD_TO_COLUMN, {
+            projectId: projectBoard.organization.projectV2.id,
+            itemId: projectCard.addProjectV2ItemById.item.id,
+            fieldId: statusColumn.id,
+            value: column.id
+        });
+        return response;
+    }
+    catch (error) {
+        throw new Error(`Add to board failed: ${error.message}`);
+    }
+}
+exports["default"] = addToBoard;
 
 
 /***/ }),
@@ -9877,13 +9875,14 @@ async function run(core, github) {
             labels: labels ? labels.split(',') : undefined,
             assignees: assignees ? assignees.split(',') : undefined
         });
-        await (0, addToBoard_1.default)({
+        const res = await (0, addToBoard_1.default)({
             octokit,
             repositoryOwner: github.context.repo.owner,
             projectNumber,
             columnName,
             issueNodeId: issueCreated.node_id
         });
+        core.info(JSON.stringify(res));
         core.setOutput('issue_url', issueCreated.url);
     }
     catch (error) {
