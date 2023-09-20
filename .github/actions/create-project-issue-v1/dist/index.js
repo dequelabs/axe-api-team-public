@@ -4111,6 +4111,88 @@ exports.restEndpointMethods = restEndpointMethods;
 
 /***/ }),
 
+/***/ 7488:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+
+function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+var deprecation = __nccwpck_require__(3383);
+var once = _interopDefault(__nccwpck_require__(8995));
+
+const logOnceCode = once(deprecation => console.warn(deprecation));
+const logOnceHeaders = once(deprecation => console.warn(deprecation));
+/**
+ * Error with extra properties to help with debugging
+ */
+
+class RequestError extends Error {
+  constructor(message, statusCode, options) {
+    super(message); // Maintains proper stack trace (only available on V8)
+
+    /* istanbul ignore next */
+
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, this.constructor);
+    }
+
+    this.name = "HttpError";
+    this.status = statusCode;
+    let headers;
+
+    if ("headers" in options && typeof options.headers !== "undefined") {
+      headers = options.headers;
+    }
+
+    if ("response" in options) {
+      this.response = options.response;
+      headers = options.response.headers;
+    } // redact request credentials without mutating original request options
+
+
+    const requestCopy = Object.assign({}, options.request);
+
+    if (options.request.headers.authorization) {
+      requestCopy.headers = Object.assign({}, options.request.headers, {
+        authorization: options.request.headers.authorization.replace(/ .*$/, " [REDACTED]")
+      });
+    }
+
+    requestCopy.url = requestCopy.url // client_id & client_secret can be passed as URL query parameters to increase rate limit
+    // see https://developer.github.com/v3/#increasing-the-unauthenticated-rate-limit-for-oauth-applications
+    .replace(/\bclient_secret=\w+/g, "client_secret=[REDACTED]") // OAuth tokens can be passed as URL query parameters, although it is not recommended
+    // see https://developer.github.com/v3/#oauth2-token-sent-in-a-header
+    .replace(/\baccess_token=\w+/g, "access_token=[REDACTED]");
+    this.request = requestCopy; // deprecations
+
+    Object.defineProperty(this, "code", {
+      get() {
+        logOnceCode(new deprecation.Deprecation("[@octokit/request-error] `error.code` is deprecated, use `error.status`."));
+        return statusCode;
+      }
+
+    });
+    Object.defineProperty(this, "headers", {
+      get() {
+        logOnceHeaders(new deprecation.Deprecation("[@octokit/request-error] `error.headers` is deprecated, use `error.response.headers`."));
+        return headers || {};
+      }
+
+    });
+  }
+
+}
+
+exports.RequestError = RequestError;
+//# sourceMappingURL=index.js.map
+
+
+/***/ }),
+
 /***/ 9193:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
@@ -4125,7 +4207,7 @@ var endpoint = __nccwpck_require__(756);
 var universalUserAgent = __nccwpck_require__(5581);
 var isPlainObject = __nccwpck_require__(1363);
 var nodeFetch = _interopDefault(__nccwpck_require__(8885));
-var requestError = __nccwpck_require__(1998);
+var requestError = __nccwpck_require__(7488);
 
 const VERSION = "5.6.3";
 
@@ -4291,88 +4373,6 @@ const request = withDefaults(endpoint.endpoint, {
 });
 
 exports.request = request;
-//# sourceMappingURL=index.js.map
-
-
-/***/ }),
-
-/***/ 1998:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
-
-var deprecation = __nccwpck_require__(3383);
-var once = _interopDefault(__nccwpck_require__(8995));
-
-const logOnceCode = once(deprecation => console.warn(deprecation));
-const logOnceHeaders = once(deprecation => console.warn(deprecation));
-/**
- * Error with extra properties to help with debugging
- */
-
-class RequestError extends Error {
-  constructor(message, statusCode, options) {
-    super(message); // Maintains proper stack trace (only available on V8)
-
-    /* istanbul ignore next */
-
-    if (Error.captureStackTrace) {
-      Error.captureStackTrace(this, this.constructor);
-    }
-
-    this.name = "HttpError";
-    this.status = statusCode;
-    let headers;
-
-    if ("headers" in options && typeof options.headers !== "undefined") {
-      headers = options.headers;
-    }
-
-    if ("response" in options) {
-      this.response = options.response;
-      headers = options.response.headers;
-    } // redact request credentials without mutating original request options
-
-
-    const requestCopy = Object.assign({}, options.request);
-
-    if (options.request.headers.authorization) {
-      requestCopy.headers = Object.assign({}, options.request.headers, {
-        authorization: options.request.headers.authorization.replace(/ .*$/, " [REDACTED]")
-      });
-    }
-
-    requestCopy.url = requestCopy.url // client_id & client_secret can be passed as URL query parameters to increase rate limit
-    // see https://developer.github.com/v3/#increasing-the-unauthenticated-rate-limit-for-oauth-applications
-    .replace(/\bclient_secret=\w+/g, "client_secret=[REDACTED]") // OAuth tokens can be passed as URL query parameters, although it is not recommended
-    // see https://developer.github.com/v3/#oauth2-token-sent-in-a-header
-    .replace(/\baccess_token=\w+/g, "access_token=[REDACTED]");
-    this.request = requestCopy; // deprecations
-
-    Object.defineProperty(this, "code", {
-      get() {
-        logOnceCode(new deprecation.Deprecation("[@octokit/request-error] `error.code` is deprecated, use `error.status`."));
-        return statusCode;
-      }
-
-    });
-    Object.defineProperty(this, "headers", {
-      get() {
-        logOnceHeaders(new deprecation.Deprecation("[@octokit/request-error] `error.headers` is deprecated, use `error.response.headers`."));
-        return headers || {};
-      }
-
-    });
-  }
-
-}
-
-exports.RequestError = RequestError;
 //# sourceMappingURL=index.js.map
 
 
@@ -4555,6 +4555,80 @@ function removeHook(state, name, method) {
 
   state.registry[name].splice(index, 1);
 }
+
+
+/***/ }),
+
+/***/ 9881:
+/***/ ((module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports["default"] = void 0;
+var _default = createDedent({});
+exports["default"] = _default;
+function createDedent(options) {
+  dedent.withOptions = newOptions => createDedent({
+    ...options,
+    ...newOptions
+  });
+  return dedent;
+  function dedent(strings, ...values) {
+    const raw = typeof strings === "string" ? [strings] : strings.raw;
+    const {
+      escapeSpecialCharacters = Array.isArray(strings)
+    } = options;
+
+    // first, perform interpolation
+    let result = "";
+    for (let i = 0; i < raw.length; i++) {
+      let next = raw[i];
+      if (escapeSpecialCharacters) {
+        // handle escaped newlines, backticks, and interpolation characters
+        next = next.replace(/\\\n[ \t]*/g, "").replace(/\\`/g, "`").replace(/\\\$/g, "$").replace(/\\{/g, "{");
+      }
+      result += next;
+      if (i < values.length) {
+        // eslint-disable-next-line @typescript-eslint/restrict-plus-operands
+        result += values[i];
+      }
+    }
+
+    // now strip indentation
+    const lines = result.split("\n");
+    let mindent = null;
+    for (const l of lines) {
+      const m = l.match(/^(\s+)\S+/);
+      if (m) {
+        const indent = m[1].length;
+        if (!mindent) {
+          // this is the first indented line
+          mindent = indent;
+        } else {
+          mindent = Math.min(mindent, indent);
+        }
+      }
+    }
+    if (mindent !== null) {
+      const m = mindent; // appease TypeScript
+      result = lines
+      // https://github.com/typescript-eslint/typescript-eslint/issues/7140
+      // eslint-disable-next-line @typescript-eslint/prefer-string-starts-ends-with
+      .map(l => l[0] === " " || l[0] === "\t" ? l.slice(m) : l).join("\n");
+    }
+    return result
+    // dedent eats leading and trailing whitespace too
+    .trim()
+    // handle escaped newlines at the end to ensure they don't get stripped too
+    .replace(/\\n/g, "\n");
+  }
+}
+module.exports = exports.default;
+module.exports["default"] = exports.default;
 
 
 /***/ }),
@@ -9631,6 +9705,104 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 6154:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const constants_1 = __nccwpck_require__(4090);
+async function addToBoard({ octokit, repositoryOwner, projectNumber, columnName, issueNodeId }) {
+    const projectBoard = await octokit.graphql(constants_1.GET_PROJECT_BOARD_BY_NUMBER, {
+        owner: repositoryOwner,
+        projectNumber
+    });
+    const projectCard = await octokit.graphql(constants_1.ADD_ISSUE_TO_PROJECT_BOARD, {
+        projectId: projectBoard.organization.projectV2.id,
+        issueId: issueNodeId
+    });
+    const statusColumn = projectBoard.organization.projectV2.fields.nodes.find(node => node.name === 'Status');
+    const column = statusColumn.options.find(option => option.name.toLowerCase() === columnName.toLowerCase());
+    await octokit.graphql(constants_1.MOVE_CARD_TO_COLUMN, {
+        projectId: projectBoard.organization.projectV2.id,
+        itemId: projectCard.addProjectV2ItemById.item.id,
+        fieldId: statusColumn.id,
+        value: column.id
+    });
+}
+exports["default"] = addToBoard;
+
+
+/***/ }),
+
+/***/ 4090:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.MOVE_CARD_TO_COLUMN = exports.ADD_ISSUE_TO_PROJECT_BOARD = exports.GET_PROJECT_BOARD_BY_NUMBER = void 0;
+const dedent_1 = __importDefault(__nccwpck_require__(9881));
+exports.GET_PROJECT_BOARD_BY_NUMBER = (0, dedent_1.default) `
+  query($owner: String!, $projectNumber: Int!) {
+    organization(login: $owner) {
+      projectV2(number: $projectNumber) {
+        id
+        fields(first:20) {
+          nodes {
+            ... on ProjectV2Field {
+              id
+              name
+            }
+            ... on ProjectV2SingleSelectField {
+              id
+              name
+              options {
+                id
+                name
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+exports.ADD_ISSUE_TO_PROJECT_BOARD = (0, dedent_1.default) `
+  mutation (
+    $projectId: ID!
+    $issueId: ID!
+  ){
+    addProjectV2ItemById(input: {projectId: $projectId contentId:$issueId}) {
+      item {
+        id
+      }
+    }
+  }
+`;
+exports.MOVE_CARD_TO_COLUMN = (0, dedent_1.default) `
+  mutation (
+    $projectId: ID!
+    $itemId: ID!
+    $fieldId: ID!
+    $value: String!
+  ){
+    updateProjectV2ItemFieldValue(input: {projectId: $projectId itemId: $itemId fieldId: $fieldId value: {
+      singleSelectOptionId: $value
+    }}) {
+    projectV2Item {
+        id
+    }
+    }
+  }
+`;
+
+
+/***/ }),
+
 /***/ 1856:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -9672,11 +9844,15 @@ const run_1 = __importDefault(__nccwpck_require__(1738));
 /***/ }),
 
 /***/ 1738:
-/***/ ((__unused_webpack_module, exports) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+const addToBoard_1 = __importDefault(__nccwpck_require__(6154));
 async function run(core, github) {
     try {
         const token = core.getInput('github_token', { required: true });
@@ -9701,79 +9877,12 @@ async function run(core, github) {
             labels: labels ? labels.split(',') : undefined,
             assignees: assignees ? assignees.split(',') : undefined
         });
-        core.info(`Created issue ${issueCreated.number}`);
-        core.info(`Looking for project ${projectNumber} in ${github.context.repo.owner}`);
-        const project = await octokit.graphql(`query($owner: String!, $projectNumber: Int!) {
-        organization(login: $owner) {
-          projectV2(number: $projectNumber) {
-            id
-            fields(first:20) {
-              nodes {
-                ... on ProjectV2Field {
-                  id
-                  name
-                }
-                ... on ProjectV2SingleSelectField {
-                  id
-                  name
-                  options {
-                    id
-                    name
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-      `, {
-            owner: github.context.repo.owner,
-            projectNumber
-        });
-        core.info(JSON.stringify(issueCreated, null, 2));
-        core.info(JSON.stringify(project, null, 2));
-        const projectCard = await octokit.graphql(`
-      mutation (
-        $projectId: ID!
-        $issueId: ID!
-      ){
-        addProjectV2ItemById(input: {projectId: $projectId contentId:$issueId}) {
-          item {
-            id
-          }
-        }
-      }
-      `, {
-            projectId: project.organization.projectV2.id,
-            issueId: issueCreated.node_id
-        });
-        core.info(JSON.stringify(projectCard, null, 2));
-        const statusColumn = project.organization.projectV2.fields.nodes.find(node => node.name === 'Status');
-        const column = statusColumn.options.find(option => option.name.toLowerCase() === columnName.toLowerCase());
-        if (!column) {
-            core.setFailed(`Column ${columnName} not found`);
-            return;
-        }
-        await octokit.graphql(`
-      mutation (
-        $projectId: ID!
-        $itemId: ID!
-        $fieldId: ID!
-        $value: String!
-      ){
-        updateProjectV2ItemFieldValue(input: {projectId: $projectId itemId: $itemId fieldId: $fieldId value: {
-          singleSelectOptionId: $value
-        }}) {
-         projectV2Item {
-            id
-         }
-        }
-      }
-      `, {
-            projectId: project.organization.projectV2.id,
-            itemId: projectCard.addProjectV2ItemById.item.id,
-            fieldId: statusColumn.id,
-            value: column.id
+        await (0, addToBoard_1.default)({
+            octokit,
+            repositoryOwner: github.context.repo.owner,
+            projectNumber,
+            columnName,
+            issueNodeId: issueCreated.node_id
         });
         core.setOutput('issue_url', issueCreated.url);
     }
