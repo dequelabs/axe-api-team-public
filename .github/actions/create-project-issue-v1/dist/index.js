@@ -9862,7 +9862,7 @@ async function run(core, github) {
         const projectNumber = parseInt(core.getInput('project_number'));
         const columnName = core.getInput('column_name');
         if (isNaN(projectNumber)) {
-            core.setFailed('project_id must be a number');
+            core.setFailed('project_number must be a number');
             return;
         }
         const repo = repository.split('/');
@@ -9875,18 +9875,19 @@ async function run(core, github) {
             labels: labels ? labels.split(',') : undefined,
             assignees: assignees ? assignees.split(',') : undefined
         });
-        const res = await (0, addToBoard_1.default)({
+        core.info(`Created issue: ${issueCreated.url}`);
+        await (0, addToBoard_1.default)({
             octokit,
             repositoryOwner: github.context.repo.owner,
             projectNumber,
             columnName,
             issueNodeId: issueCreated.node_id
         });
-        core.info(JSON.stringify(res));
+        core.info(`Added issue to project board in column ${columnName}`);
         core.setOutput('issue_url', issueCreated.url);
     }
     catch (error) {
-        core.setFailed(`Message: ${error.message}\n Stack: ${error.stack}`);
+        core.setFailed(error.message);
     }
 }
 exports["default"] = run;

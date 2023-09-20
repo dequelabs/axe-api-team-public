@@ -24,6 +24,13 @@ export declare type AddProjectCardResponse = {
         };
     };
 };
+export declare type MoveCardToColumnResponse = {
+    updateProjectV2ItemFieldValue: {
+        projectV2Item: {
+            id: string;
+        };
+    };
+};
 interface AddToBoardArgs {
     octokit: ReturnType<typeof getOctokit>;
     repositoryOwner: string;
@@ -31,5 +38,5 @@ interface AddToBoardArgs {
     columnName: string;
     issueNodeId: string;
 }
-export default function addToBoard({ octokit, repositoryOwner, projectNumber, columnName, issueNodeId }: AddToBoardArgs): Promise<any>;
+export default function addToBoard({ octokit, repositoryOwner, projectNumber, columnName, issueNodeId }: AddToBoardArgs): Promise<MoveCardToColumnResponse>;
 export {};
