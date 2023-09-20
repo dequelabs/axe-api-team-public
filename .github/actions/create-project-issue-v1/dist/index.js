@@ -10557,6 +10557,8 @@ async function run(core, github) {
                 authorization: `token ${token}`
             }
         }));
+        core.info(JSON.stringify(issueCreated, null, 2));
+        core.info(JSON.stringify(project, null, 2));
         await (0, graphql_1.graphql)(`
         mutation ($issueId: ID!, $projectId: ID!) {
           updateIssue(input: { id: $issueId, projectIds: [$projectId] }) {

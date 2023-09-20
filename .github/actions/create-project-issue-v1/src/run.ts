@@ -71,6 +71,9 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       }
     )) as GraphQlQueryResponseData
 
+    core.info(JSON.stringify(issueCreated, null, 2))
+    core.info(JSON.stringify(project, null, 2))
+
     // Update issue by adding the project board to it via ID
     //@see https://docs.github.com/en/graphql/reference/mutations#updateissue
     await graphql(
