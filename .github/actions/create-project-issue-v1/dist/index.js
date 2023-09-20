@@ -9764,9 +9764,9 @@ async function run(core, github) {
         updateProjectV2ItemFieldValue(input: {projectId: $projectId itemId: $itemId fieldId: $fieldId value: {
           singleSelectOptionId: $value
         }}) {
-          item {
+         projectV2Item {
             id
-          }
+         }
         }
       }
       `, {

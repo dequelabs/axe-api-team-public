@@ -126,9 +126,9 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
         updateProjectV2ItemFieldValue(input: {projectId: $projectId itemId: $itemId fieldId: $fieldId value: {
           singleSelectOptionId: $value
         }}) {
-          item {
+         projectV2Item {
             id
-          }
+         }
         }
       }
       `,
