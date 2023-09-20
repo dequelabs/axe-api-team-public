@@ -120,7 +120,7 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
         $cardId: ID!
         $columnId: ID!
       ){
-        moveProjectV2Card(input: {cardId: $cardId columnId: $columnId}) {
+        moveProjectCard(input: {cardId: $cardId columnId: $columnId}) {
           clientMutationId
         }
       }
