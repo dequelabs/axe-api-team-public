@@ -16,7 +16,7 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     const columnName = core.getInput('column_name')
 
     if (isNaN(projectNumber)) {
-      core.setFailed('project_id must be a number')
+      core.setFailed('project_number must be a number')
       return
     }
 
@@ -33,7 +33,9 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       assignees: assignees ? assignees.split(',') : undefined
     })
 
-    const res = await addToBoard({
+    core.info(`Created issue: ${issueCreated.url}`)
+
+    await addToBoard({
       octokit,
       repositoryOwner: github.context.repo.owner,
       projectNumber,
@@ -41,12 +43,9 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       issueNodeId: issueCreated.node_id
     })
 
-    core.info(JSON.stringify(res))
-
+    core.info(`Added issue to project board in column ${columnName}`)
     core.setOutput('issue_url', issueCreated.url)
   } catch (error) {
-    core.setFailed(
-      `Message: ${(error as Error).message}\n Stack: ${(error as Error).stack}`
-    )
+    core.setFailed((error as Error).message)
   }
 }

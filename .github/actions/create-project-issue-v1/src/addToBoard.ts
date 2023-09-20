@@ -87,6 +87,14 @@ export type AddProjectCardResponse = {
   }
 }
 
+export type MoveCardToColumnResponse = {
+  updateProjectV2ItemFieldValue: {
+    projectV2Item: {
+      id: string
+    }
+  }
+}
+
 interface AddToBoardArgs {
   octokit: ReturnType<typeof getOctokit>
   repositoryOwner: string
@@ -101,7 +109,7 @@ export default async function addToBoard({
   projectNumber,
   columnName,
   issueNodeId
-}: AddToBoardArgs): Promise<any> {
+}: AddToBoardArgs): Promise<MoveCardToColumnResponse> {
   try {
     const projectBoard = await octokit.graphql<ProjectBoardResponse>(
       GET_PROJECT_BOARD_BY_NUMBER,
@@ -119,13 +127,12 @@ export default async function addToBoard({
       }
     )
 
-    // Status is the array of columns like Backlog, In Progress, Done etc
+    // Status is the array of columns e.g. Backlog, In Progress, Done etc
     //eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const statusColumn = projectBoard.organization.projectV2.fields.nodes.find(
       node => node.name === 'Status'
     )!
 
-    //eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const column = statusColumn.options.find(
       option => option.name.toLowerCase() === columnName.toLowerCase()
     )
@@ -134,12 +141,15 @@ export default async function addToBoard({
       throw new Error(`Column ${columnName} not found`)
     }
 
-    const response = await octokit.graphql(MOVE_CARD_TO_COLUMN, {
-      projectId: projectBoard.organization.projectV2.id,
-      itemId: projectCard.addProjectV2ItemById.item.id,
-      fieldId: statusColumn.id,
-      value: column.id
-    })
+    const response = await octokit.graphql<MoveCardToColumnResponse>(
+      MOVE_CARD_TO_COLUMN,
+      {
+        projectId: projectBoard.organization.projectV2.id,
+        itemId: projectCard.addProjectV2ItemById.item.id,
+        fieldId: statusColumn.id,
+        value: column.id
+      }
+    )
 
     return response
   } catch (error) {
