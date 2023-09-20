@@ -3,7 +3,7 @@ import { getOctokit } from '@actions/github'
 
 // TODO: Refactor .github/actions/add-to-board to use this: https://github.com/dequelabs/axe-api-team/issues/369
 
-// @see //@see https://docs.github.com/en/issues/planning-and-tracking-with-projects/automating-your-project/using-the-api-to-manage-projects#finding-information-about-projects
+//@see https://docs.github.com/en/issues/planning-and-tracking-with-projects/automating-your-project/using-the-api-to-manage-projects#finding-information-about-projects
 export const GET_PROJECT_BOARD_BY_NUMBER = dedent`
   query($owner: String!, $projectNumber: Int!) {
     organization(login: $owner) {
@@ -30,7 +30,7 @@ export const GET_PROJECT_BOARD_BY_NUMBER = dedent`
   }
 `
 
-//@see https://docs.github.com/en/graphql/reference/mutations#updateissue
+//@see https://docs.github.com/en/graphql/reference/mutations#addprojectv2itembyid
 export const ADD_ISSUE_TO_PROJECT_BOARD = dedent`
   mutation (
     $projectId: ID!
