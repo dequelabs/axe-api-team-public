@@ -9759,8 +9759,10 @@ async function run(core, github) {
         $cardId: ID!
         $columnId: ID!
       ){
-        moveProjectCard(input: {cardId: $cardId columnId: $columnId}) {
-          clientMutationId
+        updateProjectV2ItemFieldValue(input: {cardId: $cardId fieldId: $columnId}) {
+          item {
+            id
+          }
         }
       }
       `, {

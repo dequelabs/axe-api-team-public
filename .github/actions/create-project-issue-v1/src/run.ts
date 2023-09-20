@@ -113,15 +113,17 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     }
 
     // Move issue to the correct column
-    //@see https://docs.github.com/en/graphql/reference/mutations#moveprojectcard
+    //@see https://docs.github.com/en/graphql/reference/mutations#updateprojectv2itemfieldvalue
     await octokit.graphql(
       `
       mutation (
         $cardId: ID!
         $columnId: ID!
       ){
-        moveProjectCard(input: {cardId: $cardId columnId: $columnId}) {
-          clientMutationId
+        updateProjectV2ItemFieldValue(input: {cardId: $cardId fieldId: $columnId}) {
+          item {
+            id
+          }
         }
       }
       `,
