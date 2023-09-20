@@ -9748,8 +9748,8 @@ async function run(core, github) {
             issueId: issueCreated.node_id
         });
         core.info(JSON.stringify(projectCard, null, 2));
-        const columns = project.organization.projectV2.fields.nodes.find(node => node.name === 'Status');
-        const column = columns.options.find(option => option.name.toLowerCase() === columnName.toLowerCase());
+        const statusColumn = project.organization.projectV2.fields.nodes.find(node => node.name === 'Status');
+        const column = statusColumn.options.find(option => option.name.toLowerCase() === columnName.toLowerCase());
         if (!column) {
             core.setFailed(`Column ${columnName} not found`);
             return;
@@ -9759,8 +9759,11 @@ async function run(core, github) {
         $projectId: ID!
         $itemId: ID!
         $fieldId: ID!
+        $value: String!
       ){
-        updateProjectV2ItemFieldValue(input: {projectId: $projectId itemId: $itemId fieldId: $fieldId}) {
+        updateProjectV2ItemFieldValue(input: {projectId: $projectId itemId: $itemId fieldId: $fieldId value: {
+          singleSelectOptionId: $value
+        }}) {
           item {
             id
           }
@@ -9769,7 +9772,8 @@ async function run(core, github) {
       `, {
             projectId: project.organization.projectV2.id,
             itemId: projectCard.addProjectV2ItemById.item.id,
-            fieldId: columns.id
+            fieldId: statusColumn.id,
+            value: column.id
         });
         core.setOutput('issue_url', issueCreated.url);
     }

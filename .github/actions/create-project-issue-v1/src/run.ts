@@ -99,11 +99,11 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     core.info(JSON.stringify(projectCard, null, 2))
 
     //eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const columns = project.organization.projectV2.fields.nodes.find(
+    const statusColumn = project.organization.projectV2.fields.nodes.find(
       node => node.name === 'Status'
     )!
 
-    const column = columns.options.find(
+    const column = statusColumn.options.find(
       option => option.name.toLowerCase() === columnName.toLowerCase()
     )
 
@@ -114,15 +114,18 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
 
     // Move issue to the correct column
     //@see https://docs.github.com/en/graphql/reference/mutations#updateprojectv2itemfieldvalue
-    // project id, item id, field id
+    // project id, item id, field id, value for singleSelectOptionId
     await octokit.graphql(
       `
       mutation (
         $projectId: ID!
         $itemId: ID!
         $fieldId: ID!
+        $value: String!
       ){
-        updateProjectV2ItemFieldValue(input: {projectId: $projectId itemId: $itemId fieldId: $fieldId}) {
+        updateProjectV2ItemFieldValue(input: {projectId: $projectId itemId: $itemId fieldId: $fieldId value: {
+          singleSelectOptionId: $value
+        }}) {
           item {
             id
           }
@@ -132,7 +135,8 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       {
         projectId: project.organization.projectV2.id,
         itemId: projectCard.addProjectV2ItemById.item.id,
-        fieldId: columns.id
+        fieldId: statusColumn.id,
+        value: column.id
       }
     )
 
