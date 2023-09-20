@@ -9703,21 +9703,47 @@ async function run(core, github) {
         });
         core.info(`Created issue ${issueCreated.number}`);
         core.info(`Looking for project ${projectNumber} in ${github.context.repo.owner}`);
-        const project = await octokit.graphql(`
-      query($owner: String!, $projectNumber: Int!) {
-        repository(owner: $owner, name: $repo) {
-          projects(number: $projectNumber) {
+        const project = await octokit.graphql(`query($owner: String!, $projectNumber: Int!) {
+        organization(login: $owner) {
+          projectV2(number: $projectNumber) {
             id
+            fields(first:20) {
+              nodes {
+                ... on ProjectV2Field {
+                  id
+                  name
+                }
+                ... on ProjectV2SingleSelectField {
+                  id
+                  name
+                  options {
+                    id
+                    name
+                  }
+                }
+              }
+            }
           }
         }
       }
-    `, {
+      `, {
             owner: github.context.repo.owner,
-            repo: repo[1] ?? repo[0],
             projectNumber
         });
         core.info(JSON.stringify(issueCreated, null, 2));
         core.info(JSON.stringify(project, null, 2));
+        await octokit.graphql(`
+        mutation ($issueId: ID!, $projectId: ID!) {
+          updateIssue(input: { id: $issueId, projectIds: [$projectId] }) {
+            issue {
+              id
+            }
+          }
+        }
+      `, {
+            issueId: issueCreated.node_id,
+            projectId: project.organization.projectV2.id
+        });
         core.setOutput('issue_url', issueCreated.url);
     }
     catch (error) {

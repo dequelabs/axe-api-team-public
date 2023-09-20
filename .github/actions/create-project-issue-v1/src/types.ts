@@ -13,7 +13,7 @@ type Nodes = {
   options: Omit<Nodes, 'options'>[]
 }
 
-export type GraphQlQueryResponseData = {
+export type ProjectBoardResponse = {
   organization: {
     projectV2: {
       id: string

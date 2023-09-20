@@ -7,7 +7,7 @@ declare type Nodes = {
     name: string;
     options: Omit<Nodes, 'options'>[];
 };
-export declare type GraphQlQueryResponseData = {
+export declare type ProjectBoardResponse = {
     organization: {
         projectV2: {
             id: string;
