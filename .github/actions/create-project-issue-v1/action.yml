@@ -20,8 +20,8 @@ inputs:
   assignees:
     description: 'Comma delimited list of assignees to add to the issue'
     required: false
-  project_id:
-    description: 'The project board ID to create the issue in'
+  project_number:
+    description: 'The project board number to create the issue in'
     default: '66'
     required: false
   column_name:

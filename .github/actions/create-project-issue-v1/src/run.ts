@@ -11,11 +11,11 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     const labels = core.getInput('labels')
     const assignees = core.getInput('assignees')
     /* default: 66 */
-    const projectId = parseInt(core.getInput('project_id'))
+    const projectNumber = parseInt(core.getInput('project_number'))
     /* default: Backlog */
     const columnName = core.getInput('column_name')
 
-    if (isNaN(projectId)) {
+    if (isNaN(projectNumber)) {
       core.setFailed('project_id must be a number')
       return
     }
@@ -34,13 +34,13 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
 
     core.info(`Created issue ${issueCreated.number}`)
     core.info(
-      `Looking for project ${projectId} in ${github.context.repo.owner}`
+      `Looking for project ${projectNumber} in ${github.context.repo.owner}`
     )
     //@see https://docs.github.com/en/issues/planning-and-tracking-with-projects/automating-your-project/using-the-api-to-manage-projects#finding-the-node-id-of-a-field
     const project = (await octokit.graphql(
-      `query($owner: String!, $projectId: Int!) {
+      `query($owner: String!, $projectNumber: Int!) {
         organization(login: $owner) {
-          projectV2(number: $projectId) {
+          projectV2(number: $projectNumber) {
             id
             fields(first:20) {
               nodes {
@@ -64,12 +64,33 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       `,
       {
         owner: github.context.repo.owner,
-        projectId,
+        projectNumber,
         headers: {
           authorization: `token ${token}`
         }
       }
     )) as GraphQlQueryResponseData
+
+    // Update issue by adding the project board to it via ID
+    //@see https://docs.github.com/en/graphql/reference/mutations#updateissue
+    await graphql(
+      `
+        mutation ($issueId: ID!, $projectId: ID!) {
+          updateIssue(input: { id: $issueId, projectIds: [$projectId] }) {
+            issue {
+              id
+            }
+          }
+        }
+      `,
+      {
+        issueId: issueCreated.node_id,
+        projectId: project.organization.projectV2.id,
+        headers: {
+          authorization: `token ${token}`
+        }
+      }
+    )
 
     //eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const status = project.organization.projectV2.fields.nodes.find(
@@ -87,16 +108,13 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
 
     core.info(`Found column ${columnName} with id ${columnID}`)
 
+    // Move the issue to the correct column, defaults to Backlog
     //@see https://docs.github.com/en/graphql/reference/mutations#addprojectcard
     await octokit.graphql(
       `mutation($contentId: ID!, $columnId: ID!) {
-        addProjectCard(input: {contentId: $contentId, projectColumnId: $columnId}) {
-          cardEdge {
-            node {
-              id
-            }
-          }
-        } 
+        moveProjectCard(input: {cardId: $contentId, columnId: $columnId}) {
+          clientMutationId
+        }
       }`,
       {
         contentId: issueCreated.node_id,
