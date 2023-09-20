@@ -84,7 +84,7 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
         }
       `,
       {
-        issueId: issueCreated.node_id,
+        issueId: issueCreated.id,
         projectId: project.organization.projectV2.id,
         headers: {
           authorization: `token ${token}`
@@ -110,20 +110,20 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
 
     // Move the issue to the correct column, defaults to Backlog
     //@see https://docs.github.com/en/graphql/reference/mutations#addprojectcard
-    await octokit.graphql(
-      `mutation($contentId: ID!, $columnId: ID!) {
-        moveProjectCard(input: {cardId: $contentId, columnId: $columnId}) {
-          clientMutationId
-        }
-      }`,
-      {
-        contentId: issueCreated.node_id,
-        columnId: columnID,
-        headers: {
-          authorization: `token ${token}`
-        }
-      }
-    )
+    // await octokit.graphql(
+    //   `mutation($contentId: ID!, $columnId: ID!) {
+    //     moveProjectCard(input: {cardId: $contentId, columnId: $columnId}) {
+    //       clientMutationId
+    //     }
+    //   }`,
+    //   {
+    //     contentId: issueCreated.node_id,
+    //     columnId: columnID,
+    //     headers: {
+    //       authorization: `token ${token}`
+    //     }
+    //   }
+    // )
 
     core.setOutput('issue_url', issueCreated.url)
   } catch (error) {

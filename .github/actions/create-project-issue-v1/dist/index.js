@@ -10566,7 +10566,7 @@ async function run(core, github) {
           }
         }
       `, {
-            issueId: issueCreated.node_id,
+            issueId: issueCreated.id,
             projectId: project.organization.projectV2.id,
             headers: {
                 authorization: `token ${token}`
@@ -10579,17 +10579,6 @@ async function run(core, github) {
             return;
         }
         core.info(`Found column ${columnName} with id ${columnID}`);
-        await octokit.graphql(`mutation($contentId: ID!, $columnId: ID!) {
-        moveProjectCard(input: {cardId: $contentId, columnId: $columnId}) {
-          clientMutationId
-        }
-      }`, {
-            contentId: issueCreated.node_id,
-            columnId: columnID,
-            headers: {
-                authorization: `token ${token}`
-            }
-        });
         core.setOutput('issue_url', issueCreated.url);
     }
     catch (error) {
