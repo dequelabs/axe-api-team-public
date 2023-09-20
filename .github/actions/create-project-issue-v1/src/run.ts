@@ -72,7 +72,7 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
 
     // Update issue by adding the project board to it via ID
     //@see https://docs.github.com/en/graphql/reference/mutations#updateissue
-    await octokit.graphql(
+    const projectCard = await octokit.graphql(
       `
       mutation (
         $projectId: ID!
@@ -90,6 +90,8 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
         issueId: issueCreated.node_id
       }
     )
+
+    core.info(JSON.stringify(projectCard, null, 2))
 
     core.setOutput('issue_url', issueCreated.url)
   } catch (error) {

@@ -9732,7 +9732,7 @@ async function run(core, github) {
         });
         core.info(JSON.stringify(issueCreated, null, 2));
         core.info(JSON.stringify(project, null, 2));
-        await octokit.graphql(`
+        const projectCard = await octokit.graphql(`
       mutation (
         $projectId: ID!
         $issueId: ID!
@@ -9747,6 +9747,7 @@ async function run(core, github) {
             projectId: project.organization.projectV2.id,
             issueId: issueCreated.node_id
         });
+        core.info(JSON.stringify(projectCard, null, 2));
         core.setOutput('issue_url', issueCreated.url);
     }
     catch (error) {
