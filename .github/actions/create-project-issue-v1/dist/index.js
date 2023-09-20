@@ -9748,6 +9748,25 @@ async function run(core, github) {
             issueId: issueCreated.node_id
         });
         core.info(JSON.stringify(projectCard, null, 2));
+        const columns = project.organization.projectV2.fields.nodes.find(node => node.name === 'Status');
+        const columnID = columns.options.find(option => option.name.toLowerCase() === columnName.toLowerCase())?.id;
+        if (!columnID) {
+            core.setFailed(`Column ${columnName} not found`);
+            return;
+        }
+        await octokit.graphql(`
+      mutation (
+        $cardId: ID!
+        $columnId: ID!
+      ){
+        moveProjectV2Card(input: {cardId: $cardId columnId: $columnId}) {
+          clientMutationId
+        }
+      }
+      `, {
+            cardId: projectCard.addProjectV2ItemById.item.id,
+            columnId: columnID
+        });
         core.setOutput('issue_url', issueCreated.url);
     }
     catch (error) {

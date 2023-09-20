@@ -1,4 +1,9 @@
-import type { Core, GitHub, ProjectBoardResponse } from './types'
+import type {
+  AddProjectCardResponse,
+  Core,
+  GitHub,
+  ProjectBoardResponse
+} from './types'
 
 export default async function run(core: Core, github: GitHub): Promise<void> {
   try {
@@ -72,7 +77,7 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
 
     // Update issue by adding the project board to it via ID
     //@see https://docs.github.com/en/graphql/reference/mutations#updateissue
-    const projectCard = await octokit.graphql(
+    const projectCard = await octokit.graphql<AddProjectCardResponse>(
       `
       mutation (
         $projectId: ID!
@@ -92,6 +97,39 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     )
 
     core.info(JSON.stringify(projectCard, null, 2))
+
+    //eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const columns = project.organization.projectV2.fields.nodes.find(
+      node => node.name === 'Status'
+    )!
+
+    const columnID = columns.options.find(
+      option => option.name.toLowerCase() === columnName.toLowerCase()
+    )?.id
+
+    if (!columnID) {
+      core.setFailed(`Column ${columnName} not found`)
+      return
+    }
+
+    // Move issue to the correct column
+    //@see https://docs.github.com/en/graphql/reference/mutations#moveprojectcard
+    await octokit.graphql(
+      `
+      mutation (
+        $cardId: ID!
+        $columnId: ID!
+      ){
+        moveProjectV2Card(input: {cardId: $cardId columnId: $columnId}) {
+          clientMutationId
+        }
+      }
+      `,
+      {
+        cardId: projectCard.addProjectV2ItemById.item.id,
+        columnId: columnID
+      }
+    )
 
     core.setOutput('issue_url', issueCreated.url)
   } catch (error) {

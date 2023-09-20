@@ -23,3 +23,11 @@ export type ProjectBoardResponse = {
     }
   }
 }
+
+export type AddProjectCardResponse = {
+  addProjectV2ItemById: {
+    item: {
+      id: string
+    }
+  }
+}

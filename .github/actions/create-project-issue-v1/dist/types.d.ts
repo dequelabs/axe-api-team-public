@@ -17,4 +17,11 @@ export declare type ProjectBoardResponse = {
         };
     };
 };
+export declare type AddProjectCardResponse = {
+    addProjectV2ItemById: {
+        item: {
+            id: string;
+        };
+    };
+};
 export {};
