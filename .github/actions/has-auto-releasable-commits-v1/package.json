@@ -1,12 +1,12 @@
 {
   "name": "has-auto-releasable-commits-v1",
   "version": "1.0.0",
-  "description": "A GitHub Action to determine if a parent action should continue or stop running",
+  "description": "A GitHub Action to determine if the repository has commits that should be automatically released",
   "bugs": {
     "url": "https://github.com/dequelabs/axe-api-team-public/issues"
   },
   "homepage": "https://github.com/dequelabs/axe-api-team-public#readme",
-  "license": "UNLICENSED",
+  "license": "MPL-2.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dequelabs/axe-api-team-public.git"
