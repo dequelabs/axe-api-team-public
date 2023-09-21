@@ -6,7 +6,7 @@
     "url": "https://github.com/dequelabs/axe-api-team-public/issues"
   },
   "homepage": "https://github.com/dequelabs/axe-api-team-public#readme",
-  "license": "UNLICENSED",
+  "license": "MPL-2.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dequelabs/axe-api-team-public.git"
