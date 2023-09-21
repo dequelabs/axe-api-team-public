@@ -1,6 +1,6 @@
 # has-auto-releasable-commits-v1
 
-A GitHub action to help determine if a parent GHA should continue to run or stop.
+A GitHub Action to determine if the repository has commits that should be automatically released.
 
 ## Inputs
 

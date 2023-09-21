@@ -24,6 +24,7 @@ export default async function run(core: Core) {
       isVersionLocked
     })
 
+    core.info(`Setting output "should-release" to ${shouldRelease}`)
     core.setOutput('should-release', shouldRelease)
   } catch (error) {
     core.setFailed((error as Error).message)

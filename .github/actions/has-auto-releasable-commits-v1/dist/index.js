@@ -2789,6 +2789,7 @@ async function run(core) {
             commitList,
             isVersionLocked
         });
+        core.info(`Setting output "should-release" to ${shouldRelease}`);
         core.setOutput('should-release', shouldRelease);
     }
     catch (error) {
