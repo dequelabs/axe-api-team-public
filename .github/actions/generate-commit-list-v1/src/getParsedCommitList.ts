@@ -1,4 +1,5 @@
 import getCommitType from './getCommitType'
+import getFallbackID from './getFallbackID'
 import { GetParsedCommitListParams, ParsedCommitList } from './types'
 
 /**
@@ -7,20 +8,24 @@ import { GetParsedCommitListParams, ParsedCommitList } from './types'
  * @returns An array of parsed commits.
  */
 
-export default function getParsedCommitList({
+export default async function getParsedCommitList({
   rawCommitList,
   repository
-}: GetParsedCommitListParams): Array<ParsedCommitList> {
+}: GetParsedCommitListParams): Promise<Array<ParsedCommitList>> {
   const parsedCommits: Array<ParsedCommitList> = []
 
   for (const commit of rawCommitList) {
-    // group sha and title together
+    /**
+     * The SHA generated from `git log` isn't always 7 characters,
+     * it will grow as the repo grows to keep it unique.
+     * @see https://git-scm.com/book/en/v2/Git-Tools-Revision-Selection#Short-SHA-1
+     */
     //eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const shaAndTitle = commit.match(/^(.{7}) (.+?)(?:\s\(#\d+\))?$/)!
+    const shaAndTitle = commit.match(/^([0-9a-f]+) (.+?)(?:\s\(#\d+\))?$/)!
     const sha = shaAndTitle[1]
-    const title = shaAndTitle[2]!
+    const title = shaAndTitle[2]
     const type = getCommitType(title)
-    const id = commit.match(/#(\d+)/)?.[0].replace('#', '') || null
+    const id = commit.match(/\(#(\d+)\)$/)?.[1] || (await getFallbackID(sha))
     const link = id ? `https://github.com/${repository}/pull/${id}` : null
 
     parsedCommits.push({

@@ -115,4 +115,12 @@ describe('getCommitType', () => {
       })
     })
   })
+
+  describe('when the commit title reverts a breaking change', () => {
+    it('should not have a `!` as part of the type', () => {
+      const type = getCommitType('revert: feat(scope)!: a wrench was thrown')
+
+      assert.equal(type, 'revert')
+    })
+  })
 })

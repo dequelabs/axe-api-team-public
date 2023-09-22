@@ -9,6 +9,9 @@ export const rawCommitList = dedent`
   1d6220e ci: some ci change (#123)
   6d6220e feat!: some breaking change (#126)
   7d6220e feat(package)!: some breaking change (#127)
+  1c41b7a1 revert: feat: awesome feature (#3957) (#3988)
+  4d6220e chore: release v1.0.0
+  5d6220e chore: release v1.0.1
 `
 
 export const expectedRawCommitList = [
@@ -18,7 +21,10 @@ export const expectedRawCommitList = [
   '2d6220e feat(packages/axe-core): some feature (#42)',
   '1d6220e ci: some ci change (#123)',
   '6d6220e feat!: some breaking change (#126)',
-  '7d6220e feat(package)!: some breaking change (#127)'
+  '7d6220e feat(package)!: some breaking change (#127)',
+  '1c41b7a1 revert: feat: awesome feature (#3957) (#3988)',
+  '4d6220e chore: release v1.0.0',
+  '5d6220e chore: release v1.0.1'
 ]
 
 export const expectedRepository = 'dequelabs/axe-api-team-public'
@@ -79,5 +85,31 @@ export const expectedParsedCommitList: Array<ParsedCommitList> = [
     type: 'feat!',
     id: '127',
     link: `https://github.com/${expectedRepository}/pull/127`
+  },
+  {
+    commit: '1c41b7a1 revert: feat: awesome feature (#3957) (#3988)',
+    title: 'revert: feat: awesome feature (#3957)',
+    sha: '1c41b7a1',
+    type: 'revert',
+    id: '3988',
+    link: `https://github.com/${expectedRepository}/pull/3988`
+  },
+  /* For cases where `getFallbackId` cannot find the PR ID, we'll return null. */
+  {
+    commit: '4d6220e chore: release v1.0.0',
+    title: 'chore: release v1.0.0',
+    sha: '4d6220e',
+    type: 'chore',
+    id: null,
+    link: null
+  },
+  /* For cases where `getFallbackId` can find the PR ID, we'll return it. */
+  {
+    commit: '5d6220e chore: release v1.0.1',
+    title: 'chore: release v1.0.1',
+    sha: '5d6220e',
+    type: 'chore',
+    id: '456',
+    link: `https://github.com/${expectedRepository}/pull/456`
   }
 ]

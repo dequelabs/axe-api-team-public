@@ -29,13 +29,14 @@ export default async function run(core: Core, github: Github) {
     core.info(`Getting raw commits between ${base} and ${head}...`)
 
     const rawCommitList = await getRawCommitList({ base, head })
-    const parsedCommitList = getParsedCommitList({
+    const parsedCommitList = await getParsedCommitList({
       rawCommitList,
       repository: `${github.context.repo.owner}/${github.context.repo.repo}`
     })
 
     core.info(`Found ${parsedCommitList.length} commits.`)
-    core.info('Setting output...')
+    core.info(JSON.stringify(parsedCommitList, null, 2))
+    core.info(`Settings output "commit-list"`)
     core.setOutput('commit-list', JSON.stringify(parsedCommitList))
   } catch (error) {
     core.setFailed((error as Error).message)

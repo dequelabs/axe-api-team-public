@@ -162,6 +162,20 @@ describe('run', () => {
         stdout: rawCommitList
       })
 
+      // Stub: getFallbackId 1st call
+      getExecOutputStub.onCall(3).resolves({
+        stdout: '',
+        stderr: '',
+        exitCode: 0
+      })
+
+      // Stub: getFallbackId 2nd call
+      getExecOutputStub.onCall(4).resolves({
+        stdout: '456',
+        stderr: '',
+        exitCode: 0
+      })
+
       const core = {
         getInput,
         setFailed,
@@ -171,7 +185,7 @@ describe('run', () => {
 
       await run(core as unknown as Core, github as unknown as Github)
 
-      assert.equal(info.callCount, 6)
+      assert.equal(info.callCount, 7)
       assert.isTrue(setOutput.calledOnce)
       assert.isTrue(setOutput.calledWith('commit-list'))
 

@@ -1,16 +1,35 @@
 import 'mocha'
 import { assert } from 'chai'
-import getParsedCommitList from './getParsedCommitList'
 import {
   expectedParsedCommitList,
   expectedRawCommitList,
   expectedRepository
 } from './test-utils'
+import sinon from 'sinon'
+import * as exec from '@actions/exec'
+import getParsedCommitList from './getParsedCommitList'
 
 describe('getParsedCommitList', () => {
+  afterEach(sinon.restore)
+
   describe('when all commits values are available', () => {
-    it('returns the parsed commit list', () => {
-      const parsedCommitList = getParsedCommitList({
+    it('returns the parsed commit list', async () => {
+      sinon
+        .stub(exec, 'getExecOutput')
+        .onFirstCall()
+        .resolves({
+          stdout: '',
+          stderr: '',
+          exitCode: 0
+        })
+        .onSecondCall()
+        .resolves({
+          stdout: '456',
+          stderr: '',
+          exitCode: 0
+        })
+
+      const parsedCommitList = await getParsedCommitList({
         rawCommitList: expectedRawCommitList,
         repository: expectedRepository
       })
@@ -20,8 +39,8 @@ describe('getParsedCommitList', () => {
   })
 
   describe('when the PR ID is not available', () => {
-    it('returns null for the PR ID', () => {
-      const parsedCommitList = getParsedCommitList({
+    it('returns null for the PR ID', async () => {
+      const parsedCommitList = await getParsedCommitList({
         rawCommitList: ['4d6220e feat: add new feature'],
         repository: expectedRepository
       })
