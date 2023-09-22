@@ -1,5 +1,8 @@
-import addToBoard from './addToBoard'
 import type { Core, GitHub } from './types'
+import getProjectBoardID from './getProjectBoardID'
+import addIssueToBoard from './addIssueToBoard'
+import getProjectFieldList from './getProjectFieldList'
+import moveIssueToColumn from './moveIssueToColumn'
 
 export default async function run(core: Core, github: GitHub): Promise<void> {
   try {
@@ -35,15 +38,55 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
 
     core.info(`Created issue: ${issueCreated.url}`)
 
-    await addToBoard({
-      octokit,
-      repositoryOwner: github.context.repo.owner,
+    const { id: projectID } = await getProjectBoardID({
       projectNumber,
-      columnName,
-      issueNodeId: issueCreated.node_id
+      owner: github.context.repo.owner
     })
 
-    core.info(`Added issue to project board in column ${columnName}`)
+    core.info(`Found project board with ID: ${projectID}`)
+
+    const { id: issueCardID } = await addIssueToBoard({
+      projectNumber,
+      owner: github.context.repo.owner,
+      issueUrl: issueCreated.url
+    })
+
+    core.info(`Added issue to project board with card ID: ${issueCardID}`)
+
+    const { fields } = await getProjectFieldList({
+      projectNumber,
+      owner: github.context.repo.owner
+    })
+
+    // Status is the default field name for the project board columns e.g. Backlog, In progress, Done etc
+    //@eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const { id: fieldID } = fields.find(
+      ({ name }) => name.toLowerCase() === 'status'
+    )!
+
+    const field = fields.find(
+      ({ name }) => name.toLowerCase() === columnName.toLowerCase()
+    )
+
+    if (!field) {
+      core.setFailed(`Column ${columnName} not found`)
+      return
+    }
+
+    const { id: fieldColumnID } = field
+
+    core.info(`Found column ${columnName} with ID: ${fieldColumnID}`)
+
+    const movedIssue = moveIssueToColumn({
+      issueCardID,
+      fieldID,
+      fieldColumnID,
+      projectID,
+      owner: github.context.repo.owner
+    })
+
+    core.info(`Moved issue to column ${columnName}`)
+    core.info(`Settings output "issue_url" to ${issueCreated.url}`)
     core.setOutput('issue_url', issueCreated.url)
   } catch (error) {
     core.setFailed((error as Error).message)
