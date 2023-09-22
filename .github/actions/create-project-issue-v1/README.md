@@ -31,4 +31,17 @@ with:
   body: 'My issue body'
   labels: 'bug'
   assignees: 'user1,user2'
+  env:
+    # See permissions required in Permissions section below
+    GH_TOKEN: ${{ secrets.PAT }}
 ```
+
+## Permissions
+
+This action requires the following permission scopes:
+
+- `repo` - To create the issue within private repositories
+- `workflow` - To access the `GITHUB_TOKEN` secret
+- `write:org` - To add the issue to a project board
+- `read:org` - To read the project board
+- `project` - access to project board
