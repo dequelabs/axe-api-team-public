@@ -60,27 +60,25 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
 
     // Status is the default field name for the project board columns e.g. Backlog, In progress, Done etc
     //@eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const { id: fieldID } = fields.find(
+    const statusColumn = fields.find(
       ({ name }) => name.toLowerCase() === 'status'
     )!
 
-    const field = fields.find(
+    const column = statusColumn.options.find(
       ({ name }) => name.toLowerCase() === columnName.toLowerCase()
     )
 
-    if (!field) {
+    if (!column) {
       core.setFailed(`Column ${columnName} not found`)
       return
     }
 
-    const { id: fieldColumnID } = field
-
-    core.info(`Found column ${columnName} with ID: ${fieldColumnID}`)
+    core.info(`Found column ${columnName} with ID: ${column.id}`)
 
     const movedIssue = moveIssueToColumn({
       issueCardID,
-      fieldID,
-      fieldColumnID,
+      fieldID: statusColumn.id,
+      fieldColumnID: column.id,
       projectID,
       owner: github.context.repo.owner
     })

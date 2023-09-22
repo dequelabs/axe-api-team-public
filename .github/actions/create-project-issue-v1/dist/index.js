@@ -11039,18 +11039,17 @@ async function run(core, github) {
             projectNumber,
             owner: github.context.repo.owner
         });
-        const { id: fieldID } = fields.find(({ name }) => name.toLowerCase() === 'status');
-        const field = fields.find(({ name }) => name.toLowerCase() === columnName.toLowerCase());
-        if (!field) {
+        const statusColumn = fields.find(({ name }) => name.toLowerCase() === 'status');
+        const column = statusColumn.options.find(({ name }) => name.toLowerCase() === columnName.toLowerCase());
+        if (!column) {
             core.setFailed(`Column ${columnName} not found`);
             return;
         }
-        const { id: fieldColumnID } = field;
-        core.info(`Found column ${columnName} with ID: ${fieldColumnID}`);
+        core.info(`Found column ${columnName} with ID: ${column.id}`);
         const movedIssue = (0, moveIssueToColumn_1.default)({
             issueCardID,
-            fieldID,
-            fieldColumnID,
+            fieldID: statusColumn.id,
+            fieldColumnID: column.id,
             projectID,
             owner: github.context.repo.owner
         });
