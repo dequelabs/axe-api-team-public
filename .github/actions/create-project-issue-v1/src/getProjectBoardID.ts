@@ -20,7 +20,7 @@ export default async function getProjectBoardID({
       'project',
       'view',
       `${projectNumber}`,
-      `--owner ${owner}`,
+      `--owner "${owner}"`,
       '--format json'
     ])
 

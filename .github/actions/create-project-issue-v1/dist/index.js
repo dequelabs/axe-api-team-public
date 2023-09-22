@@ -10901,7 +10901,7 @@ async function getProjectBoardID({ projectNumber, owner }) {
             'project',
             'view',
             `${projectNumber}`,
-            `--owner ${owner}`,
+            `--owner "${owner}"`,
             '--format json'
         ]);
         return JSON.parse(projectBoardID.trim());
