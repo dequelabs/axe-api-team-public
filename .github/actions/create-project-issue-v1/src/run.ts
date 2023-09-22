@@ -79,8 +79,7 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       issueCardID,
       fieldID: statusColumn.id,
       fieldColumnID: column.id,
-      projectID,
-      owner: github.context.repo.owner
+      projectID
     })
 
     core.info(`Moved issue to column ${columnName}`)

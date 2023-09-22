@@ -15,19 +15,17 @@ interface MoveIssueToColumnArgs {
   fieldID: string
   fieldColumnID: string
   projectID: string
-  owner: string
 }
 
 export default async function moveIssueToColumn({
   issueCardID,
   fieldID,
   fieldColumnID,
-  projectID,
-  owner
+  projectID
 }: MoveIssueToColumnArgs): Promise<MoveIssueToColumnResponse> {
   try {
     const { stdout: issueMoved } = await getExecOutput(
-      `gh project item-edit --id ${issueCardID} --field-id ${fieldID} --single-select-option-id ${fieldColumnID} --project-id ${projectID} --owner ${owner} --format json`
+      `gh project item-edit --id ${issueCardID} --field-id ${fieldID} --single-select-option-id ${fieldColumnID} --project-id ${projectID} --format json`
     )
 
     return JSON.parse(issueMoved.trim()) as MoveIssueToColumnResponse

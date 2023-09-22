@@ -10972,9 +10972,9 @@ const run_1 = __importDefault(__nccwpck_require__(1738));
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const exec_1 = __nccwpck_require__(1518);
-async function moveIssueToColumn({ issueCardID, fieldID, fieldColumnID, projectID, owner }) {
+async function moveIssueToColumn({ issueCardID, fieldID, fieldColumnID, projectID }) {
     try {
-        const { stdout: issueMoved } = await (0, exec_1.getExecOutput)(`gh project item-edit --id ${issueCardID} --field-id ${fieldID} --single-select-option-id ${fieldColumnID} --project-id ${projectID} --owner ${owner} --format json`);
+        const { stdout: issueMoved } = await (0, exec_1.getExecOutput)(`gh project item-edit --id ${issueCardID} --field-id ${fieldID} --single-select-option-id ${fieldColumnID} --project-id ${projectID} --format json`);
         return JSON.parse(issueMoved.trim());
     }
     catch (error) {
@@ -11050,8 +11050,7 @@ async function run(core, github) {
             issueCardID,
             fieldID: statusColumn.id,
             fieldColumnID: column.id,
-            projectID,
-            owner: github.context.repo.owner
+            projectID
         });
         core.info(`Moved issue to column ${columnName}`);
         core.info(`Settings output "issue_url" to ${issueCreated.html_url}`);
