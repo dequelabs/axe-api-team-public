@@ -34,21 +34,51 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
         continue
       }
 
-      const { data } = await octokit.rest.pulls.get({
+      const { data: pullRequest } = await octokit.rest.pulls.get({
         repo,
         owner,
         pull_number: parseInt(id)
       })
 
-      if (!data.body) {
+      if (!pullRequest.body) {
         continue
       }
 
-      // Get all the issues mentioned in the PR body via the `Closes #123` syntax
-      const issues = data.body.match(/closes: #(\d+)/gi)
+      // Extract the issue URL from the body
+      const issueURLs = [
+        ...pullRequest.body.matchAll(/closes:\s?([^\s]+)/gi)
+      ].map(match => match[1])
 
-      if (!issues) {
+      if (!issueURLs.length) {
         continue
+      }
+
+      for (const issueURL of issueURLs) {
+        const rawIssueNumber = issueURL.split('/').pop()
+
+        if (!rawIssueNumber) {
+          continue
+        }
+
+        const issueNumber = parseInt(rawIssueNumber)
+        const { data: issue } = await octokit.rest.issues.get({
+          repo,
+          owner,
+          issue_number: issueNumber
+        })
+
+        if (issue.state !== 'closed') {
+          continue
+        }
+
+        await octokit.rest.issues.addLabels({
+          repo,
+          owner,
+          issue_number: issueNumber,
+          labels: [`${labelPrefix} ${version}`]
+        })
+
+        // call move issue to column here (code already done just need merged)
       }
     }
   } catch (error) {
