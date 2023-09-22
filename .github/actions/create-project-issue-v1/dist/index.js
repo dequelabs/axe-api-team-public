@@ -11023,18 +11023,18 @@ async function run(core, github) {
             labels: labels ? labels.split(',') : undefined,
             assignees: assignees ? assignees.split(',') : undefined
         });
-        core.info(`Created issue: ${issueCreated.html_url}`);
+        core.info(`\nCreated issue: ${issueCreated.html_url}`);
         const { id: projectID } = await (0, getProjectBoardID_1.default)({
             projectNumber,
             owner: github.context.repo.owner
         });
-        core.info(`Found project board with ID: ${projectID}`);
+        core.info(`\nFound project board with ID: ${projectID}`);
         const { id: issueCardID } = await (0, addIssueToBoard_1.default)({
             projectNumber,
             owner: github.context.repo.owner,
             issueUrl: issueCreated.html_url
         });
-        core.info(`Added issue to project board with card ID: ${issueCardID}`);
+        core.info(`\nAdded issue to project board with card ID: ${issueCardID}`);
         const { fields } = await (0, getProjectFieldList_1.default)({
             projectNumber,
             owner: github.context.repo.owner
@@ -11045,15 +11045,15 @@ async function run(core, github) {
             core.setFailed(`Column ${columnName} not found`);
             return;
         }
-        core.info(`Found column ${columnName} with ID: ${column.id}`);
-        const movedIssue = (0, moveIssueToColumn_1.default)({
+        core.info(`\nFound column ${columnName} with ID: ${column.id}`);
+        await (0, moveIssueToColumn_1.default)({
             issueCardID,
             fieldID: statusColumn.id,
             fieldColumnID: column.id,
             projectID
         });
-        core.info(`Moved issue to column ${columnName}`);
-        core.info(`Settings output "issue_url" to ${issueCreated.html_url}`);
+        core.info(`\nMoved issue to column ${columnName}`);
+        core.info(`\nSettings output "issue_url" to ${issueCreated.html_url}`);
         core.setOutput('issue_url', issueCreated.html_url);
     }
     catch (error) {

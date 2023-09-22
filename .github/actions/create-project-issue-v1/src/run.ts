@@ -36,14 +36,14 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       assignees: assignees ? assignees.split(',') : undefined
     })
 
-    core.info(`Created issue: ${issueCreated.html_url}`)
+    core.info(`\nCreated issue: ${issueCreated.html_url}`)
 
     const { id: projectID } = await getProjectBoardID({
       projectNumber,
       owner: github.context.repo.owner
     })
 
-    core.info(`Found project board with ID: ${projectID}`)
+    core.info(`\nFound project board with ID: ${projectID}`)
 
     const { id: issueCardID } = await addIssueToBoard({
       projectNumber,
@@ -51,7 +51,7 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       issueUrl: issueCreated.html_url
     })
 
-    core.info(`Added issue to project board with card ID: ${issueCardID}`)
+    core.info(`\nAdded issue to project board with card ID: ${issueCardID}`)
 
     const { fields } = await getProjectFieldList({
       projectNumber,
@@ -73,17 +73,17 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       return
     }
 
-    core.info(`Found column ${columnName} with ID: ${column.id}`)
+    core.info(`\nFound column ${columnName} with ID: ${column.id}`)
 
-    const movedIssue = moveIssueToColumn({
+    await moveIssueToColumn({
       issueCardID,
       fieldID: statusColumn.id,
       fieldColumnID: column.id,
       projectID
     })
 
-    core.info(`Moved issue to column ${columnName}`)
-    core.info(`Settings output "issue_url" to ${issueCreated.html_url}`)
+    core.info(`\nMoved issue to column ${columnName}`)
+    core.info(`\nSettings output "issue_url" to ${issueCreated.html_url}`)
     core.setOutput('issue_url', issueCreated.html_url)
   } catch (error) {
     core.setFailed((error as Error).message)
