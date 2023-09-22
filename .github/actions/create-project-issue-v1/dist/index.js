@@ -10913,7 +10913,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const exec_1 = __nccwpck_require__(1518);
 async function getProjectFieldList({ projectNumber, owner }) {
     try {
-        const { stdout: fieldList } = await (0, exec_1.getExecOutput)(`gh project field-list --project-number ${projectNumber} --owner ${owner} --format json`);
+        const { stdout: fieldList } = await (0, exec_1.getExecOutput)(`gh project field-list ${projectNumber} --owner ${owner} --format json`);
         return JSON.parse(fieldList.trim());
     }
     catch (error) {
