@@ -11436,11 +11436,8 @@ function getCommitType(title) {
         }
         return null;
     }
-    if (!header) {
-        throw new Error('Unable to parse commit header');
-    }
-    const hasBreakingSymbol = !header.toLowerCase().startsWith('revert') &&
-        header.split(':')[0].includes('!');
+    const hasBreakingSymbol = !title.toLowerCase().startsWith('revert') &&
+        title.split(':')[0].includes('!');
     return `${type}${hasBreakingSymbol ? '!' : ''}`.toLowerCase();
 }
 exports["default"] = getCommitType;

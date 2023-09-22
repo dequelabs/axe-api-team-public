@@ -123,12 +123,4 @@ describe('getCommitType', () => {
       assert.equal(type, 'revert')
     })
   })
-
-  describe('when the commit header is not parsable', () => {
-    it('throws an error', () => {
-      assert.throws(() => {
-        getCommitType('')
-      })
-    })
-  })
 })

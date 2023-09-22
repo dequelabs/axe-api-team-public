@@ -32,18 +32,14 @@ export default function getCommitType(title: string): string | null {
     return null
   }
 
-  if (!header) {
-    throw new Error('Unable to parse commit header')
-  }
-
   /**
    * conventional-commits-parser doesn't add a `!` to the type
    * if it exists, so we'll need to check the header for it,
    * excluding and revert commits
    */
   const hasBreakingSymbol =
-    !header.toLowerCase().startsWith('revert') &&
-    header.split(':')[0].includes('!')
+    !title.toLowerCase().startsWith('revert') &&
+    title.split(':')[0].includes('!')
 
   return `${type}${hasBreakingSymbol ? '!' : ''}`.toLowerCase()
 }
