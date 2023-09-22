@@ -18,7 +18,7 @@ export default async function getProjectBoardID({
   try {
     const { stdout: projectBoardID } = await getExecOutput('gh project', [
       `view ${projectNumber}`,
-      `--owner ${owner}`,
+      // `--owner ${owner}`,
       '--format json'
     ])
 
