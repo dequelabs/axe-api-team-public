@@ -24,9 +24,9 @@ export default async function addIssueToBoard({
   try {
     const { stdout: issueAdded } = await getExecOutput('gh project', [
       'item-add',
-      `--project-number ${projectNumber}`,
-      `--url ${issueUrl}`,
-      `--owner ${owner}`
+      `project-number=${projectNumber}`,
+      `url=${issueUrl}`,
+      `owner=${owner}`
     ])
 
     return JSON.parse(issueAdded.trim()) as AddIssueToBoardResponse

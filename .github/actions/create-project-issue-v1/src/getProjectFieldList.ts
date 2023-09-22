@@ -26,9 +26,9 @@ export default async function getProjectFieldList({
   try {
     const { stdout: fieldList } = await getExecOutput('gh project', [
       'field-list',
-      `--project-number ${projectNumber}`,
-      `--owner ${owner}`,
-      '--format json'
+      `project-number=${projectNumber}`,
+      `owner=${owner}`,
+      'format=json'
     ])
 
     return JSON.parse(fieldList.trim()) as ProjectFieldListResponse

@@ -10873,9 +10873,9 @@ async function addIssueToBoard({ projectNumber, owner, issueUrl }) {
     try {
         const { stdout: issueAdded } = await (0, exec_1.getExecOutput)('gh project', [
             'item-add',
-            `--project-number ${projectNumber}`,
-            `--url ${issueUrl}`,
-            `--owner ${owner}`
+            `project-number=${projectNumber}`,
+            `url=${issueUrl}`,
+            `owner=${owner}`
         ]);
         return JSON.parse(issueAdded.trim());
     }
@@ -10898,8 +10898,9 @@ const exec_1 = __nccwpck_require__(1518);
 async function getProjectBoardID({ projectNumber, owner }) {
     try {
         const { stdout: projectBoardID } = await (0, exec_1.getExecOutput)('gh project', [
-            `view ${projectNumber}`,
-            '--format json'
+            `view=${projectNumber}`,
+            `owner=${owner}`,
+            'format=json'
         ]);
         return JSON.parse(projectBoardID.trim());
     }
@@ -10923,9 +10924,9 @@ async function getProjectFieldList({ projectNumber, owner }) {
     try {
         const { stdout: fieldList } = await (0, exec_1.getExecOutput)('gh project', [
             'field-list',
-            `--project-number ${projectNumber}`,
-            `--owner ${owner}`,
-            '--format json'
+            `project-number=${projectNumber}`,
+            `owner=${owner}`,
+            'format=json'
         ]);
         return JSON.parse(fieldList.trim());
     }
@@ -10989,12 +10990,12 @@ async function moveIssueToColumn({ issueCardID, fieldID, fieldColumnID, projectI
     try {
         const { stdout: issueMoved } = await (0, exec_1.getExecOutput)('gh project', [
             'item-edit',
-            `--id ${issueCardID}`,
-            `--field-id ${fieldID}`,
-            `--single-select-option-id ${fieldColumnID}`,
-            `--project-id ${projectID}`,
-            `--owner ${owner}`,
-            '--format json'
+            `id=${issueCardID}`,
+            `field-id=${fieldID}`,
+            `single-select-option-id=${fieldColumnID}`,
+            `project-id=${projectID}`,
+            `owner=${owner}`,
+            'format=json'
         ]);
         return JSON.parse(issueMoved.trim());
     }
