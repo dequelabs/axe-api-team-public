@@ -10871,12 +10871,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const exec_1 = __nccwpck_require__(1518);
 async function addIssueToBoard({ projectNumber, owner, issueUrl }) {
     try {
-        const { stdout: issueAdded } = await (0, exec_1.getExecOutput)('gh project', [
-            'item-add',
-            `project-number=${projectNumber}`,
-            `url=${issueUrl}`,
-            `owner=${owner}`
-        ]);
+        const { stdout: issueAdded } = await (0, exec_1.getExecOutput)(`gh project item-add ${projectNumber} --owner ${owner} --url ${issueUrl} --format json`);
         return JSON.parse(issueAdded.trim());
     }
     catch (error) {
@@ -10918,12 +10913,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const exec_1 = __nccwpck_require__(1518);
 async function getProjectFieldList({ projectNumber, owner }) {
     try {
-        const { stdout: fieldList } = await (0, exec_1.getExecOutput)('gh project', [
-            'field-list',
-            `project-number=${projectNumber}`,
-            `owner=${owner}`,
-            'format=json'
-        ]);
+        const { stdout: fieldList } = await (0, exec_1.getExecOutput)(`gh project field-list --project-number ${projectNumber} --owner ${owner} --format json`);
         return JSON.parse(fieldList.trim());
     }
     catch (error) {
@@ -10984,15 +10974,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const exec_1 = __nccwpck_require__(1518);
 async function moveIssueToColumn({ issueCardID, fieldID, fieldColumnID, projectID, owner }) {
     try {
-        const { stdout: issueMoved } = await (0, exec_1.getExecOutput)('gh project', [
-            'item-edit',
-            `id=${issueCardID}`,
-            `field-id=${fieldID}`,
-            `single-select-option-id=${fieldColumnID}`,
-            `project-id=${projectID}`,
-            `owner=${owner}`,
-            'format=json'
-        ]);
+        const { stdout: issueMoved } = await (0, exec_1.getExecOutput)(`gh project item-edit --id ${issueCardID} --field-id ${fieldID} --single-select-option-id ${fieldColumnID} --project-id ${projectID} --owner ${owner} --format json`);
         return JSON.parse(issueMoved.trim());
     }
     catch (error) {

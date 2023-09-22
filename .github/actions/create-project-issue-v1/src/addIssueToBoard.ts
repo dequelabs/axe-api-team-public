@@ -22,12 +22,9 @@ export default async function addIssueToBoard({
   issueUrl
 }: AddIssueToBoardArgs): Promise<AddIssueToBoardResponse> {
   try {
-    const { stdout: issueAdded } = await getExecOutput('gh project', [
-      'item-add',
-      `project-number=${projectNumber}`,
-      `url=${issueUrl}`,
-      `owner=${owner}`
-    ])
+    const { stdout: issueAdded } = await getExecOutput(
+      `gh project item-add ${projectNumber} --owner ${owner} --url ${issueUrl} --format json`
+    )
 
     return JSON.parse(issueAdded.trim()) as AddIssueToBoardResponse
   } catch (error) {

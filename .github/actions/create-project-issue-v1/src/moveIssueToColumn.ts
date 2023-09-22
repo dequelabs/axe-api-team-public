@@ -26,15 +26,9 @@ export default async function moveIssueToColumn({
   owner
 }: MoveIssueToColumnArgs): Promise<MoveIssueToColumnResponse> {
   try {
-    const { stdout: issueMoved } = await getExecOutput('gh project', [
-      'item-edit',
-      `id=${issueCardID}`,
-      `field-id=${fieldID}`,
-      `single-select-option-id=${fieldColumnID}`,
-      `project-id=${projectID}`,
-      `owner=${owner}`,
-      'format=json'
-    ])
+    const { stdout: issueMoved } = await getExecOutput(
+      `gh project item-edit --id ${issueCardID} --field-id ${fieldID} --single-select-option-id ${fieldColumnID} --project-id ${projectID} --owner ${owner} --format json`
+    )
 
     return JSON.parse(issueMoved.trim()) as MoveIssueToColumnResponse
   } catch (error) {
