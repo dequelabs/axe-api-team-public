@@ -11459,7 +11459,8 @@ async function getFallbackID(sha) {
             'origin',
             `pull/*/head | grep ${sha} |  awk -F'/' '{print $3}'`
         ]);
-        return !!fallbackID.trim() ? fallbackID.trim() : null;
+        const trimmedFallbackID = fallbackID.trim();
+        return trimmedFallbackID ? trimmedFallbackID : null;
     }
     catch (error) {
         return null;

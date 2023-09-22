@@ -37,9 +37,10 @@ export default function getCommitType(title: string): string | null {
    * if it exists, so we'll need to check the header for it,
    * excluding and revert commits
    */
-  //eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const hasBreakingSymbol =
+    //eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     !header!.toLowerCase().startsWith('revert') &&
+    //eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     header!.split(':')[0].includes('!')
 
   return `${type}${hasBreakingSymbol ? '!' : ''}`.toLowerCase()
