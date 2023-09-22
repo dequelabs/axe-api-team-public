@@ -22,8 +22,7 @@ export default async function addIssueToBoard({
   issueUrl
 }: AddIssueToBoardArgs): Promise<AddIssueToBoardResponse> {
   try {
-    const { stdout: issueAdded } = await getExecOutput('gh', [
-      'project',
+    const { stdout: issueAdded } = await getExecOutput('gh project', [
       'item-add',
       `--project-number ${projectNumber}`,
       `--url ${issueUrl}`,
