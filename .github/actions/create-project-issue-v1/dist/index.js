@@ -10900,7 +10900,9 @@ async function getProjectBoardID({ projectNumber, owner }) {
         const { stdout: projectBoardID } = await (0, exec_1.getExecOutput)(`gh`, [
             'project',
             'view',
-            `${projectNumber}`
+            `${projectNumber}`,
+            `--owner=${owner}`,
+            '--format=json'
         ]);
         return JSON.parse(projectBoardID.trim());
     }
