@@ -36,7 +36,8 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       assignees: assignees ? assignees.split(',') : undefined
     })
 
-    core.info(`Created issue: ${issueCreated.url}`)
+    const issueURL = issueCreated.url.replace('api.', '')
+    core.info(`Created issue: ${issueURL}`)
 
     const { id: projectID } = await getProjectBoardID({
       projectNumber,
@@ -48,7 +49,7 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     const { id: issueCardID } = await addIssueToBoard({
       projectNumber,
       owner: github.context.repo.owner,
-      issueUrl: issueCreated.url
+      issueUrl: issueURL
     })
 
     core.info(`Added issue to project board with card ID: ${issueCardID}`)
@@ -86,8 +87,8 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     })
 
     core.info(`Moved issue to column ${columnName}`)
-    core.info(`Settings output "issue_url" to ${issueCreated.url}`)
-    core.setOutput('issue_url', issueCreated.url)
+    core.info(`Settings output "issue_url" to ${issueURL}`)
+    core.setOutput('issue_url', issueURL)
   } catch (error) {
     core.setFailed((error as Error).message)
   }

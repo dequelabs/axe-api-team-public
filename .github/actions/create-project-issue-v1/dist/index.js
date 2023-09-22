@@ -11023,7 +11023,8 @@ async function run(core, github) {
             labels: labels ? labels.split(',') : undefined,
             assignees: assignees ? assignees.split(',') : undefined
         });
-        core.info(`Created issue: ${issueCreated.url}`);
+        const issueURL = issueCreated.url.replace('api.', '');
+        core.info(`Created issue: ${issueURL}`);
         const { id: projectID } = await (0, getProjectBoardID_1.default)({
             projectNumber,
             owner: github.context.repo.owner
@@ -11032,7 +11033,7 @@ async function run(core, github) {
         const { id: issueCardID } = await (0, addIssueToBoard_1.default)({
             projectNumber,
             owner: github.context.repo.owner,
-            issueUrl: issueCreated.url
+            issueUrl: issueURL
         });
         core.info(`Added issue to project board with card ID: ${issueCardID}`);
         const { fields } = await (0, getProjectFieldList_1.default)({
@@ -11055,8 +11056,8 @@ async function run(core, github) {
             owner: github.context.repo.owner
         });
         core.info(`Moved issue to column ${columnName}`);
-        core.info(`Settings output "issue_url" to ${issueCreated.url}`);
-        core.setOutput('issue_url', issueCreated.url);
+        core.info(`Settings output "issue_url" to ${issueURL}`);
+        core.setOutput('issue_url', issueURL);
     }
     catch (error) {
         core.setFailed(error.message);
