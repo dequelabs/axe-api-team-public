@@ -12,6 +12,7 @@ export const rawCommitList = dedent`
   1c41b7a1 revert: feat: awesome feature (#3957) (#3988)
   4d6220e chore: release v1.0.0
   5d6220e chore: release v1.0.1
+  5d6220e5d6220e chore: release a long commit SHA
 `
 
 export const expectedRawCommitList = [
@@ -24,7 +25,8 @@ export const expectedRawCommitList = [
   '7d6220e feat(package)!: some breaking change (#127)',
   '1c41b7a1 revert: feat: awesome feature (#3957) (#3988)',
   '4d6220e chore: release v1.0.0',
-  '5d6220e chore: release v1.0.1'
+  '5d6220e chore: release v1.0.1',
+  '5d6220e5d6220e chore: release a long commit SHA'
 ]
 
 export const expectedRepository = 'dequelabs/axe-api-team-public'
@@ -111,5 +113,13 @@ export const expectedParsedCommitList: Array<ParsedCommitList> = [
     type: 'chore',
     id: '456',
     link: `https://github.com/${expectedRepository}/pull/456`
+  },
+  {
+    commit: '5d6220e5d6220e chore: release a long commit SHA',
+    title: 'chore: release a long commit SHA',
+    sha: '5d6220e5d6220e',
+    type: 'chore',
+    id: null,
+    link: null
   }
 ]
