@@ -11436,10 +11436,36 @@ function getCommitType(title) {
         }
         return null;
     }
-    const hasBreakingSymbol = header.split(':')[0].includes('!');
+    const hasBreakingSymbol = !header.toLowerCase().startsWith('revert') &&
+        header.split(':')[0].includes('!');
     return `${type}${hasBreakingSymbol ? '!' : ''}`.toLowerCase();
 }
 exports["default"] = getCommitType;
+
+
+/***/ }),
+
+/***/ 7294:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const exec_1 = __nccwpck_require__(1518);
+async function getFallbackID(sha) {
+    try {
+        const { stdout: fallbackID } = await (0, exec_1.getExecOutput)('git', [
+            'ls-remote',
+            'origin',
+            `pull/*/head | grep ${sha} |  awk -F'/' '{print $3}'`
+        ]);
+        return !!fallbackID.trim() ? fallbackID.trim() : null;
+    }
+    catch (error) {
+        return null;
+    }
+}
+exports["default"] = getFallbackID;
 
 
 /***/ }),
@@ -11454,14 +11480,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const getCommitType_1 = __importDefault(__nccwpck_require__(8482));
-function getParsedCommitList({ rawCommitList, repository }) {
+const getFallbackID_1 = __importDefault(__nccwpck_require__(7294));
+async function getParsedCommitList({ rawCommitList, repository }) {
     const parsedCommits = [];
     for (const commit of rawCommitList) {
-        const shaAndTitle = commit.match(/^(.{7}) (.+?)(?:\s\(#\d+\))?$/);
+        const shaAndTitle = commit.match(/^([0-9a-f]+) (.+?)(?:\s\(#\d+\))?$/);
         const sha = shaAndTitle[1];
         const title = shaAndTitle[2];
         const type = (0, getCommitType_1.default)(title);
-        const id = commit.match(/#(\d+)/)?.[0].replace('#', '') || null;
+        const id = commit.match(/\(#(\d+)\)$/)?.[1] || (await (0, getFallbackID_1.default)(sha));
         const link = id ? `https://github.com/${repository}/pull/${id}` : null;
         parsedCommits.push({
             commit,
@@ -11578,12 +11605,13 @@ async function run(core, github) {
         core.info(`${base} and ${head} exist.`);
         core.info(`Getting raw commits between ${base} and ${head}...`);
         const rawCommitList = await (0, getRawCommitList_1.default)({ base, head });
-        const parsedCommitList = (0, getParsedCommitList_1.default)({
+        const parsedCommitList = await (0, getParsedCommitList_1.default)({
             rawCommitList,
             repository: `${github.context.repo.owner}/${github.context.repo.repo}`
         });
         core.info(`Found ${parsedCommitList.length} commits.`);
-        core.info('Setting output...');
+        core.info(JSON.stringify(parsedCommitList, null, 2));
+        core.info(`Settings output "commit-list"`);
         core.setOutput('commit-list', JSON.stringify(parsedCommitList));
     }
     catch (error) {
