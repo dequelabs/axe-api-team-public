@@ -2,7 +2,7 @@ import { getExecOutput } from '@actions/exec'
 
 // TODO: Refactor .github/actions/add-to-board to use this: https://github.com/dequelabs/axe-api-team/issues/369
 
-interface MoveIssueToColumnResponse {
+export interface MoveIssueToColumnResponse {
   id: string
   title: string
   body: string

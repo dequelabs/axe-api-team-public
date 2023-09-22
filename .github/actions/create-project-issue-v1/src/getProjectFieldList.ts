@@ -6,10 +6,10 @@ interface Field {
   id: string
   name: string
   type: string
-  options: Omit<Field, 'options'>[]
+  options: Omit<Field, 'options' | 'type'>[]
 }
 
-interface ProjectFieldListResponse {
+export interface ProjectFieldListResponse {
   fields: Field[]
   totalCount: number
 }
