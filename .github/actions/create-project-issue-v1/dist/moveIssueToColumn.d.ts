@@ -1,4 +1,4 @@
-interface MoveIssueToColumnResponse {
+export interface MoveIssueToColumnResponse {
     id: string;
     title: string;
     body: string;

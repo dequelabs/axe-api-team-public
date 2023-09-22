@@ -1,4 +1,4 @@
-interface AddIssueToBoardResponse {
+export interface AddIssueToBoardResponse {
     id: string;
     title: string;
     body: string;
