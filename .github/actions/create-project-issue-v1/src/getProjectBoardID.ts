@@ -16,10 +16,13 @@ export default async function getProjectBoardID({
   owner
 }: GetProjectBoardIDArgs): Promise<GetProjectBoardIDResponse> {
   try {
-    const { stdout: projectBoardID } = await getExecOutput(
-      `gh project view ${projectNumber}`,
-      [`owner=${owner}`, 'format=json']
-    )
+    const { stdout: projectBoardID } = await getExecOutput(`gh`, [
+      'project',
+      'view',
+      `${projectNumber}`
+      // `owner=${owner}`,
+      // 'format=json'
+    ])
 
     return JSON.parse(projectBoardID.trim()) as GetProjectBoardIDResponse
   } catch (error) {
