@@ -11,7 +11,7 @@ export default function getCommitType(title: string): string | null {
    * TODO: consolidate https://github.com/dequelabs/semantic-pr-title/blob/v1/src/validate-title.ts#L11
    * into one repository so we can use the same parser and keep things DRY
    */
-  const { type, header } = conventionalCommitsParser.sync(title, {
+  const { type } = conventionalCommitsParser.sync(title, {
     // parse merge commits
     mergePattern: /^Merge pull request #(\d+) from (.*)$/,
     mergeCorrespondence: ['id', 'source'],
