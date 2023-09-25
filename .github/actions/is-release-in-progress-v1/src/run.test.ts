@@ -12,12 +12,12 @@ const testCases = [
   {
     description: 'when there is not a release pull request',
     pullRequests: [BUG_PULL_REQUEST],
-    isReleaseInProgress: false
+    result: false
   },
   {
     description: 'when there is a release pull request',
     pullRequests: [RELEASE_PULL_REQUEST],
-    isReleaseInProgress: true
+    result: true
   }
 ]
 
@@ -26,25 +26,25 @@ describe('run()', () => {
     sinon.restore()
   })
 
-  it('fails if githubToken is not given', () => {
+  it('fails if github-token input is not given', () => {
     const core = {
       getInput: sinon
         .stub()
-        .withArgs('githubToken', { required: true })
-        .throws({ message: 'githubToken input is not given' }),
+        .withArgs('github-token', { required: true })
+        .throws({ message: 'github-token input is not given' }),
       setFailed: sinon.spy()
     }
     const github = {}
 
     run(core as unknown as Core, github as unknown as Github)
     assert.isTrue(
-      core.setFailed.calledOnceWith('githubToken input is not given')
+      core.setFailed.calledOnceWith('github-token input is not given')
     )
   })
 
-  testCases.map(({ description, pullRequests, isReleaseInProgress }) => {
+  testCases.map(({ description, pullRequests, result }) => {
     describe(description, () => {
-      it(`sets isReleaseInProgress output to ${isReleaseInProgress}`, async () => {
+      it(`sets is-release-in-Progress output to ${result}`, async () => {
         const octokit = {
           rest: {
             pulls: {
@@ -55,7 +55,7 @@ describe('run()', () => {
         const core = {
           getInput: sinon
             .stub()
-            .withArgs('githubToken', { required: true })
+            .withArgs('github-token', { required: true })
             .returns('token'),
           setOutput: sinon.spy(),
           info: sinon.spy()
@@ -76,13 +76,12 @@ describe('run()', () => {
         await run(core as unknown as Core, github as unknown as Github)
 
         assert.isTrue(
-          core.setOutput.calledOnceWith(
-            'isReleaseInProgress',
-            isReleaseInProgress
-          )
+          core.setOutput.calledOnceWith('is-release-in-progress', result)
         )
         assert.isTrue(
-          core.info.calledOnceWith('Set isReleaseInProgress output')
+          core.info.calledOnceWith(
+            `Set is-release-in-progress output: ${result}`
+          )
         )
       })
     })

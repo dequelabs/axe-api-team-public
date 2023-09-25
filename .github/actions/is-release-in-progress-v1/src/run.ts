@@ -3,7 +3,7 @@ import isReleaseInProgress from './is-release-in-progress'
 
 export default async function run(core: Core, github: Github) {
   try {
-    const githubToken = core.getInput('githubToken', { required: true })
+    const githubToken = core.getInput('github-token', { required: true })
 
     // Fetch open pull requests
     const octokit = github.getOctokit(githubToken)
@@ -11,13 +11,11 @@ export default async function run(core: Core, github: Github) {
       ...github.context.repo,
       state: 'open'
     })
+    const result = isReleaseInProgress(pullRequests as unknown as PullRequest[])
 
     // Set output
-    core.setOutput(
-      'isReleaseInProgress',
-      isReleaseInProgress(pullRequests as unknown as PullRequest[])
-    )
-    core.info('Set isReleaseInProgress output')
+    core.setOutput('is-release-in-progress', result)
+    core.info(`Set is-release-in-progress output: ${result}`)
   } catch (error) {
     core.setFailed((error as Error).message)
   }

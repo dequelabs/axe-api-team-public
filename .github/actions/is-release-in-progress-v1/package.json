@@ -1,7 +1,7 @@
 {
   "name": "is-release-in-progress-v1",
   "version": "1.0.0",
-  "description": "A GitHub Action to determine if a parent GHA should continue to run or stop",
+  "description": "A GitHub Action to determine if the repository already has a release pr open",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dequelabs/axe-api-team-public.git"

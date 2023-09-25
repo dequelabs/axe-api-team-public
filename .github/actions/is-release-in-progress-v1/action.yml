@@ -1,11 +1,11 @@
 name: 'Check if an open RC or a release PR already exists'
-description: 'Determine if a parent GHA should continue to run or stop'
+description: 'A GitHub Action to determine if the repository already has a release pr open'
 inputs:
-  githubToken:
+  github-token:
     description: 'GitHub Secret Token'
     required: true
 outputs:
-  isReleaseInProgress:
+  is-release-in-progress:
     description: 'True if an open RC or a release PR already exists'
 runs:
   using: 'node20'

@@ -14,6 +14,18 @@ export const RELEASE_PULL_REQUEST: PullRequest = {
   labels: [{ id: 23456, name: 'release' }]
 }
 
+export const SIMILAR_PULL_REQUEST_1: PullRequest = {
+  id: 2,
+  state: 'open',
+  labels: [{ id: 34567, name: 'release-2023' }]
+}
+
+export const SIMILAR_PULL_REQUEST_2: PullRequest = {
+  id: 2,
+  state: 'open',
+  labels: [{ id: 45678, name: 'prerelease' }]
+}
+
 const testCases = [
   {
     input: [],
@@ -22,12 +34,22 @@ const testCases = [
   },
   {
     input: [BUG_PULL_REQUEST],
-    inputDescription: 'list without release PR',
+    inputDescription: 'list without a release PR',
     output: false
   },
   {
-    input: [RELEASE_PULL_REQUEST],
-    inputDescription: 'list with release PR',
+    input: [BUG_PULL_REQUEST, SIMILAR_PULL_REQUEST_1],
+    inputDescription: 'list with a PR with a similar label',
+    output: false
+  },
+  {
+    input: [BUG_PULL_REQUEST, SIMILAR_PULL_REQUEST_2],
+    inputDescription: 'list with a PR with a similar label',
+    output: false
+  },
+  {
+    input: [BUG_PULL_REQUEST, RELEASE_PULL_REQUEST],
+    inputDescription: 'list with a release PR',
     output: true
   }
 ]

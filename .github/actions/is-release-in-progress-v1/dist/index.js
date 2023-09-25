@@ -9674,14 +9674,15 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const is_release_in_progress_1 = __importDefault(__nccwpck_require__(2116));
 async function run(core, github) {
     try {
-        const githubToken = core.getInput('githubToken', { required: true });
+        const githubToken = core.getInput('github-token', { required: true });
         const octokit = github.getOctokit(githubToken);
         const { data: pullRequests } = await octokit.rest.pulls.list({
             ...github.context.repo,
             state: 'open'
         });
-        core.setOutput('isReleaseInProgress', (0, is_release_in_progress_1.default)(pullRequests));
-        core.info('Set isReleaseInProgress output');
+        const result = (0, is_release_in_progress_1.default)(pullRequests);
+        core.setOutput('is-release-in-progress', result);
+        core.info(`Set is-release-in-progress output: ${result}`);
     }
     catch (error) {
         core.setFailed(error.message);
