@@ -72,6 +72,36 @@ describe('run', () => {
     })
   }
 
+  interface GenerateInputs {
+    github_token?: string
+    title?: string
+    body?: string
+    repository?: string
+    labels?: string
+    assignees?: string
+    project_number?: string
+    column_name?: string
+  }
+
+  const generateInputs = (options?: Partial<GenerateInputs>) => {
+    getInput
+      .withArgs('github_token', { required: true })
+      .returns(options?.github_token ?? 'token')
+    getInput
+      .withArgs('title', { required: true })
+      .returns(options?.title ?? 'title')
+    getInput
+      .withArgs('body', { required: true })
+      .returns(options?.body ?? 'body')
+    getInput
+      .withArgs('repository')
+      .returns(options?.repository ?? 'dequelabs/repo')
+    getInput.withArgs('labels').returns(options?.labels ?? '')
+    getInput.withArgs('assignees').returns(options?.assignees ?? '')
+    getInput.withArgs('project_number').returns(options?.project_number ?? '66')
+    getInput.withArgs('column_name').returns(options?.column_name ?? 'Backlog')
+  }
+
   describe('when the `github_token` input is not provided', () => {
     it('throws an error', async () => {
       getInput.withArgs('github_token', { required: true }).throws({
@@ -134,14 +164,7 @@ describe('run', () => {
 
   describe('when the `project_number` input is not a number', () => {
     it('throws an error', async () => {
-      getInput.withArgs('github_token', { required: true }).returns('token')
-      getInput.withArgs('title', { required: true }).returns('title')
-      getInput.withArgs('body', { required: true }).returns('body')
-      getInput.withArgs('repository').returns('dequelabs/repo')
-      getInput.withArgs('labels').returns('')
-      getInput.withArgs('assignees').returns('')
-      getInput.withArgs('project_number').returns('foobar')
-      getInput.withArgs('column_name').returns('Backlog')
+      generateInputs({ project_number: 'foo' })
 
       const core = {
         getInput,
@@ -157,14 +180,7 @@ describe('run', () => {
 
   describe('when the `repository` input is not provided', () => {
     it('uses the `github.context.repo` to create an issue and move it to board', async () => {
-      getInput.withArgs('github_token', { required: true }).returns('token')
-      getInput.withArgs('title', { required: true }).returns('title')
-      getInput.withArgs('body', { required: true }).returns('body')
-      getInput.withArgs('repository').returns('dequelabs/repo')
-      getInput.withArgs('labels').returns('')
-      getInput.withArgs('assignees').returns('')
-      getInput.withArgs('project_number').returns('66')
-      getInput.withArgs('column_name').returns('Backlog')
+      generateInputs({ repository: '' })
 
       await createAndMoveIssueStub()
 
@@ -188,14 +204,7 @@ describe('run', () => {
 
   describe('when the `repository` input is provided', () => {
     it('uses the `repository` to create an issue and move it to board', async () => {
-      getInput.withArgs('github_token', { required: true }).returns('token')
-      getInput.withArgs('title', { required: true }).returns('title')
-      getInput.withArgs('body', { required: true }).returns('body')
-      getInput.withArgs('repository').returns('repo')
-      getInput.withArgs('labels').returns('')
-      getInput.withArgs('assignees').returns('')
-      getInput.withArgs('project_number').returns('66')
-      getInput.withArgs('column_name').returns('Backlog')
+      generateInputs({ repository: 'repo' })
 
       await createAndMoveIssueStub()
 
@@ -219,14 +228,7 @@ describe('run', () => {
 
   describe('when the `labels` input is provided', () => {
     it('creates an issue with the labels', async () => {
-      getInput.withArgs('github_token', { required: true }).returns('token')
-      getInput.withArgs('title', { required: true }).returns('title')
-      getInput.withArgs('body', { required: true }).returns('body')
-      getInput.withArgs('repository').returns('dequelabs/repo')
-      getInput.withArgs('labels').returns('foo,bar')
-      getInput.withArgs('assignees').returns('')
-      getInput.withArgs('project_number').returns('66')
-      getInput.withArgs('column_name').returns('Backlog')
+      generateInputs({ labels: 'foo,bar' })
 
       await createAndMoveIssueStub()
 
@@ -250,14 +252,7 @@ describe('run', () => {
 
   describe('when the `assignees` input is provided', () => {
     it('creates an issue with the assignees', async () => {
-      getInput.withArgs('github_token', { required: true }).returns('token')
-      getInput.withArgs('title', { required: true }).returns('title')
-      getInput.withArgs('body', { required: true }).returns('body')
-      getInput.withArgs('repository').returns('dequelabs/repo')
-      getInput.withArgs('labels').returns('')
-      getInput.withArgs('assignees').returns('foo,bar')
-      getInput.withArgs('project_number').returns('66')
-      getInput.withArgs('column_name').returns('Backlog')
+      generateInputs({ assignees: 'foo,bar' })
 
       await createAndMoveIssueStub()
 
@@ -281,14 +276,7 @@ describe('run', () => {
 
   describe('when the `column_name` is not found', () => {
     it('throws an error', async () => {
-      getInput.withArgs('github_token', { required: true }).returns('token')
-      getInput.withArgs('title', { required: true }).returns('title')
-      getInput.withArgs('body', { required: true }).returns('body')
-      getInput.withArgs('repository').returns('dequelabs/repo')
-      getInput.withArgs('labels').returns('')
-      getInput.withArgs('assignees').returns('')
-      getInput.withArgs('project_number').returns('66')
-      getInput.withArgs('column_name').returns('foobar')
+      generateInputs({ column_name: 'foobar' })
 
       await createAndMoveIssueStub()
 
