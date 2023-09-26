@@ -83,7 +83,10 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
           continue
         }
         const issueNumber = parseInt(rawIssueNumber)
-
+        core.info(`Found issue #${issueNumber}`)
+        core.info(
+          `Fetching project board info for: ${owner}, ${repo}, issue: ${issueNumber}`
+        )
         const issueStatus = await getIssueProjectInfo({
           owner,
           repo,

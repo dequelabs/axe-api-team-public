@@ -11082,6 +11082,8 @@ async function run(core, github) {
                     continue;
                 }
                 const issueNumber = parseInt(rawIssueNumber);
+                core.info(`Found issue #${issueNumber}`);
+                core.info(`Fetching project board info for: ${owner}, ${repo}, issue: ${issueNumber}`);
                 const issueStatus = await (0, getIssueProjectInfo_1.default)({
                     owner,
                     repo,
