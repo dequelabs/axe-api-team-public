@@ -1,7 +1,10 @@
 import core from '@actions/core'
 import github from '@actions/github'
 
-export type Core = Pick<typeof core, 'info' | 'setFailed' | 'getInput'>
+export type Core = Pick<
+  typeof core,
+  'info' | 'setFailed' | 'getInput' | 'warning'
+>
 export type GitHub = Pick<typeof github, 'context' | 'getOctokit'>
 
 // TODO: replace with type from generate-commits-list-v1 type

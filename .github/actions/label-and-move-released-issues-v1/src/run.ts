@@ -1,3 +1,4 @@
+import getIssueProjectInfo from './getIssueProjectInfo'
 import type { CommitList, Core, GitHub } from './types'
 
 export default async function run(core: Core, github: GitHub): Promise<void> {
@@ -12,18 +13,15 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       owner
     })
 
-    const labelPrefix = 'VERSION:'
-    const hasLabel = labels.data.some(
-      label => label.name === `${labelPrefix} ${version}`
-    )
+    const LABEL = `VERSION: ${version}`
+    const hasLabel = labels.data.some(label => label.name === LABEL)
 
     if (!hasLabel) {
       await octokit.rest.issues.createLabel({
         repo,
         owner,
-        name: `${labelPrefix} ${version}`,
-        // TODO: ask Jennnnn or Steve about the colour
-        color: '0366d6'
+        name: LABEL,
+        color: 'FFFFFF'
       })
     }
 
@@ -44,7 +42,7 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
         continue
       }
 
-      // Extract the issue URL from the body
+      // Extract the URL after closes: and before the next space
       const issueURLs = [
         ...pullRequest.body.matchAll(/closes:\s?([^\s]+)/gi)
       ].map(match => match[1])
@@ -53,14 +51,48 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
         continue
       }
 
+      /**
+       * Unlikely that a PR will close more than one issue e.g.
+       *
+       * my PR body
+       * closes: https://github.com/dequelabs/axe-core/issues/123
+       * closes: https://github.com/dequelabs/axe-core/issues/456
+       *
+       * but just in case we'll loop through all the URLs and close them
+       */
       for (const issueURL of issueURLs) {
         const rawIssueNumber = issueURL.split('/').pop()
 
         if (!rawIssueNumber) {
           continue
         }
-
         const issueNumber = parseInt(rawIssueNumber)
+
+        const status = await getIssueProjectInfo({
+          owner,
+          repo,
+          issueNumber,
+          octokit
+        })
+
+        const projectBoard =
+          status.data.repository.issue.projectItems.nodes.find(
+            n => n.project.title.toLowerCase() === 'axe api team board'
+          )
+
+        if (!projectBoard) {
+          core.warning(`
+            Could not find the API team project board for issue ${issueNumber}`)
+          continue
+        }
+
+        const { name: columnNameStatus } = projectBoard.fieldValueByName
+
+        // If the issue is not in the done or dev done column, skip it
+        if (!['done', 'dev done'].includes(columnNameStatus.toLowerCase())) {
+          continue
+        }
+
         const { data: issue } = await octokit.rest.issues.get({
           repo,
           owner,
@@ -68,17 +100,20 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
         })
 
         if (issue.state !== 'closed') {
-          continue
+          await octokit.rest.issues.update({
+            repo,
+            owner,
+            issue_number: issueNumber,
+            state: 'closed'
+          })
         }
 
         await octokit.rest.issues.addLabels({
           repo,
           owner,
           issue_number: issueNumber,
-          labels: [`${labelPrefix} ${version}`]
+          labels: [LABEL]
         })
-
-        // call move issue to column here (code already done just need merged)
       }
     }
   } catch (error) {
