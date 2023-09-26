@@ -11,7 +11,7 @@ inputs:
     description: 'The body of the issue'
     required: true
   repository:
-    description: 'The repository to create the issue in'
+    description: 'The repository to create the issue in e.g. if the repository is under dequelabs/axe-core-npm, then supply "axe-core-npm"'
     default: ${{ github.repository }}
     required: false
   labels:

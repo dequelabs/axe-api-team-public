@@ -28,12 +28,18 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     const octokit = github.getOctokit(token)
 
     const { data: issueCreated } = await octokit.rest.issues.create({
+      /**
+       * Note: this assumes the action is running in the same repo as the action is being run on
+       * if this proves to be a problem, we can add an input for the owner and default to `github.context.repo.owner`
+       */
       owner: github.context.repo.owner,
       repo: repo[1] ?? repo[0],
       title,
       body,
-      labels: labels ? labels.split(',') : undefined,
-      assignees: assignees ? assignees.split(',') : undefined
+      labels: labels ? labels.split(',').map(label => label.trim()) : undefined,
+      assignees: assignees
+        ? assignees.split(',').map(assignee => assignee.trim())
+        : undefined
     })
 
     core.info(`\nCreated issue: ${issueCreated.html_url}`)
