@@ -1,6 +1,6 @@
 # create-project-issue-v1
 
-A GitHub Action to generate a github issue on a certain board in a certain column.
+A GitHub Action to create a new issue and move the issue to a specific column on a project board.
 
 ## Inputs
 

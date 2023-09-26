@@ -1,7 +1,7 @@
 {
   "name": "create-project-issue-v1",
   "version": "1.0.0",
-  "description": "To generate a github issue on a certain board in a certain column",
+  "description": "A GitHub Action to create a new issue and move the issue to a specific column on a project board",
   "bugs": {
     "url": "https://github.com/dequelabs/axe-api-team-public/issues"
   },

@@ -1,5 +1,5 @@
 name: create-project-issue
-description: 'To generate a github issue on a certain board in a certain column'
+description: 'A GitHub Action to create a new issue and move the issue to a specific column on a project board'
 inputs:
   github_token:
     description: 'The GitHub token to use for authentication'
