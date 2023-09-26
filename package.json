@@ -33,7 +33,6 @@
     "conventional-commit-types": "^3.0.0",
     "conventional-commits-parser": "^5.0.0",
     "dedent": "^1.5.1",
-    "dedent": "^1.5.1",
     "eslint": "^8.27.0",
     "husky": "^8.0.2",
     "lint-staged": "^13.0.3",
