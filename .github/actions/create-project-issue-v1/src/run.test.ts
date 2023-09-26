@@ -8,6 +8,7 @@ import { MOCK_PROJECT_BOARD_ID } from './getProjectBoardID.test'
 import { MOCK_ISSUE_ADDED } from './addIssueToBoard.test'
 import { MOCK_FIELD_LIST } from './getProjectFieldList.test'
 import { MOCK_ISSUE_MOVED } from './moveIssueToColumn.test'
+import type { ProjectFieldListResponse } from './getProjectFieldList'
 
 describe('run', () => {
   let setFailed: sinon.SinonSpy
@@ -51,6 +52,7 @@ describe('run', () => {
   interface CreateAndMoveIssueStubArgs {
     projectNumber?: string
     owner?: string
+    mockFieldList: ProjectFieldListResponse
   }
 
   const createAndMoveIssueStub = async (
@@ -88,14 +90,19 @@ describe('run', () => {
         } --format json`
       )
       .resolves({
-        stdout: JSON.stringify(MOCK_FIELD_LIST),
+        stdout: options?.mockFieldList
+          ? JSON.stringify(options.mockFieldList)
+          : JSON.stringify(MOCK_FIELD_LIST),
         exitCode: 0
       })
 
+    const mockId = options?.mockFieldList?.fields[0].options[0].id
     //`moveIssueToColumn` stub
     getExecOutput
       .withArgs(
-        'gh project item-edit --id 123 --field-id 123 --single-select-option-id 456 --project-id 123 --format json'
+        `gh project item-edit --id 123 --field-id 123 --single-select-option-id ${
+          mockId ?? 456
+        } --project-id 123 --format json`
       )
       .resolves({
         stdout: JSON.stringify(MOCK_ISSUE_MOVED),
@@ -443,6 +450,81 @@ describe('run', () => {
       assert.equal(
         fieldListArgs[0],
         'gh project field-list 99 --owner owner --format json'
+      )
+
+      const createdIssueArgs = github.getOctokit().rest.issues.create.args[0][0]
+      assert.equal(createdIssueArgs.repo, 'repo')
+      assert.equal(createdIssueArgs.title, inputs.title.returnValues[0])
+      assert.equal(createdIssueArgs.body, inputs.body.returnValues[0])
+      assert.isUndefined(createdIssueArgs.labels)
+      assert.isUndefined(createdIssueArgs.assignees)
+
+      assert.isTrue(setFailed.notCalled)
+      assert.equal(info.callCount, 6)
+      assert.isTrue(setOutput.calledOnce)
+      assert.isTrue(
+        setOutput.calledWith('issue_url', 'https://deque.bizzy.com')
+      )
+    })
+  })
+
+  describe('given a `column_name` input', () => {
+    it('uses the `column_name` input', async () => {
+      const inputs = generateInputs({ column_name: 'In Progress' })
+
+      await createAndMoveIssueStub({
+        mockFieldList: {
+          fields: [
+            {
+              id: '123',
+              name: 'Status',
+              type: 'ProjectV2',
+              options: [
+                {
+                  id: 'im-new',
+                  name: 'In Progress'
+                }
+              ]
+            }
+          ],
+          totalCount: 1
+        }
+      })
+
+      const core = {
+        getInput,
+        setFailed,
+        setOutput,
+        info
+      }
+
+      await run(core as unknown as Core, github as unknown as GitHub)
+
+      // commands that require the project number
+      const [
+        projectBoardArgs,
+        issueAddedArgs,
+        fieldListArgs,
+        moveIssueToColumnArgs
+      ] = getExecOutput.args
+
+      assert.equal(
+        projectBoardArgs[0],
+        'gh project view 66 --owner owner --format json'
+      )
+      assert.equal(
+        issueAddedArgs[0],
+        'gh project item-add 66 --owner owner --url https://deque.bizzy.com --format json'
+      )
+      assert.equal(
+        fieldListArgs[0],
+        'gh project field-list 66 --owner owner --format json'
+      )
+
+      // `--single-select-option-id` should be `im-new` instead of `456`
+      assert.equal(
+        moveIssueToColumnArgs[0],
+        'gh project item-edit --id 123 --field-id 123 --single-select-option-id im-new --project-id 123 --format json'
       )
 
       const createdIssueArgs = github.getOctokit().rest.issues.create.args[0][0]
