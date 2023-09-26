@@ -1,0 +1,18 @@
+name: 'Label and move released issues'
+description: 'Label and move issues that have been released to the "Released" column'
+inputs:
+  commit-list:
+    description: 'The list of commits generated from the "Generate Commit List" action'
+    required: true
+  version:
+    description: 'The released version number'
+    required: true
+  project-number:
+    description: 'The project number of the project board'
+    default: '66'
+  project-board-title:
+    description: 'The title of the project board'
+    default: 'Axe API Team Board'
+runs:
+  using: 'node20'
+  main: 'dist/index.js'

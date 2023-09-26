@@ -1,10 +1,20 @@
-import getIssueProjectInfo from './getIssueProjectInfo'
 import type { CommitList, Core, GitHub } from './types'
+import getIssueProjectInfo from './getIssueProjectInfo'
+import getProjectBoardID from './getProjectBoardID'
+import getProjectFieldList from './getProjectFieldList'
+import moveIssueToColumn from './moveIssueToColumn'
 
 export default async function run(core: Core, github: GitHub): Promise<void> {
   try {
     const commitList = core.getInput('commit-list', { required: true })
     const version = core.getInput('version', { required: true })
+    const projectNumber = parseInt(core.getInput('project-number'))
+    const projectBoardTitle = core.getInput('project-board-title')
+
+    if (isNaN(projectNumber)) {
+      core.setFailed('`project-number` must be a number')
+      return
+    }
 
     const octokit = github.getOctokit(process.env.GITHUB_TOKEN as string)
     const { repo, owner } = github.context.repo
@@ -25,9 +35,9 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       })
     }
 
-    const commmits = JSON.parse(commitList) as CommitList[]
+    const commits = JSON.parse(commitList) as CommitList[]
 
-    for (const { id } of commmits) {
+    for (const { id } of commits) {
       if (!id) {
         continue
       }
@@ -42,15 +52,6 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
         continue
       }
 
-      // Extract the URL after closes: and before the next space
-      const issueURLs = [
-        ...pullRequest.body.matchAll(/closes:\s?([^\s]+)/gi)
-      ].map(match => match[1])
-
-      if (!issueURLs.length) {
-        continue
-      }
-
       /**
        * Unlikely that a PR will close more than one issue e.g.
        *
@@ -60,6 +61,14 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
        *
        * but just in case we'll loop through all the URLs and close them
        */
+      const issueURLs = [
+        ...pullRequest.body.matchAll(/closes:\s?([^\s]+)/gi)
+      ].map(match => match[1])
+
+      if (!issueURLs.length) {
+        continue
+      }
+
       for (const issueURL of issueURLs) {
         const rawIssueNumber = issueURL.split('/').pop()
 
@@ -68,7 +77,7 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
         }
         const issueNumber = parseInt(rawIssueNumber)
 
-        const status = await getIssueProjectInfo({
+        const issueStatus = await getIssueProjectInfo({
           owner,
           repo,
           issueNumber,
@@ -76,13 +85,14 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
         })
 
         const projectBoard =
-          status.data.repository.issue.projectItems.nodes.find(
-            n => n.project.title.toLowerCase() === 'axe api team board'
+          issueStatus.data.repository.issue.projectItems.nodes.find(
+            n =>
+              n.project.title.toLowerCase() === projectBoardTitle.toLowerCase()
           )
 
         if (!projectBoard) {
           core.warning(`
-            Could not find the API team project board for issue ${issueNumber}`)
+            Could not find the project board "${projectBoardTitle}" for issue ${issueNumber}`)
           continue
         }
 
@@ -114,6 +124,37 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
           issue_number: issueNumber,
           labels: [LABEL]
         })
+
+        const [{ id: projectID }, { fields }] = await Promise.all([
+          getProjectBoardID({ projectNumber, owner }),
+          getProjectFieldList({ projectNumber, owner })
+        ])
+
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const statusColumn = fields.find(
+          ({ name }) => name.toLowerCase() === 'status'
+        )!
+
+        const releaseColumn = statusColumn.options.find(
+          ({ name }) => name.toLowerCase() === 'released'
+        )
+
+        if (!releaseColumn) {
+          core.setFailed(
+            `Could not find the "released" column in the ${projectBoardTitle} project board`
+          )
+          return
+        }
+
+        await moveIssueToColumn({
+          issueCardID:
+            issueStatus.data.repository.issue.projectItems.nodes[0].id,
+          fieldID: statusColumn.id,
+          fieldColumnID: releaseColumn.id,
+          projectID
+        })
+
+        core.info(`Moved issue ${issueNumber} to the "released" column`)
       }
     }
   } catch (error) {
