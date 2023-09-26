@@ -11091,7 +11091,7 @@ async function run(core, github) {
                     octokit
                 });
                 core.info(`Found stats: ${JSON.stringify(issueStatus)}`);
-                const projectBoard = issueStatus.data.repository.issue.projectItems.nodes.find(n => n.project.title.toLowerCase() === projectBoardTitle.toLowerCase());
+                const projectBoard = issueStatus.repository.issue.projectItems.nodes.find(n => n.project.title.toLowerCase() === projectBoardTitle.toLowerCase());
                 if (!projectBoard) {
                     core.warning(`
             Could not find the project board "${projectBoardTitle}" for issue ${issueNumber}`);
@@ -11131,7 +11131,7 @@ async function run(core, github) {
                     return;
                 }
                 await (0, moveIssueToColumn_1.default)({
-                    issueCardID: issueStatus.data.repository.issue.projectItems.nodes[0].id,
+                    issueCardID: issueStatus.repository.issue.projectItems.nodes[0].id,
                     fieldID: statusColumn.id,
                     fieldColumnID: releaseColumn.id,
                     projectID

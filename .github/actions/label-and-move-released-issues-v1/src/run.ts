@@ -97,7 +97,7 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
         core.info(`Found stats: ${JSON.stringify(issueStatus)}`)
 
         const projectBoard =
-          issueStatus.data.repository.issue.projectItems.nodes.find(
+          issueStatus.repository.issue.projectItems.nodes.find(
             n =>
               n.project.title.toLowerCase() === projectBoardTitle.toLowerCase()
           )
@@ -159,8 +159,7 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
         }
 
         await moveIssueToColumn({
-          issueCardID:
-            issueStatus.data.repository.issue.projectItems.nodes[0].id,
+          issueCardID: issueStatus.repository.issue.projectItems.nodes[0].id,
           fieldID: statusColumn.id,
           fieldColumnID: releaseColumn.id,
           projectID

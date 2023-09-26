@@ -16,12 +16,10 @@ interface Node {
     };
 }
 interface getIssueProjectInfoResult {
-    data: {
-        repository: {
-            issue: {
-                projectItems: {
-                    nodes: Node[];
-                };
+    repository: {
+        issue: {
+            projectItems: {
+                nodes: Node[];
             };
         };
     };
