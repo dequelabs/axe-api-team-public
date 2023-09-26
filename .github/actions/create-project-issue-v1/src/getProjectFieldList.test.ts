@@ -52,18 +52,19 @@ describe('getProjectFieldList', () => {
   describe('when getting the project field list fails', () => {
     it('throws an error', async () => {
       getExecOutput.rejects(new Error('Error getting project field list'))
+      let error: Error | null = null
 
       try {
         await getProjectFieldList({
           projectNumber: 66,
           owner: 'owner'
         })
-      } catch (error) {
-        assert.include(
-          (error as Error).message,
-          'Error getting project field list'
-        )
+      } catch (err) {
+        error = err as Error
       }
+
+      assert.isNotNull(error)
+      assert.include(error?.message, 'Error getting project field list')
     })
   })
 })

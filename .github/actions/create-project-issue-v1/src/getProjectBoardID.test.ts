@@ -37,18 +37,19 @@ describe('getProjectBoardID', () => {
   describe('when getting the project board ID fails', () => {
     it('throws an error', async () => {
       getExecOutput.rejects(new Error('Error getting project board ID'))
+      let error: Error | null = null
 
       try {
         await getProjectBoardID({
           projectNumber: 66,
           owner: 'owner'
         })
-      } catch (error) {
-        assert.include(
-          (error as Error).message,
-          'Error getting project board ID'
-        )
+      } catch (err) {
+        error = err as Error
       }
+
+      assert.isNotNull(error)
+      assert.include(error?.message, 'Error getting project board ID')
     })
   })
 })

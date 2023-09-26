@@ -45,6 +45,7 @@ describe('moveIssueToColumn', () => {
   describe('when moving the issue to the column fails', () => {
     it('throws an error', async () => {
       getExecOutput.rejects(new Error('Error moving issue to column'))
+      let error: Error | null = null
 
       try {
         await moveIssueToColumn({
@@ -53,9 +54,12 @@ describe('moveIssueToColumn', () => {
           fieldColumnID: '789',
           projectID: '101112'
         })
-      } catch (error) {
-        assert.include((error as Error).message, 'Error moving issue to column')
+      } catch (err) {
+        error = err as Error
       }
+
+      assert.isNotNull(error)
+      assert.include(error?.message, 'Error moving issue to column')
     })
   })
 })

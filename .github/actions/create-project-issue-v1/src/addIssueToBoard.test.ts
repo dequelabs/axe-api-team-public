@@ -44,6 +44,7 @@ describe('addIssueToBoard', () => {
   describe('when adding the issue to the board fails', () => {
     it('throws an error', async () => {
       getExecOutput.rejects(new Error('Error adding issue to board'))
+      let error: Error | null = null
 
       try {
         await addIssueToBoard({
@@ -51,9 +52,12 @@ describe('addIssueToBoard', () => {
           owner: 'owner',
           issueUrl: 'https://deque.bizzy.com'
         })
-      } catch (error) {
-        assert.include((error as Error).message, 'Error adding issue to board')
+      } catch (err) {
+        error = err as Error
       }
+
+      assert.isNotNull(error)
+      assert.include(error?.message, 'Error adding issue to board')
     })
   })
 })
