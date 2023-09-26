@@ -11020,8 +11020,10 @@ async function run(core, github) {
             repo: repo[1] ?? repo[0],
             title,
             body,
-            labels: labels ? labels.split(',') : undefined,
-            assignees: assignees ? assignees.split(',') : undefined
+            labels: labels ? labels.split(',').map(label => label.trim()) : undefined,
+            assignees: assignees
+                ? assignees.split(',').map(assignee => assignee.trim())
+                : undefined
         });
         core.info(`\nCreated issue: ${issueCreated.html_url}`);
         const { id: projectID } = await (0, getProjectBoardID_1.default)({
