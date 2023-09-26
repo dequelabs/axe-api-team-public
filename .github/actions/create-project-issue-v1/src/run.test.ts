@@ -15,6 +15,7 @@ describe('run', () => {
   let info: sinon.SinonSpy
   let getInput: sinon.SinonStub
   let getExecOutput: sinon.SinonStub
+  let createIssueStub: sinon.SinonStub
   const github = {
     context: {
       repo: {
@@ -25,7 +26,7 @@ describe('run', () => {
     getOctokit: () => ({
       rest: {
         issues: {
-          create: sinon.stub().resolves({
+          create: createIssueStub.resolves({
             data: {
               html_url: 'https://deque.bizzy.com',
               node_id: 'issue-id'
@@ -41,6 +42,7 @@ describe('run', () => {
     setOutput = sinon.stub()
     info = sinon.spy()
     getInput = sinon.stub()
+    createIssueStub = sinon.stub()
     getExecOutput = sinon.stub(exec, 'getExecOutput')
   })
 
@@ -113,22 +115,39 @@ describe('run', () => {
   }
 
   const generateInputs = (options?: Partial<GenerateInputs>) => {
-    getInput
+    const token = getInput
       .withArgs('github_token', { required: true })
       .returns(options?.github_token ?? 'token')
-    getInput
+    const title = getInput
       .withArgs('title', { required: true })
       .returns(options?.title ?? 'title')
-    getInput
+    const body = getInput
       .withArgs('body', { required: true })
       .returns(options?.body ?? 'body')
-    getInput
+    const repo = getInput
       .withArgs('repository')
       .returns(options?.repository ?? 'dequelabs/repo')
-    getInput.withArgs('labels').returns(options?.labels ?? '')
-    getInput.withArgs('assignees').returns(options?.assignees ?? '')
-    getInput.withArgs('project_number').returns(options?.project_number ?? '66')
-    getInput.withArgs('column_name').returns(options?.column_name ?? 'Backlog')
+    const labels = getInput.withArgs('labels').returns(options?.labels ?? '')
+    const assignees = getInput
+      .withArgs('assignees')
+      .returns(options?.assignees ?? '')
+    const projectNumber = getInput
+      .withArgs('project_number')
+      .returns(options?.project_number ?? '66')
+    const columnName = getInput
+      .withArgs('column_name')
+      .returns(options?.column_name ?? 'Backlog')
+
+    return {
+      token,
+      title,
+      body,
+      repo,
+      labels,
+      assignees,
+      projectNumber,
+      columnName
+    }
   }
 
   describe('when the `github_token` input is not provided', () => {
@@ -233,7 +252,7 @@ describe('run', () => {
 
   describe('when the `repository` input is provided', () => {
     it('uses the `repository` to create an issue and move it to board', async () => {
-      generateInputs({ repository: 'repo' })
+      const inputs = generateInputs({ repository: 'other-repo' })
 
       await createAndMoveIssueStub()
 
@@ -245,6 +264,13 @@ describe('run', () => {
       }
 
       await run(core as unknown as Core, github as unknown as GitHub)
+
+      const createdIssueArgs = github.getOctokit().rest.issues.create.args[0][0]
+      assert.equal(createdIssueArgs.repo, 'other-repo')
+      assert.equal(createdIssueArgs.title, inputs.title.returnValues[0])
+      assert.equal(createdIssueArgs.body, inputs.body.returnValues[0])
+      assert.isUndefined(createdIssueArgs.labels)
+      assert.isUndefined(createdIssueArgs.assignees)
 
       assert.isTrue(setFailed.notCalled)
       assert.equal(info.callCount, 6)
@@ -257,7 +283,7 @@ describe('run', () => {
 
   describe('when the `labels` input is provided', () => {
     it('creates an issue with the labels', async () => {
-      generateInputs({ labels: 'foo,bar' })
+      const inputs = generateInputs({ labels: 'foo,bar' })
 
       await createAndMoveIssueStub()
 
@@ -269,6 +295,14 @@ describe('run', () => {
       }
 
       await run(core as unknown as Core, github as unknown as GitHub)
+
+      const createdIssueArgs = github.getOctokit().rest.issues.create.args[0][0]
+
+      assert.lengthOf(createdIssueArgs.labels, 2)
+      assert.deepEqual(createdIssueArgs.labels, ['foo', 'bar'])
+      assert.equal(createdIssueArgs.title, inputs.title.returnValues[0])
+      assert.equal(createdIssueArgs.body, inputs.body.returnValues[0])
+      assert.equal(createdIssueArgs.repo, 'repo')
 
       assert.isTrue(setFailed.notCalled)
       assert.equal(info.callCount, 6)
@@ -281,7 +315,7 @@ describe('run', () => {
 
   describe('when the `assignees` input is provided', () => {
     it('creates an issue with the assignees', async () => {
-      generateInputs({ assignees: 'foo,bar' })
+      const inputs = generateInputs({ assignees: 'foo,bar' })
 
       await createAndMoveIssueStub()
 
@@ -293,6 +327,14 @@ describe('run', () => {
       }
 
       await run(core as unknown as Core, github as unknown as GitHub)
+
+      const createdIssueArgs = github.getOctokit().rest.issues.create.args[0][0]
+
+      assert.lengthOf(createdIssueArgs.assignees, 2)
+      assert.deepEqual(createdIssueArgs.assignees, ['foo', 'bar'])
+      assert.equal(createdIssueArgs.title, inputs.title.returnValues[0])
+      assert.equal(createdIssueArgs.body, inputs.body.returnValues[0])
+      assert.equal(createdIssueArgs.repo, 'repo')
 
       assert.isTrue(setFailed.notCalled)
       assert.equal(info.callCount, 6)
@@ -325,7 +367,7 @@ describe('run', () => {
 
   describe('given no `project_number` input', () => {
     it('defaults to 66', async () => {
-      generateInputs()
+      const inputs = generateInputs()
 
       await createAndMoveIssueStub()
 
@@ -339,12 +381,28 @@ describe('run', () => {
       await run(core as unknown as Core, github as unknown as GitHub)
 
       // commands that require the project number
-      const [projectBoarArgs, issueAddedArgs, fieldListArgs] =
+      const [projectBoardArgs, issueAddedArgs, fieldListArgs] =
         getExecOutput.args
 
-      assert.include(projectBoarArgs[0], '66')
-      assert.include(issueAddedArgs[0], '66')
-      assert.include(fieldListArgs[0], '66')
+      assert.equal(
+        projectBoardArgs[0],
+        'gh project view 66 --owner owner --format json'
+      )
+      assert.equal(
+        issueAddedArgs[0],
+        'gh project item-add 66 --owner owner --url https://deque.bizzy.com --format json'
+      )
+      assert.equal(
+        fieldListArgs[0],
+        'gh project field-list 66 --owner owner --format json'
+      )
+
+      const createdIssueArgs = github.getOctokit().rest.issues.create.args[0][0]
+      assert.equal(createdIssueArgs.repo, 'repo')
+      assert.equal(createdIssueArgs.title, inputs.title.returnValues[0])
+      assert.equal(createdIssueArgs.body, inputs.body.returnValues[0])
+      assert.isUndefined(createdIssueArgs.labels)
+      assert.isUndefined(createdIssueArgs.assignees)
 
       assert.isTrue(setFailed.notCalled)
       assert.equal(info.callCount, 6)
@@ -357,7 +415,7 @@ describe('run', () => {
 
   describe('given a `project_number` input', () => {
     it('uses the `project_number` input', async () => {
-      generateInputs({ project_number: '99' })
+      const inputs = generateInputs({ project_number: '99' })
 
       await createAndMoveIssueStub({ projectNumber: '99' })
 
@@ -371,12 +429,28 @@ describe('run', () => {
       await run(core as unknown as Core, github as unknown as GitHub)
 
       // commands that require the project number
-      const [projectBoarArgs, issueAddedArgs, fieldListArgs] =
+      const [projectBoardArgs, issueAddedArgs, fieldListArgs] =
         getExecOutput.args
 
-      assert.include(projectBoarArgs[0], '99')
-      assert.include(issueAddedArgs[0], '99')
-      assert.include(fieldListArgs[0], '99')
+      assert.equal(
+        projectBoardArgs[0],
+        'gh project view 99 --owner owner --format json'
+      )
+      assert.equal(
+        issueAddedArgs[0],
+        'gh project item-add 99 --owner owner --url https://deque.bizzy.com --format json'
+      )
+      assert.equal(
+        fieldListArgs[0],
+        'gh project field-list 99 --owner owner --format json'
+      )
+
+      const createdIssueArgs = github.getOctokit().rest.issues.create.args[0][0]
+      assert.equal(createdIssueArgs.repo, 'repo')
+      assert.equal(createdIssueArgs.title, inputs.title.returnValues[0])
+      assert.equal(createdIssueArgs.body, inputs.body.returnValues[0])
+      assert.isUndefined(createdIssueArgs.labels)
+      assert.isUndefined(createdIssueArgs.assignees)
 
       assert.isTrue(setFailed.notCalled)
       assert.equal(info.callCount, 6)
