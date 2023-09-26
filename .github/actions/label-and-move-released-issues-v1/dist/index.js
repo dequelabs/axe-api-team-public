@@ -11044,6 +11044,7 @@ async function run(core, github) {
             repo,
             owner
         });
+        core.info(`Found ${labels.data.length} labels`);
         const LABEL = `VERSION: ${version}`;
         const hasLabel = labels.data.some(label => label.name === LABEL);
         if (!hasLabel) {
@@ -11055,6 +11056,7 @@ async function run(core, github) {
             });
         }
         const commits = JSON.parse(commitList);
+        core.info(`Found ${commits.length} commits`);
         for (const { id } of commits) {
             if (!id) {
                 continue;
@@ -11067,6 +11069,7 @@ async function run(core, github) {
             if (!pullRequest.body) {
                 continue;
             }
+            core.info(`Found PR #${pullRequest.number}`);
             const issueURLs = [
                 ...pullRequest.body.matchAll(/closes:\s?([^\s]+)/gi)
             ].map(match => match[1]);
@@ -11085,6 +11088,7 @@ async function run(core, github) {
                     issueNumber,
                     octokit
                 });
+                core.info(`Found stats: ${JSON.stringify(issueStatus)}`);
                 const projectBoard = issueStatus.data.repository.issue.projectItems.nodes.find(n => n.project.title.toLowerCase() === projectBoardTitle.toLowerCase());
                 if (!projectBoard) {
                     core.warning(`

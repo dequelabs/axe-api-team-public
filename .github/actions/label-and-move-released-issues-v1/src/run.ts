@@ -24,6 +24,8 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       owner
     })
 
+    core.info(`Found ${labels.data.length} labels`)
+
     const LABEL = `VERSION: ${version}`
     const hasLabel = labels.data.some(label => label.name === LABEL)
 
@@ -37,6 +39,8 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     }
 
     const commits = JSON.parse(commitList) as CommitList[]
+
+    core.info(`Found ${commits.length} commits`)
 
     for (const { id } of commits) {
       if (!id) {
@@ -52,6 +56,8 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       if (!pullRequest.body) {
         continue
       }
+
+      core.info(`Found PR #${pullRequest.number}`)
 
       /**
        * Unlikely that a PR will close more than one issue e.g.
@@ -84,6 +90,8 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
           issueNumber,
           octokit
         })
+
+        core.info(`Found stats: ${JSON.stringify(issueStatus)}`)
 
         const projectBoard =
           issueStatus.data.repository.issue.projectItems.nodes.find(
