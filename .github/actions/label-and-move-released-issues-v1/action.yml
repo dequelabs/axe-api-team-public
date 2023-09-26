@@ -13,6 +13,9 @@ inputs:
   project-board-title:
     description: 'The title of the project board'
     default: 'Axe API Team Board'
+  token:
+    description: 'The GitHub token'
+    default: ${{ github.token }}
 runs:
   using: 'node20'
   main: 'dist/index.js'

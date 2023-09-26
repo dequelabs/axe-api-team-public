@@ -10,6 +10,7 @@ This action labels and moves issues that have been released to the `released` co
 | `version`             | Yes      | The version number of the release                                    | NA                   |
 | `project-number`      | No       | The project number of the project board                              | `66`                 |
 | `project-board-title` | No       | The title of the project board                                       | `Axe API Team Board` |
+| `token`               | Yes      | The GitHub token                                                     | `github.token`       |
 
 ## Permissions
 

@@ -10,13 +10,14 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     const version = core.getInput('version', { required: true })
     const projectNumber = parseInt(core.getInput('project-number'))
     const projectBoardTitle = core.getInput('project-board-title')
+    const token = core.getInput('token')
 
     if (isNaN(projectNumber)) {
       core.setFailed('`project-number` must be a number')
       return
     }
 
-    const octokit = github.getOctokit(process.env.GITHUB_TOKEN as string)
+    const octokit = github.getOctokit(token)
     const { repo, owner } = github.context.repo
     const labels = await octokit.rest.issues.listLabelsForRepo({
       repo,

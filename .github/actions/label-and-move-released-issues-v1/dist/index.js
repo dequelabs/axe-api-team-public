@@ -11033,11 +11033,12 @@ async function run(core, github) {
         const version = core.getInput('version', { required: true });
         const projectNumber = parseInt(core.getInput('project-number'));
         const projectBoardTitle = core.getInput('project-board-title');
+        const token = core.getInput('token');
         if (isNaN(projectNumber)) {
             core.setFailed('`project-number` must be a number');
             return;
         }
-        const octokit = github.getOctokit(process.env.GITHUB_TOKEN);
+        const octokit = github.getOctokit(token);
         const { repo, owner } = github.context.repo;
         const labels = await octokit.rest.issues.listLabelsForRepo({
             repo,
