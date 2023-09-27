@@ -11014,7 +11014,7 @@ async function run(core, github) {
         }
         const issueCardIDs = [];
         const { owner } = github.context.repo;
-        let issueUrls = JSON.parse(issueUrl);
+        let issueUrls = issueUrl.includes(',') ? JSON.parse(issueUrl) : issueUrl;
         if (!Array.isArray(issueUrls)) {
             issueUrls = [issueUrls];
         }

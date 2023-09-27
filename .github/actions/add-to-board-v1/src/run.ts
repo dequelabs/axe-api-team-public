@@ -23,7 +23,7 @@ export default async function run(core: Core, github: Github): Promise<void> {
     // the issue card ID as a result of adding the issue to the project board
     const issueCardIDs: string[] = []
     const { owner } = github.context.repo
-    let issueUrls = JSON.parse(issueUrl) as string | string[]
+    let issueUrls = issueUrl.includes(',') ? JSON.parse(issueUrl) : issueUrl
 
     if (!Array.isArray(issueUrls)) {
       issueUrls = [issueUrls]
