@@ -11020,32 +11020,33 @@ async function run(core, github) {
         }
         const [{ id: projectBoardID }, { fields }] = await Promise.all([
             (0, getProjectBoardID_1.default)({ projectNumber, owner }),
-            (0, getProjectBoardFieldList_1.default)({ projectNumber, owner }),
-            issueUrls.map(async (issueUrl) => {
-                const { id: issueCardID } = await (0, addIssueToBoard_1.default)({
-                    projectNumber,
-                    owner,
-                    issueUrl
-                });
-                core.info(`Received issue card ID ${issueCardID}`);
-                issueCardIDs.push(issueCardID);
-            })
+            (0, getProjectBoardFieldList_1.default)({ projectNumber, owner })
         ]);
+        for (const url of issueUrls) {
+            core.info(`Adding issue ${url} to project board ${projectNumber}`);
+            const { id: issueCardID } = await (0, addIssueToBoard_1.default)({
+                projectNumber,
+                owner,
+                issueUrl: url
+            });
+            core.info(`Received issue card ID ${issueCardID}`);
+            issueCardIDs.push(issueCardID);
+        }
         const statusField = fields.find(field => field.name.toLowerCase() === 'status');
         const column = statusField.options.find(option => option.name.toLowerCase() === columnName.toLowerCase());
         if (!column) {
             core.setFailed(`Column ${columnName} not found in project board ${projectNumber}`);
             return;
         }
-        await Promise.all(issueCardIDs.map(async (issueCardID) => {
+        for (const issueCardID of issueCardIDs) {
+            core.info(`Moving issue card ${issueCardID} to column ${columnName}`);
             await (0, moveIssueToColumn_1.default)({
                 issueCardID,
                 fieldID: statusField.id,
                 fieldColumnID: column.id,
                 projectID: projectBoardID
             });
-            core.info(`Moved issue card ${issueCardID} to column ${columnName}`);
-        }));
+        }
         core.info(`Successfully added ${issueCardIDs.length} issue(s) to project board ${projectNumber}`);
     }
     catch (error) {

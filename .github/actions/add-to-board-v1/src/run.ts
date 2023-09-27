@@ -31,17 +31,21 @@ export default async function run(core: Core, github: Github): Promise<void> {
 
     const [{ id: projectBoardID }, { fields }] = await Promise.all([
       getProjectBoardID({ projectNumber, owner }),
-      getProjectBoardFieldList({ projectNumber, owner }),
-      issueUrls.map(async issueUrl => {
-        const { id: issueCardID } = await addIssueToBoard({
-          projectNumber,
-          owner,
-          issueUrl
-        })
-        core.info(`Received issue card ID ${issueCardID}`)
-        issueCardIDs.push(issueCardID)
-      })
+      getProjectBoardFieldList({ projectNumber, owner })
     ])
+
+    for (const url of issueUrls) {
+      core.info(`Adding issue ${url} to project board ${projectNumber}`)
+
+      const { id: issueCardID } = await addIssueToBoard({
+        projectNumber,
+        owner,
+        issueUrl: url
+      })
+
+      core.info(`Received issue card ID ${issueCardID}`)
+      issueCardIDs.push(issueCardID)
+    }
 
     // Status is the default field name for the project board columns e.g. Backlog, In progress, Done etc
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -60,18 +64,16 @@ export default async function run(core: Core, github: Github): Promise<void> {
       return
     }
 
-    await Promise.all(
-      issueCardIDs.map(async issueCardID => {
-        await moveIssueToColumn({
-          issueCardID,
-          fieldID: statusField.id,
-          fieldColumnID: column.id,
-          projectID: projectBoardID
-        })
+    for (const issueCardID of issueCardIDs) {
+      core.info(`Moving issue card ${issueCardID} to column ${columnName}`)
 
-        core.info(`Moved issue card ${issueCardID} to column ${columnName}`)
+      await moveIssueToColumn({
+        issueCardID,
+        fieldID: statusField.id,
+        fieldColumnID: column.id,
+        projectID: projectBoardID
       })
-    )
+    }
 
     core.info(
       `Successfully added ${issueCardIDs.length} issue(s) to project board ${projectNumber}`
