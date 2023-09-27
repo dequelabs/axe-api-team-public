@@ -11023,23 +11023,23 @@ async function run(core, github) {
             (0, getProjectBoardFieldList_1.default)({ projectNumber, owner })
         ]);
         for (const url of issueUrls) {
-            core.info(`Adding issue ${url} to project board ${projectNumber}`);
+            core.info(`\nAdding issue ${url} to project board ${projectNumber}`);
             const { id: issueCardID } = await (0, addIssueToBoard_1.default)({
                 projectNumber,
                 owner,
                 issueUrl: url
             });
-            core.info(`Received issue card ID ${issueCardID}`);
+            core.info(`\nReceived issue card ID ${issueCardID}`);
             issueCardIDs.push(issueCardID);
         }
         const statusField = fields.find(field => field.name.toLowerCase() === 'status');
         const column = statusField.options.find(option => option.name.toLowerCase() === columnName.toLowerCase());
         if (!column) {
-            core.setFailed(`Column ${columnName} not found in project board ${projectNumber}`);
+            core.setFailed(`\nColumn ${columnName} not found in project board ${projectNumber}`);
             return;
         }
         for (const issueCardID of issueCardIDs) {
-            core.info(`Moving issue card ${issueCardID} to column ${columnName}`);
+            core.info(`\nMoving issue card ${issueCardID} to column ${columnName}`);
             await (0, moveIssueToColumn_1.default)({
                 issueCardID,
                 fieldID: statusField.id,
@@ -11047,7 +11047,7 @@ async function run(core, github) {
                 projectID: projectBoardID
             });
         }
-        core.info(`Successfully added ${issueCardIDs.length} issue(s) to project board ${projectNumber}`);
+        core.info(`\nSuccessfully added ${issueCardIDs.length} issue(s) to project board ${projectNumber}`);
     }
     catch (error) {
         core.setFailed(`Error adding issue to project board: ${error.message}`);

@@ -35,7 +35,7 @@ export default async function run(core: Core, github: Github): Promise<void> {
     ])
 
     for (const url of issueUrls) {
-      core.info(`Adding issue ${url} to project board ${projectNumber}`)
+      core.info(`\nAdding issue ${url} to project board ${projectNumber}`)
 
       const { id: issueCardID } = await addIssueToBoard({
         projectNumber,
@@ -43,7 +43,7 @@ export default async function run(core: Core, github: Github): Promise<void> {
         issueUrl: url
       })
 
-      core.info(`Received issue card ID ${issueCardID}`)
+      core.info(`\nReceived issue card ID ${issueCardID}`)
       issueCardIDs.push(issueCardID)
     }
 
@@ -59,13 +59,13 @@ export default async function run(core: Core, github: Github): Promise<void> {
 
     if (!column) {
       core.setFailed(
-        `Column ${columnName} not found in project board ${projectNumber}`
+        `\nColumn ${columnName} not found in project board ${projectNumber}`
       )
       return
     }
 
     for (const issueCardID of issueCardIDs) {
-      core.info(`Moving issue card ${issueCardID} to column ${columnName}`)
+      core.info(`\nMoving issue card ${issueCardID} to column ${columnName}`)
 
       await moveIssueToColumn({
         issueCardID,
@@ -76,7 +76,7 @@ export default async function run(core: Core, github: Github): Promise<void> {
     }
 
     core.info(
-      `Successfully added ${issueCardIDs.length} issue(s) to project board ${projectNumber}`
+      `\nSuccessfully added ${issueCardIDs.length} issue(s) to project board ${projectNumber}`
     )
   } catch (error) {
     core.setFailed(
