@@ -1,14 +1,11 @@
 import type { CommitList, Core, GitHub } from './types'
 import getIssueProjectInfo from './getIssueProjectInfo'
-import getProjectBoardID from './getProjectBoardID'
-import getProjectFieldList from './getProjectFieldList'
-import moveIssueToColumn from './moveIssueToColumn'
 
 export default async function run(core: Core, github: GitHub): Promise<void> {
   try {
     const commitList = core.getInput('commit-list', { required: true })
     const version = core.getInput('version', { required: true })
-    const token = core.getInput('token', { required: true })
+    const token = core.getInput('github-token', { required: true })
     const projectNumber = parseInt(core.getInput('project-number'))
 
     if (isNaN(projectNumber)) {
@@ -29,6 +26,7 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     const hasLabel = labels.data.some(label => label.name === LABEL)
 
     if (!hasLabel) {
+      core.info(`Label "${LABEL}" does not exist, creating...`)
       await octokit.rest.issues.createLabel({
         repo,
         owner,
@@ -37,12 +35,18 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       })
     }
 
-    const commits = JSON.parse(commitList) as CommitList[]
+    /**
+     * Each confirmed issue URL will be stored here. We'll use this to
+     * update the issue column in add-to-board action via composite run steps
+     */
+    const issueURLs: string[] = []
 
+    const commits = JSON.parse(commitList) as CommitList[]
     core.info(`Found ${commits.length} commits`)
 
     for (const { id } of commits) {
       if (!id) {
+        core.info('\nNo PR found for commit, moving on...')
         continue
       }
 
@@ -53,32 +57,39 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       })
 
       if (!pullRequest.body) {
+        core.info(
+          `\nNo PR body found for PR #${pullRequest.number}, moving on...`
+        )
         continue
       }
 
       core.info(`Found PR #${pullRequest.number}`)
 
       /**
-       * Unlikely that a PR will close more than one issue e.g.
+       * Just in case the PR body has multiple URLs like:
        *
        * my PR body
        * closes: https://github.com/dequelabs/axe-core/issues/123
        * closes: https://github.com/dequelabs/axe-core/issues/456
        *
-       * but just in case we'll loop through all the URLs and close them
+       * We'll get all the closed URLS.
        */
-      const issueURLs = [
+      const issueURLsMatched = [
         ...pullRequest.body.matchAll(/closes:\s?([^\s]+)/gi)
       ].map(match => match[1])
 
-      if (!issueURLs.length) {
+      if (!issueURLsMatched.length) {
+        core.info(`\nNo issues found in PR body, moving on...`)
         continue
       }
 
-      for (const issueURL of issueURLs) {
+      for (const issueURL of issueURLsMatched) {
         const rawIssueNumber = issueURL.split('/').pop()
 
         if (!rawIssueNumber) {
+          core.info(
+            `\nCould not find issue number in URL: ${issueURL}, moving on...`
+          )
           continue
         }
         const issueNumber = parseInt(rawIssueNumber)
@@ -102,7 +113,7 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
 
         if (!projectBoard) {
           core.warning(`
-            Could not find the project board "${projectNumber}" for issue ${issueNumber}`)
+            Could not find the project board "${projectNumber}" for issue ${issueNumber}, moving on...`)
           continue
         }
 
@@ -110,6 +121,9 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
 
         // If the issue is not in the done or dev done column, move on
         if (!['done', 'dev done'].includes(columnNameStatus.toLowerCase())) {
+          core.info(
+            `\nIssue ${issueNumber} is not in the "done" or "dev done" column, moving on...`
+          )
           continue
         }
 
@@ -128,44 +142,19 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
           })
         }
 
-        const [{ id: projectID }, { fields }] = await Promise.all([
-          getProjectBoardID({ projectNumber, owner }),
-          getProjectFieldList({ projectNumber, owner }),
-          octokit.rest.issues.addLabels({
-            repo,
-            owner,
-            issue_number: issueNumber,
-            labels: [LABEL]
-          })
-        ])
-
-        // "Status" is the default field that holds the column names like "Backlog", "In progress", etc.
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const statusField = fields.find(
-          ({ name }) => name.toLowerCase() === 'status'
-        )!
-
-        const releaseColumn = statusField.options.find(
-          ({ name }) => name.toLowerCase() === 'released'
-        )
-
-        if (!releaseColumn) {
-          core.setFailed(
-            `Could not find the "released" column in project board ${projectNumber}`
-          )
-          return
-        }
-
-        await moveIssueToColumn({
-          issueCardID: issueStatus.repository.issue.projectItems.nodes[0].id,
-          fieldID: statusField.id,
-          fieldColumnID: releaseColumn.id,
-          projectID
+        octokit.rest.issues.addLabels({
+          repo,
+          owner,
+          issue_number: issueNumber,
+          labels: [LABEL]
         })
 
-        core.info(`Moved issue ${issueNumber} to the "released" column`)
+        issueURLs.push(issue.html_url)
       }
     }
+
+    core.info(`\n Setting issue-urls output to: ${JSON.stringify(issueURLs)}`)
+    core.setOutput('issue-urls', JSON.stringify(issueURLs))
   } catch (error) {
     core.setFailed((error as Error).message)
   }
