@@ -15,7 +15,7 @@ interface Node {
         name: string;
     };
 }
-interface getIssueProjectInfoResult {
+export interface GetIssueProjectInfoResult {
     repository: {
         issue: {
             projectItems: {
@@ -24,5 +24,5 @@ interface getIssueProjectInfoResult {
         };
     };
 }
-export default function getIssueProjectInfo({ owner, repo, issueNumber, octokit }: getIssueProjectInfoArgs): Promise<getIssueProjectInfoResult>;
+export default function getIssueProjectInfo({ owner, repo, issueNumber, octokit }: getIssueProjectInfoArgs): Promise<GetIssueProjectInfoResult>;
 export {};

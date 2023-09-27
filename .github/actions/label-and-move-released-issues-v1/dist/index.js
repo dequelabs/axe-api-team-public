@@ -10903,7 +10903,7 @@ async function getIssueProjectInfo({ owner, repo, issueNumber, octokit }) {
         });
     }
     catch (error) {
-        throw new Error(`Failed to get project info for issue ${issueNumber}`);
+        throw new Error(`Failed to get project info for issue ${issueNumber}: ${error.message}`);
     }
 }
 exports["default"] = getIssueProjectInfo;

@@ -46,7 +46,7 @@ interface Node {
  * }
  * ```
  */
-interface getIssueProjectInfoResult {
+export interface GetIssueProjectInfoResult {
   repository: {
     issue: {
       projectItems: {
@@ -61,7 +61,7 @@ export default async function getIssueProjectInfo({
   repo,
   issueNumber,
   octokit
-}: getIssueProjectInfoArgs): Promise<getIssueProjectInfoResult> {
+}: getIssueProjectInfoArgs): Promise<GetIssueProjectInfoResult> {
   try {
     return octokit.graphql(
       `
@@ -98,6 +98,10 @@ export default async function getIssueProjectInfo({
       }
     )
   } catch (error) {
-    throw new Error(`Failed to get project info for issue ${issueNumber}`)
+    throw new Error(
+      `Failed to get project info for issue ${issueNumber}: ${
+        (error as Error).message
+      }`
+    )
   }
 }
