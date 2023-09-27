@@ -11027,6 +11027,7 @@ async function run(core, github) {
                     owner,
                     issueUrl
                 });
+                core.info(`Received issue card ID ${issueCardID}`);
                 issueCardIDs.push(issueCardID);
             })
         ]);

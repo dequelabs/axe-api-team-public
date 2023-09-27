@@ -4,11 +4,11 @@ A GitHub Action to add (if not already) and move issues to a project board.
 
 ## Inputs
 
-| Name             | Required | Description                                                | Default   |
-| ---------------- | -------- | ---------------------------------------------------------- | --------- |
-| `issue-url`      | Yes      | A single issue URL or a comma-separated list of issue URLs | NA        |
-| `project-number` | No       | The project number to add the issue to                     | `66`      |
-| `column-name`    | No       | The column name to move the issue to                       | `Backlog` |
+| Name             | Required | Description                                                 | Default   |
+| ---------------- | -------- | ----------------------------------------------------------- | --------- |
+| `issue-url`      | Yes      | A single issue URL, or a stringified list of URLS the board | NA        |
+| `project-number` | No       | The project number to add the issue to                      | `66`      |
+| `column-name`    | No       | The column name to move the issue to                        | `Backlog` |
 
 ## Permissions
 

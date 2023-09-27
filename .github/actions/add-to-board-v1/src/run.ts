@@ -38,7 +38,7 @@ export default async function run(core: Core, github: Github): Promise<void> {
           owner,
           issueUrl
         })
-
+        core.info(`Received issue card ID ${issueCardID}`)
         issueCardIDs.push(issueCardID)
       })
     ])

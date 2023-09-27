@@ -2,16 +2,14 @@ name: Add to Board
 description: Add and Move specific item(s) to a project board
 inputs:
   issue-url:
-    description: 'A single issue URL, or a comma separated list of issue URLs to add to the board'
+    description: 'A single issue URL, or a stringified list of URLS the board'
     # For actions where we have add-to-board running on "issues: types: [open]" we can use the default
     default: ${{ github.event.issue.html_url }}
-
   project-number:
     description: 'The project board number to add the issue to'
     default: '66'
   column-name:
     description: 'Name of column to add to'
-    required: false
     default: 'Backlog'
 runs:
   using: 'node20'
