@@ -11,7 +11,7 @@ interface Node {
   id: string
   type: string
   project: {
-    title: string
+    number: number
   }
   fieldValueByName: {
     name: string
@@ -32,7 +32,7 @@ interface Node {
  *             "id": "PVTI_lADOAD55W84AVmLazgJbJGI",
  *             "type": "ISSUE",
  *             "project": {
- *               "title": "GabeBoard"
+ *               "number:" 104,
  *             },
  *             "fieldValueByName": {
  *               "name": "Backlog"
@@ -73,10 +73,10 @@ export default async function getIssueProjectInfo({
                 id
                 type
                 # An issue can have multiple boards assigned to it
-                # get the title of the board e.g. My Cool Board
+                # get the number of the board e.g. 66
                 # so we can check that along with the "fieldValueByName" field
                 project {
-                  title
+                  number
                 }
                 # Status = Done, Dev Done etc
                 # Get the column assigned to the ticket

@@ -4,13 +4,42 @@ This action labels and moves issues that have been released to the `released` co
 
 ## Inputs
 
-| Name                  | Required | Description                                                          | Default              |
-| --------------------- | -------- | -------------------------------------------------------------------- | -------------------- |
-| `commit-list`         | Yes      | The list of commits generated from the "Generate commit list" action | NA                   |
-| `version`             | Yes      | The version number of the release                                    | NA                   |
-| `project-number`      | No       | The project number of the project board                              | `66`                 |
-| `project-board-title` | No       | The title of the project board                                       | `Axe API Team Board` |
-| `token`               | Yes      | The GitHub token                                                     | `github.token`       |
+| Name             | Required | Description                                                          | Default |
+| ---------------- | -------- | -------------------------------------------------------------------- | ------- |
+| `commit-list`    | Yes      | The list of commits generated from the "Generate commit list" action | NA      |
+| `version`        | Yes      | The version number of the release                                    | NA      |
+| `token`          | Yes      | The GitHub token                                                     | NA      |
+| `project-number` | No       | The project number of the project board                              | `66`    |
+
+## Example
+
+```yaml
+name: Label and move released issues
+
+on: workflow_dispatch
+
+jobs:
+  create-project-issue:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Fetch all history
+          fetch-depth: 0
+      - uses: dequelabs/axe-api-team-public/.github/actions/generate-commit-list-v1@main
+        id: commits
+        with:
+          base: 'main'
+          head: 'develop'
+      - uses: dequelabs/axe-api-team-public/.github/actions/label-and-move-released-issues-v1@main
+        with:
+          commit-list: '${{ steps.commits.outputs.commit-list }}'
+          version: 1.1.0
+          token: ${{ secrets.PAT }}
+        env:
+          # Requires for GH CLI
+          GH_TOKEN: ${{ secrets.PAT }}
+```
 
 ## Permissions
 

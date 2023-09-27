@@ -7,15 +7,12 @@ inputs:
   version:
     description: 'The released version number'
     required: true
+  token:
+    description: 'A GitHub token with the required permissions'
+    required: true
   project-number:
     description: 'The project number of the project board'
     default: '66'
-  project-board-title:
-    description: 'The title of the project board'
-    default: 'Axe API Team Board'
-  token:
-    description: 'The GitHub token'
-    default: ${{ github.token }}
 runs:
   using: 'node20'
   main: 'dist/index.js'

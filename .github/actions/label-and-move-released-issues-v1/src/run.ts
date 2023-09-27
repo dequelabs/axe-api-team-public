@@ -8,9 +8,8 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
   try {
     const commitList = core.getInput('commit-list', { required: true })
     const version = core.getInput('version', { required: true })
+    const token = core.getInput('token', { required: true })
     const projectNumber = parseInt(core.getInput('project-number'))
-    const projectBoardTitle = core.getInput('project-board-title')
-    const token = core.getInput('token')
 
     if (isNaN(projectNumber)) {
       core.setFailed('`project-number` must be a number')
@@ -83,10 +82,10 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
           continue
         }
         const issueNumber = parseInt(rawIssueNumber)
-        core.info(`Found issue #${issueNumber}`)
         core.info(
-          `Fetching project board info for: ${owner}, ${repo}, issue: ${issueNumber} for project: ${projectNumber} and board: ${projectBoardTitle}`
+          `\nFetching project board info for: ${owner}, ${repo}, issue: ${issueNumber} for project: ${projectNumber}`
         )
+
         const issueStatus = await getIssueProjectInfo({
           owner,
           repo,
@@ -98,19 +97,18 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
 
         const projectBoard =
           issueStatus.repository.issue.projectItems.nodes.find(
-            n =>
-              n.project.title.toLowerCase() === projectBoardTitle.toLowerCase()
+            n => n.project.number === projectNumber
           )
 
         if (!projectBoard) {
           core.warning(`
-            Could not find the project board "${projectBoardTitle}" for issue ${issueNumber}`)
+            Could not find the project board "${projectNumber}" for issue ${issueNumber}`)
           continue
         }
 
         const { name: columnNameStatus } = projectBoard.fieldValueByName
 
-        // If the issue is not in the done or dev done column, skip it
+        // If the issue is not in the done or dev done column, move on
         if (!['done', 'dev done'].includes(columnNameStatus.toLowerCase())) {
           continue
         }
@@ -130,37 +128,37 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
           })
         }
 
-        await octokit.rest.issues.addLabels({
-          repo,
-          owner,
-          issue_number: issueNumber,
-          labels: [LABEL]
-        })
-
         const [{ id: projectID }, { fields }] = await Promise.all([
           getProjectBoardID({ projectNumber, owner }),
-          getProjectFieldList({ projectNumber, owner })
+          getProjectFieldList({ projectNumber, owner }),
+          octokit.rest.issues.addLabels({
+            repo,
+            owner,
+            issue_number: issueNumber,
+            labels: [LABEL]
+          })
         ])
 
+        // "Status" is the default field that holds the column names like "Backlog", "In progress", etc.
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const statusColumn = fields.find(
+        const statusField = fields.find(
           ({ name }) => name.toLowerCase() === 'status'
         )!
 
-        const releaseColumn = statusColumn.options.find(
+        const releaseColumn = statusField.options.find(
           ({ name }) => name.toLowerCase() === 'released'
         )
 
         if (!releaseColumn) {
           core.setFailed(
-            `Could not find the "released" column in the ${projectBoardTitle} project board`
+            `Could not find the "released" column in project board ${projectNumber}`
           )
           return
         }
 
         await moveIssueToColumn({
           issueCardID: issueStatus.repository.issue.projectItems.nodes[0].id,
-          fieldID: statusColumn.id,
+          fieldID: statusField.id,
           fieldColumnID: releaseColumn.id,
           projectID
         })

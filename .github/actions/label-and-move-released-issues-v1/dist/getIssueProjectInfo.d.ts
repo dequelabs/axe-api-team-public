@@ -9,7 +9,7 @@ interface Node {
     id: string;
     type: string;
     project: {
-        title: string;
+        number: number;
     };
     fieldValueByName: {
         name: string;

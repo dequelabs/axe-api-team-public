@@ -10879,10 +10879,10 @@ async function getIssueProjectInfo({ owner, repo, issueNumber, octokit }) {
                 id
                 type
                 # An issue can have multiple boards assigned to it
-                # get the title of the board e.g. My Cool Board
+                # get the number of the board e.g. 66
                 # so we can check that along with the "fieldValueByName" field
                 project {
-                  title
+                  number
                 }
                 # Status = Done, Dev Done etc
                 # Get the column assigned to the ticket
@@ -11031,9 +11031,8 @@ async function run(core, github) {
     try {
         const commitList = core.getInput('commit-list', { required: true });
         const version = core.getInput('version', { required: true });
+        const token = core.getInput('token', { required: true });
         const projectNumber = parseInt(core.getInput('project-number'));
-        const projectBoardTitle = core.getInput('project-board-title');
-        const token = core.getInput('token');
         if (isNaN(projectNumber)) {
             core.setFailed('`project-number` must be a number');
             return;
@@ -11082,8 +11081,7 @@ async function run(core, github) {
                     continue;
                 }
                 const issueNumber = parseInt(rawIssueNumber);
-                core.info(`Found issue #${issueNumber}`);
-                core.info(`Fetching project board info for: ${owner}, ${repo}, issue: ${issueNumber} for project: ${projectNumber} and board: ${projectBoardTitle}`);
+                core.info(`\nFetching project board info for: ${owner}, ${repo}, issue: ${issueNumber} for project: ${projectNumber}`);
                 const issueStatus = await (0, getIssueProjectInfo_1.default)({
                     owner,
                     repo,
@@ -11091,10 +11089,10 @@ async function run(core, github) {
                     octokit
                 });
                 core.info(`Found stats: ${JSON.stringify(issueStatus)}`);
-                const projectBoard = issueStatus.repository.issue.projectItems.nodes.find(n => n.project.title.toLowerCase() === projectBoardTitle.toLowerCase());
+                const projectBoard = issueStatus.repository.issue.projectItems.nodes.find(n => n.project.number === projectNumber);
                 if (!projectBoard) {
                     core.warning(`
-            Could not find the project board "${projectBoardTitle}" for issue ${issueNumber}`);
+            Could not find the project board "${projectNumber}" for issue ${issueNumber}`);
                     continue;
                 }
                 const { name: columnNameStatus } = projectBoard.fieldValueByName;
@@ -11114,25 +11112,25 @@ async function run(core, github) {
                         state: 'closed'
                     });
                 }
-                await octokit.rest.issues.addLabels({
-                    repo,
-                    owner,
-                    issue_number: issueNumber,
-                    labels: [LABEL]
-                });
                 const [{ id: projectID }, { fields }] = await Promise.all([
                     (0, getProjectBoardID_1.default)({ projectNumber, owner }),
-                    (0, getProjectFieldList_1.default)({ projectNumber, owner })
+                    (0, getProjectFieldList_1.default)({ projectNumber, owner }),
+                    octokit.rest.issues.addLabels({
+                        repo,
+                        owner,
+                        issue_number: issueNumber,
+                        labels: [LABEL]
+                    })
                 ]);
-                const statusColumn = fields.find(({ name }) => name.toLowerCase() === 'status');
-                const releaseColumn = statusColumn.options.find(({ name }) => name.toLowerCase() === 'released');
+                const statusField = fields.find(({ name }) => name.toLowerCase() === 'status');
+                const releaseColumn = statusField.options.find(({ name }) => name.toLowerCase() === 'released');
                 if (!releaseColumn) {
-                    core.setFailed(`Could not find the "released" column in the ${projectBoardTitle} project board`);
+                    core.setFailed(`Could not find the "released" column in project board ${projectNumber}`);
                     return;
                 }
                 await (0, moveIssueToColumn_1.default)({
                     issueCardID: issueStatus.repository.issue.projectItems.nodes[0].id,
-                    fieldID: statusColumn.id,
+                    fieldID: statusField.id,
                     fieldColumnID: releaseColumn.id,
                     projectID
                 });
