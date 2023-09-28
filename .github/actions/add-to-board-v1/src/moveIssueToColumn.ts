@@ -8,7 +8,7 @@ export interface MoveIssueToColumnResponse {
   url: string
 }
 
-interface MoveIssueToColumnArgs {
+export interface MoveIssueToColumnArgs {
   issueCardID: string
   fieldID: string
   fieldColumnID: string

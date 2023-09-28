@@ -6,17 +6,12 @@ import moveIssueToColumn from './moveIssueToColumn'
 
 export default async function run(core: Core, github: Github): Promise<void> {
   try {
-    const issueUrl = core.getInput('issue-url')
+    const issueUrl = core.getInput('issue-url', { required: true })
     const projectNumber = parseInt(core.getInput('project-number'))
     const columnName = core.getInput('column-name')
 
     if (isNaN(projectNumber)) {
-      core.setFailed('`project_number` must be a number')
-      return
-    }
-
-    if (!issueUrl) {
-      core.setFailed('`issue_url` must be provided')
+      core.setFailed('`project-number` must be a number')
       return
     }
 
