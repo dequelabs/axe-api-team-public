@@ -39,3 +39,26 @@ jobs:
           # Required for the GH CLI
           GH_TOKEN: ${{ secrets.PAT }}
 ```
+
+## Example (automatically add to board, when an issue is created)
+
+```yaml
+name: Add to board
+
+on:
+  issues:
+    types: [opened]
+
+jobs:
+  add-to-board:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add to board
+        uses: ./.github/actions/add-to-board-v1
+        with:
+          issue-url: ${{ github.event.issue.html_url }}
+          column-name: 'Ungroomed'
+        env:
+          # Required for the GH CLI
+          GH_TOKEN: ${{ secrets.PAT }}
+```
