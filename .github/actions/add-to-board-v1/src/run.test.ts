@@ -14,12 +14,12 @@ const getProjectIdCommand = (projectNumber?: string) => {
 
 const getAddIssueToBoardCommand = (
   projectNumber?: string,
-  issueUrl?: string
+  issueUrls?: string
 ) => {
   const projectNumberArg = projectNumber ?? '66'
-  const issueUrlArg = issueUrl ?? 'https://github.com/owner/repo/issues/1'
+  const issueUrlsArg = issueUrls ?? 'https://github.com/owner/repo/issues/1'
 
-  return `gh project item-add ${projectNumberArg} --owner owner --url ${issueUrlArg} --format json`
+  return `gh project item-add ${projectNumberArg} --owner owner --url ${issueUrlsArg} --format json`
 }
 
 const getProjectFieldListCommand = (projectNumber?: string) => {
@@ -68,22 +68,23 @@ describe('run', () => {
 
   interface GenerateInputArgs {
     projectNumber?: string
-    issueUrl?: string
+    issueUrls?: string
     columnName?: string
   }
 
   const generatedInputs = (args?: Partial<GenerateInputArgs>) => {
     const projectNumber = args?.projectNumber ?? '1'
-    const issueUrl = args?.issueUrl ?? 'https://github.com/owner/repo/issues/1'
+    const issueUrls =
+      args?.issueUrls ?? 'https://github.com/owner/repo/issues/1'
     const columnName = args?.columnName ?? 'Backlog'
 
     getInput.withArgs('project-number').returns(projectNumber)
-    getInput.withArgs('issue-url').returns(issueUrl)
+    getInput.withArgs('issue-urls').returns(issueUrls)
     getInput.withArgs('column-name').returns(columnName)
 
     return {
       projectNumber,
-      issueUrl,
+      issueUrls,
       columnName
     }
   }
@@ -95,7 +96,7 @@ describe('run', () => {
     )
     const addIssueToBoardCommand = getAddIssueToBoardCommand(
       inputs.projectNumber,
-      inputs.issueUrl
+      inputs.issueUrls
     )
     const moveIssueToColumnCommand = getMoveIssueToColumnCommand({
       issueCardID: '2',
@@ -155,10 +156,10 @@ describe('run', () => {
     })
   })
 
-  describe('when issueUrl is not provided', () => {
+  describe('when issueUrls is not provided', () => {
     it('should set failed', async () => {
-      getInput.withArgs('issue-url', { required: true }).throws({
-        message: 'Input required and not supplied: issue-url'
+      getInput.withArgs('issue-urls', { required: true }).throws({
+        message: 'Input required and not supplied: issue-urls'
       })
 
       const core = {
@@ -171,7 +172,7 @@ describe('run', () => {
       assert.isTrue(setFailed.calledOnce)
       assert.isTrue(
         setFailed.calledWith(
-          'Error adding issue to project board: Input required and not supplied: issue-url'
+          'Error adding issue to project board: Input required and not supplied: issue-urls'
         )
       )
     })
@@ -272,12 +273,11 @@ describe('run', () => {
 
   describe('given multiple issue URLs', () => {
     it('should add the issues to the project board', async () => {
-      const urls = [
-        'https://github.com/owner/repo/issues/1',
-        'https://github.com/owner/repo/issues/2'
-      ]
+      const urls =
+        'https://github.com/owner/repo/issues/1,https://github.com/owner/repo/issues/2'
+
       const inputs = generatedInputs({
-        issueUrl: JSON.stringify(urls)
+        issueUrls: urls
       })
 
       const core = {
@@ -316,7 +316,8 @@ describe('run', () => {
 
       const addIssueToBoardCommands: string[] = []
       const moveIssueToColumnCommands: string[] = []
-      for (const [index, url] of urls.entries()) {
+      const urlsSplit = urls.split(',')
+      for (const [index, url] of urlsSplit.entries()) {
         const addIssueToBoardCommand = getAddIssueToBoardCommand(
           inputs.projectNumber,
           url
@@ -346,8 +347,8 @@ describe('run', () => {
 
       await run(core as unknown as Core, github)
 
-      assert.lengthOf(addIssueToBoardCommands, urls.length)
-      assert.lengthOf(moveIssueToColumnCommands, urls.length)
+      assert.lengthOf(addIssueToBoardCommands, urlsSplit.length)
+      assert.lengthOf(moveIssueToColumnCommands, urlsSplit.length)
 
       const [
         [getProjectID],
@@ -372,7 +373,7 @@ describe('run', () => {
 
   describe('when an error occurred', () => {
     it('should catch the error', async () => {
-      getInput.withArgs('issue-url').throws(new Error('boom'))
+      getInput.withArgs('issue-urls').throws(new Error('boom'))
 
       const core = {
         getInput,

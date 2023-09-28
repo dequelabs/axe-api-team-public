@@ -6,7 +6,7 @@ import moveIssueToColumn from './moveIssueToColumn'
 
 export default async function run(core: Core, github: Github): Promise<void> {
   try {
-    const issueUrl = core.getInput('issue-url', { required: true })
+    const issueUrls = core.getInput('issue-urls', { required: true })
     const projectNumber = parseInt(core.getInput('project-number'))
     const columnName = core.getInput('column-name')
 
@@ -18,29 +18,11 @@ export default async function run(core: Core, github: Github): Promise<void> {
     // the issue card ID as a result of adding the issue to the project board
     const issueCardIDs: string[] = []
     const { owner } = github.context.repo
-    let issueUrls = issueUrl.includes(',') ? JSON.parse(issueUrl) : issueUrl
-
-    if (!Array.isArray(issueUrls)) {
-      issueUrls = [issueUrls]
-    }
 
     const [{ id: projectBoardID }, { fields }] = await Promise.all([
       getProjectBoardID({ projectNumber, owner }),
       getProjectBoardFieldList({ projectNumber, owner })
     ])
-
-    for (const url of issueUrls) {
-      core.info(`\nAdding issue ${url} to project board ${projectNumber}`)
-
-      const { id: issueCardID } = await addIssueToBoard({
-        projectNumber,
-        owner,
-        issueUrl: url
-      })
-
-      core.info(`\nReceived issue card ID ${issueCardID}`)
-      issueCardIDs.push(issueCardID)
-    }
 
     // Status is the default field name for the project board columns e.g. Backlog, In progress, Done etc
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -57,6 +39,19 @@ export default async function run(core: Core, github: Github): Promise<void> {
         `\nColumn ${columnName} not found in project board ${projectNumber}`
       )
       return
+    }
+
+    for (const url of issueUrls.split(',')) {
+      core.info(`\nAdding issue ${url} to project board ${projectNumber}`)
+
+      const { id: issueCardID } = await addIssueToBoard({
+        projectNumber,
+        owner,
+        issueUrl: url
+      })
+
+      core.info(`\nReceived issue card ID ${issueCardID}`)
+      issueCardIDs.push(issueCardID)
     }
 
     for (const issueCardID of issueCardIDs) {

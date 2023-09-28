@@ -1,8 +1,8 @@
 name: Add to Board
 description: Add and Move specific item(s) to a project board
 inputs:
-  issue-url:
-    description: 'A single issue URL, or a stringified list of URLS the board'
+  issue-urls:
+    description: 'Comma delimited list of issue urls to add to the project board'
     required: true
   project-number:
     description: 'The project board number to add the issue to'

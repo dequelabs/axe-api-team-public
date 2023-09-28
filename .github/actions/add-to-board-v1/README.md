@@ -1,14 +1,14 @@
 # add-to-board-v1
 
-A GitHub Action to add (if not already) and move issues to a project board.
+A GitHub Action to move issues to a specific column on a project board.
 
 ## Inputs
 
-| Name             | Required | Description                                                 | Default   |
-| ---------------- | -------- | ----------------------------------------------------------- | --------- |
-| `issue-url`      | Yes      | A single issue URL, or a stringified list of URLS the board | NA        |
-| `project-number` | No       | The project number to add the issue to                      | `66`      |
-| `column-name`    | No       | The column name to move the issue to                        | `Backlog` |
+| Name             | Required | Description                                                    | Default   |
+| ---------------- | -------- | -------------------------------------------------------------- | --------- |
+| `issue-urls`     | Yes      | Comma delimited list of issue urls to add to the project board | NA        |
+| `project-number` | No       | The project number to add the issue to                         | `66`      |
+| `column-name`    | No       | The column name to move the issue to                           | `Backlog` |
 
 ## Permissions
 
@@ -34,7 +34,9 @@ jobs:
       - name: Add to board
         uses: ./.github/actions/add-to-board-v1
         with:
-          issue-url: 'https://github.com/owner/repo/issues/1'
+          issue-urls: 'https://github.com/owner/repo/issues/1'
+          # or
+          # issue-urls: 'https://github.com/owner/repo/issues/1,'https://github.com/owner/repo/issues/2'
         env:
           # Required for the GH CLI
           GH_TOKEN: ${{ secrets.PAT }}
