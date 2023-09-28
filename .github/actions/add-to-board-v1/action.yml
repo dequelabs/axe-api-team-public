@@ -1,5 +1,5 @@
 name: Add to Board
-description: Add and Move specific item(s) to a project board
+description: A GitHub Action to move issues to a specific column on a project board
 inputs:
   issue-urls:
     description: 'Comma delimited list of issue urls to add to the project board'
