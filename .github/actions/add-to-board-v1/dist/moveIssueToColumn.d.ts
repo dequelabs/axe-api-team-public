@@ -5,11 +5,10 @@ export interface MoveIssueToColumnResponse {
     type: string;
     url: string;
 }
-interface MoveIssueToColumnArgs {
+export interface MoveIssueToColumnArgs {
     issueCardID: string;
     fieldID: string;
     fieldColumnID: string;
     projectID: string;
 }
 export default function moveIssueToColumn({ issueCardID, fieldID, fieldColumnID, projectID }: MoveIssueToColumnArgs): Promise<MoveIssueToColumnResponse>;
-export {};

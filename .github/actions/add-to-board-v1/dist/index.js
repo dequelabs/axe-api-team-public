@@ -11001,15 +11001,11 @@ const getProjectBoardFieldList_1 = __importDefault(__nccwpck_require__(8336));
 const moveIssueToColumn_1 = __importDefault(__nccwpck_require__(3461));
 async function run(core, github) {
     try {
-        const issueUrl = core.getInput('issue-url');
+        const issueUrl = core.getInput('issue-url', { required: true });
         const projectNumber = parseInt(core.getInput('project-number'));
         const columnName = core.getInput('column-name');
         if (isNaN(projectNumber)) {
-            core.setFailed('`project_number` must be a number');
-            return;
-        }
-        if (!issueUrl) {
-            core.setFailed('`issue_url` must be provided');
+            core.setFailed('`project-number` must be a number');
             return;
         }
         const issueCardIDs = [];
@@ -11050,6 +11046,7 @@ async function run(core, github) {
         core.info(`\nSuccessfully added ${issueCardIDs.length} issue(s) to project board ${projectNumber}`);
     }
     catch (error) {
+        console.log(error);
         core.setFailed(`Error adding issue to project board: ${error.message}`);
     }
 }
