@@ -36,7 +36,7 @@ jobs:
         with:
           issue-urls: 'https://github.com/owner/repo/issues/1'
           # or
-          # issue-urls: 'https://github.com/owner/repo/issues/1,'https://github.com/owner/repo/issues/2'
+          # issue-urls: 'https://github.com/owner/repo/issues/1,https://github.com/owner/repo/issues/2'
         env:
           # Required for the GH CLI
           GH_TOKEN: ${{ secrets.PAT }}
