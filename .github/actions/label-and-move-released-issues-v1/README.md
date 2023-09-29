@@ -8,7 +8,7 @@ This action labels and moves issues that have been released to the `released` co
 | ---------------- | -------- | -------------------------------------------------------------------- | ------- |
 | `commit-list`    | Yes      | The list of commits generated from the "Generate commit list" action | NA      |
 | `version`        | Yes      | The version number of the release                                    | NA      |
-| `token`          | Yes      | The GitHub token                                                     | NA      |
+| `token`          | Yes      | The GitHub token with the required permissions (see below)           | NA      |
 | `project-number` | No       | The project number of the project board                              | `66`    |
 
 ## Example

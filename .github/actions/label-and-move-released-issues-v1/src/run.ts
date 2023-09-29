@@ -1,5 +1,10 @@
 import type { CommitList, Core, GitHub } from './types'
 import getIssueProjectInfo from './getIssueProjectInfo'
+import getReferencedClosedIssues from './getReferencedIssues'
+import getProjectBoardID from '../../add-to-board-v1/src/getProjectBoardID'
+import getProjectBoardFieldList from '../../add-to-board-v1/src/getProjectBoardFieldList'
+import addIssueToBoard from '../../add-to-board-v1/src/addIssueToBoard'
+import moveIssueToColumn from '../../add-to-board-v1/src/moveIssueToColumn'
 
 export default async function run(core: Core, github: GitHub): Promise<void> {
   try {
@@ -50,49 +55,24 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
         continue
       }
 
-      const { data: pullRequest } = await octokit.rest.pulls.get({
-        repo,
+      const referenceClosedIssues = await getReferencedClosedIssues({
         owner,
-        pull_number: parseInt(id)
+        repo,
+        pullRequestID: parseInt(id),
+        octokit
       })
 
-      if (!pullRequest.body) {
-        core.info(
-          `\nNo PR body found for PR #${pullRequest.number}, moving on...`
+      const issueIDs =
+        referenceClosedIssues.repository.pullRequest.closingIssuesReferences.nodes.map(
+          n => n.number
         )
+
+      if (!issueIDs.length) {
+        core.info('\nNo issues found for commit, moving on...')
         continue
       }
 
-      core.info(`Found PR #${pullRequest.number}`)
-
-      /**
-       * Just in case the PR body has multiple URLs like:
-       *
-       * my PR body
-       * closes: https://github.com/dequelabs/axe-core/issues/123
-       * closes: https://github.com/dequelabs/axe-core/issues/456
-       *
-       * We'll get all the closed URLS.
-       */
-      const issueURLsMatched = [
-        ...pullRequest.body.matchAll(/closes:\s?([^\s]+)/gi)
-      ].map(match => match[1])
-
-      if (!issueURLsMatched.length) {
-        core.info(`\nNo issues found in PR body, moving on...`)
-        continue
-      }
-
-      for (const issueURL of issueURLsMatched) {
-        const rawIssueNumber = issueURL.split('/').pop()
-
-        if (!rawIssueNumber) {
-          core.info(
-            `\nCould not find issue number in URL: ${issueURL}, moving on...`
-          )
-          continue
-        }
-        const issueNumber = parseInt(rawIssueNumber)
+      for (const issueNumber of issueIDs) {
         core.info(
           `\nFetching project board info for: ${owner}, ${repo}, issue: ${issueNumber} for project: ${projectNumber}`
         )
@@ -151,6 +131,52 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
 
         issueURLs.push(issue.html_url)
       }
+    }
+
+    const releaseColumn = 'released'
+    const [{ id: projectBoardID }, { fields }] = await Promise.all([
+      getProjectBoardID({ projectNumber, owner }),
+      getProjectBoardFieldList({ projectNumber, owner })
+    ])
+
+    // Status is the default field name for the project board columns e.g. Backlog, In progress, Done etc
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const statusField = fields.find(
+      field => field.name.toLowerCase() === 'status'
+    )!
+
+    const column = statusField.options.find(
+      option => option.name.toLowerCase() === releaseColumn
+    )
+
+    if (!column) {
+      core.setFailed(
+        `\nColumn ${releaseColumn} not found in project board ${projectNumber}`
+      )
+      return
+    }
+
+    for (const issueURL of issueURLs) {
+      core.info(`\nAdding issue ${issueURL} to project board ${projectNumber}`)
+
+      const { id: issueCardID } = await addIssueToBoard({
+        projectNumber,
+        owner,
+        issueUrl: issueURL
+      })
+
+      core.info(`\nReceived issue card ID ${issueCardID}`)
+
+      core.info(`\nMoving issue card ${issueCardID} to column ${releaseColumn}`)
+
+      await moveIssueToColumn({
+        issueCardID,
+        fieldID: statusField.id,
+        fieldColumnID: column.id,
+        projectID: projectBoardID
+      })
+
+      core.info(`\nSuccessfully moved issue card ${issueCardID}`)
     }
 
     core.info(`\n Setting issue-urls output to: ${JSON.stringify(issueURLs)}`)
