@@ -51,6 +51,6 @@ runs:
       uses: dequelabs/axe-api-team-public/.github/actions/add-to-board-v1@main
       with:
         token: ${{ inputs.token }}
-        issue_urls: ${{ steps.create_issue.outputs.html_url }}
-        project_number: ${{ inputs.project_number }}
-        column_name: ${{ inputs.column_name }}
+        issue-urls: ${{ steps.create_issue.outputs.html_url }}
+        project-number: ${{ inputs.project_number }}
+        column-name: ${{ inputs.column_name }}
