@@ -6,7 +6,7 @@ A GitHub Action to create a new issue and move the issue to a specific column on
 
 | Name             | Description                                                                                                              | Required | Default             |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------ | -------- | ------------------- |
-| `github-token`   | The GitHub token, used for creating the issue and adding to project board                                                | Yes      | NA                  |
+| `token`          | The GitHub token, used for creating the issue and adding to project board                                                | Yes      | `github.token`      |
 | `title`          | The title of the issue                                                                                                   | Yes      | NA                  |
 | `body`           | The body of the issue                                                                                                    | Yes      | NA                  |
 | `repository`     | The repository to create the issue in e.g. if the repository is under dequelabs/axe-core-npm, then supply "axe-core-npm" | No       | `github.repository` |
@@ -26,7 +26,7 @@ A GitHub Action to create a new issue and move the issue to a specific column on
 ```yaml
 uses: ./.github/actions/create-project-issue-v1
 with:
-  github-token: ${{ secrets.GITHUB_TOKEN }}
+  token: ${{ secrets.GITHUB_TOKEN }}
   title: 'My issue title'
   body: 'My issue body'
   labels: 'bug'

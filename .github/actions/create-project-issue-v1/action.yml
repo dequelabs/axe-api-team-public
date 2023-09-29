@@ -1,16 +1,16 @@
 name: create-project-issue
 description: 'A GitHub Action to create a new issue and move the issue to a specific column on a project board'
 inputs:
-  github_token:
+  token:
     description: 'The GitHub token to use for authentication'
-    required: true
+    required: false
   title:
     description: 'The title of the issue'
     required: true
   body:
     description: 'The body of the issue'
     required: true
-  repository:
+  repo:
     description: 'The repository to create the issue in e.g. if the repository is under dequelabs/axe-core-npm, then supply "axe-core-npm"'
     default: ${{ github.repository }}
     required: false
@@ -28,9 +28,28 @@ inputs:
     description: 'The column name to create the issue in'
     default: 'Backlog'
     required: false
-outputs:
-  issue_url:
-    description: 'The URL of the created issue'
 runs:
-  using: 'node20'
-  main: 'dist/index.js'
+  using: 'composite'
+  steps:
+    - uses: actions/checkout@v4
+    - name: Create project issue
+      # Pinned to latest commit from tagged release v1.2.1: https://github.com/dacbd/create-issue-action/releases/tag/v1.2.1
+      uses: dacbd/create-issue-action@ba4d1c45cccf9c483f2720cefb40e437f0ee6f7d
+      id: create_issue
+      with:
+        token: ${{ github.token }}
+        title: ${{ inputs.title }}
+        body: ${{ inputs.body }}
+        repo: ${{ inputs.repo }}
+        labels: ${{ inputs.labels }}
+        assignees: ${{ inputs.assignees }}
+    - name: Move issue to project board
+      uses: dequelabs/axe-api-team-public/.github/actions/move-issue-to-project-board-action@main
+      with:
+        token: ${{ inputs.token }}
+        issue_urls: ${{ steps.create_issue.outputs.html_url }}
+        project_number: ${{ inputs.project_number }}
+        column_name: ${{ inputs.column_name }}
+      env:
+        # Required for the GH CLI
+        GH_TOKEN: ${{ secrets.PAT }}
