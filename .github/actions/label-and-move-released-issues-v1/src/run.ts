@@ -154,7 +154,7 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     }
 
     core.info(`\n Setting issue-urls output to: ${JSON.stringify(issueURLs)}`)
-    core.setOutput('issue-urls', JSON.stringify(issueURLs))
+    core.setOutput('issue-urls', issueURLs.join(','))
   } catch (error) {
     core.setFailed((error as Error).message)
   }

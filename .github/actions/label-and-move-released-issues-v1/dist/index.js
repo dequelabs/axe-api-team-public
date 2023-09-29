@@ -9832,7 +9832,7 @@ async function run(core, github) {
             }
         }
         core.info(`\n Setting issue-urls output to: ${JSON.stringify(issueURLs)}`);
-        core.setOutput('issue-urls', JSON.stringify(issueURLs));
+        core.setOutput('issue-urls', issueURLs.join(','));
     }
     catch (error) {
         core.setFailed(error.message);
