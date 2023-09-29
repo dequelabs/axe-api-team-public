@@ -14,15 +14,5 @@ inputs:
     description: 'The project number of the project board'
     default: '66'
 runs:
-  using: 'composite'
-  steps:
-    - name: 'Label issues'
-      uses: actions/checkout@v4
-      id: label-issues
-      run: node dist/index.js
-    - name: 'Move issues'
-      uses: dequelabs/axe-api-team-public/.github/actions/add-to-board-v1@main
-      with:
-        issue-urls: ${{ steps.label-issues.outputs.issue-urls }}
-        project-number: ${{ inputs.project_number }}
-        column-name: Released
+  using: 'node20'
+  main: 'dist/index.js'
