@@ -1,0 +1,56 @@
+name: create-project-issue
+description: 'A GitHub Action to create a new issue and move the issue to a specific column on a project board'
+inputs:
+  token:
+    description: 'The GitHub token to use for authentication'
+    default: ${{ github.token }}
+    required: false
+  title:
+    description: 'The title of the issue'
+    required: true
+  body:
+    description: 'The body of the issue'
+    required: true
+  repo:
+    description: 'The repository to create the issue in e.g. if the repository is under dequelabs/axe-core-npm, then supply "axe-core-npm"'
+    default: ${{ github.context.repo.repo }}
+    required: false
+  owner:
+    description: 'The owner of the repository to create the issue in e.g. if the repository is under dequelabs/axe-core-npm, then supply "dequelabs"'
+    default: ${{ github.context.repo.owner }}
+    required: false
+  labels:
+    description: 'Comma delimited list of labels to add to the issue'
+    required: false
+  assignees:
+    description: 'Comma delimited list of assignees to add to the issue'
+    required: false
+  project_number:
+    description: 'The project board number to create the issue in'
+    default: '66'
+    required: false
+  column_name:
+    description: 'The column name to create the issue in'
+    default: 'Backlog'
+    required: false
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/checkout@v4
+    - name: Create project issue
+      # Pinned to latest commit from tagged release v1.2.1: https://github.com/dacbd/create-issue-action/releases/tag/v1.2.1
+      uses: dacbd/create-issue-action@ba4d1c45cccf9c483f2720cefb40e437f0ee6f7d
+      id: create_issue
+      with:
+        token: ${{ github.token }}
+        title: ${{ inputs.title }}
+        body: ${{ inputs.body }}
+        repo: ${{ inputs.repo }}
+        labels: ${{ inputs.labels }}
+        assignees: ${{ inputs.assignees }}
+    - name: Move issue to project board
+      uses: dequelabs/axe-api-team-public/.github/actions/add-to-board-v1@main
+      with:
+        issue-urls: ${{ steps.create_issue.outputs.html_url }}
+        project-number: ${{ inputs.project_number }}
+        column-name: ${{ inputs.column_name }}
