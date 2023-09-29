@@ -6,20 +6,14 @@ A GitHub Action to create a new issue and move the issue to a specific column on
 
 | Name             | Description                                                                                                              | Required | Default             |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------ | -------- | ------------------- |
-| `token`          | The GitHub token, used for creating the issue and adding to project board                                                | Yes      | `github.token`      |
 | `title`          | The title of the issue                                                                                                   | Yes      | NA                  |
 | `body`           | The body of the issue                                                                                                    | Yes      | NA                  |
-| `repository`     | The repository to create the issue in e.g. if the repository is under dequelabs/axe-core-npm, then supply "axe-core-npm" | No       | `github.repository` |
 | `labels`         | Comma separated list of labels to add to the issue                                                                       | No       | NA                  |
 | `assignees`      | Comma separated list of assignees to add to the issue                                                                    | No       | NA                  |
-| `project_number` | The number of the project board to add the issue to                                                                      | No       | `66`                |
-| `column_name`    | The name of the column within the project board to add the issue to                                                      | No       | `Backlog`           |
-
-## Outputs
-
-| Name        | Description                  |
-| ----------- | ---------------------------- |
-| `issue_url` | The URL of the created issue |
+| `project-number` | The number of the project board to add the issue to                                                                      | No       | `66`                |
+| `column-name`    | The name of the column within the project board to add the issue to                                                      | No       | `Backlog`           |
+| `token`          | The GitHub token, used for creating the issue and adding to project board                                                | No       | `github.token`      |
+| `repository`     | The repository to create the issue in e.g. if the repository is under dequelabs/axe-core-npm, then supply "axe-core-npm" | No       | `github.repository` |
 
 ## Example usage
 

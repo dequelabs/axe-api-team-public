@@ -3,6 +3,7 @@ description: 'A GitHub Action to create a new issue and move the issue to a spec
 inputs:
   token:
     description: 'The GitHub token to use for authentication'
+    default: ${{ github.token }}
     required: false
   title:
     description: 'The title of the issue'
@@ -50,7 +51,6 @@ runs:
     - name: Move issue to project board
       uses: dequelabs/axe-api-team-public/.github/actions/add-to-board-v1@main
       with:
-        token: ${{ inputs.token }}
         issue-urls: ${{ steps.create_issue.outputs.html_url }}
         project-number: ${{ inputs.project_number }}
         column-name: ${{ inputs.column_name }}
