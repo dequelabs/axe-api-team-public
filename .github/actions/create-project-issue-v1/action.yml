@@ -44,7 +44,7 @@ runs:
         labels: ${{ inputs.labels }}
         assignees: ${{ inputs.assignees }}
     - name: Move issue to project board
-      uses: dequelabs/axe-api-team-public/.github/actions/move-issue-to-project-board-action@main
+      uses: dequelabs/axe-api-team-public/.github/actions/add-to-board-v1@main
       with:
         token: ${{ inputs.token }}
         issue_urls: ${{ steps.create_issue.outputs.html_url }}
