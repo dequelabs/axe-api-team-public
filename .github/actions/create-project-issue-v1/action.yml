@@ -12,7 +12,11 @@ inputs:
     required: true
   repo:
     description: 'The repository to create the issue in e.g. if the repository is under dequelabs/axe-core-npm, then supply "axe-core-npm"'
-    default: ${{ github.repository }}
+    default: ${{ github.context.repo.repo }}
+    required: false
+  owner:
+    description: 'The owner of the repository to create the issue in e.g. if the repository is under dequelabs/axe-core-npm, then supply "dequelabs"'
+    default: ${{ github.context.repo.owner }}
     required: false
   labels:
     description: 'Comma delimited list of labels to add to the issue'
