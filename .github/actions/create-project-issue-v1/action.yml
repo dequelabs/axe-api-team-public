@@ -50,6 +50,3 @@ runs:
         issue_urls: ${{ steps.create_issue.outputs.html_url }}
         project_number: ${{ inputs.project_number }}
         column_name: ${{ inputs.column_name }}
-      env:
-        # Required for the GH CLI
-        GH_TOKEN: ${{ secrets.PAT }}
