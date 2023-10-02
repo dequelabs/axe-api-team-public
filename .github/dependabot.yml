@@ -1,0 +1,12 @@
+version: 2
+
+updates:
+  - package-ecosystem: 'yarn'
+    directory: '/'
+    schedule:
+      interval: 'monthly'
+    groups:
+      non-breaking:
+        update-types:
+          - 'minor'
+          - 'patch'
