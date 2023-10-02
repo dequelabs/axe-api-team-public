@@ -11091,7 +11091,7 @@ async function run(core, github) {
     try {
         const commitList = core.getInput('commit-list', { required: true });
         const version = core.getInput('version', { required: true });
-        const token = core.getInput('github-token', { required: true });
+        const token = core.getInput('token', { required: true });
         const projectNumber = parseInt(core.getInput('project-number'));
         if (isNaN(projectNumber)) {
             core.setFailed('`project-number` must be a number');
@@ -11099,6 +11099,17 @@ async function run(core, github) {
         }
         const octokit = github.getOctokit(token);
         const { repo, owner } = github.context.repo;
+        const releaseColumn = 'released';
+        const [{ id: projectBoardID }, { fields }] = await Promise.all([
+            (0, getProjectBoardID_1.default)({ projectNumber, owner }),
+            (0, getProjectBoardFieldList_1.default)({ projectNumber, owner })
+        ]);
+        const statusField = fields.find(field => field.name.toLowerCase() === 'status');
+        const column = statusField.options.find(option => option.name.toLowerCase() === releaseColumn);
+        if (!column) {
+            core.setFailed(`\nColumn ${releaseColumn} not found in project board ${projectNumber}`);
+            return;
+        }
         const labels = await octokit.rest.issues.listLabelsForRepo({
             repo,
             owner
@@ -11175,17 +11186,6 @@ async function run(core, github) {
                 });
                 issueURLs.push(issue.html_url);
             }
-        }
-        const releaseColumn = 'released';
-        const [{ id: projectBoardID }, { fields }] = await Promise.all([
-            (0, getProjectBoardID_1.default)({ projectNumber, owner }),
-            (0, getProjectBoardFieldList_1.default)({ projectNumber, owner })
-        ]);
-        const statusField = fields.find(field => field.name.toLowerCase() === 'status');
-        const column = statusField.options.find(option => option.name.toLowerCase() === releaseColumn);
-        if (!column) {
-            core.setFailed(`\nColumn ${releaseColumn} not found in project board ${projectNumber}`);
-            return;
         }
         for (const issueURL of issueURLs) {
             core.info(`\nAdding issue ${issueURL} to project board ${projectNumber}`);

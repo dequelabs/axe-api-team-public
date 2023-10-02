@@ -10,7 +10,7 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
   try {
     const commitList = core.getInput('commit-list', { required: true })
     const version = core.getInput('version', { required: true })
-    const token = core.getInput('github-token', { required: true })
+    const token = core.getInput('token', { required: true })
     const projectNumber = parseInt(core.getInput('project-number'))
 
     if (isNaN(projectNumber)) {
@@ -20,6 +20,30 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
 
     const octokit = github.getOctokit(token)
     const { repo, owner } = github.context.repo
+
+    const releaseColumn = 'released'
+    const [{ id: projectBoardID }, { fields }] = await Promise.all([
+      getProjectBoardID({ projectNumber, owner }),
+      getProjectBoardFieldList({ projectNumber, owner })
+    ])
+
+    // Status is the default field name for the project board columns e.g. Backlog, In progress, Done etc
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const statusField = fields.find(
+      field => field.name.toLowerCase() === 'status'
+    )!
+
+    const column = statusField.options.find(
+      option => option.name.toLowerCase() === releaseColumn
+    )
+
+    if (!column) {
+      core.setFailed(
+        `\nColumn ${releaseColumn} not found in project board ${projectNumber}`
+      )
+      return
+    }
+
     const labels = await octokit.rest.issues.listLabelsForRepo({
       repo,
       owner
@@ -131,29 +155,6 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
 
         issueURLs.push(issue.html_url)
       }
-    }
-
-    const releaseColumn = 'released'
-    const [{ id: projectBoardID }, { fields }] = await Promise.all([
-      getProjectBoardID({ projectNumber, owner }),
-      getProjectBoardFieldList({ projectNumber, owner })
-    ])
-
-    // Status is the default field name for the project board columns e.g. Backlog, In progress, Done etc
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    const statusField = fields.find(
-      field => field.name.toLowerCase() === 'status'
-    )!
-
-    const column = statusField.options.find(
-      option => option.name.toLowerCase() === releaseColumn
-    )
-
-    if (!column) {
-      core.setFailed(
-        `\nColumn ${releaseColumn} not found in project board ${projectNumber}`
-      )
-      return
     }
 
     for (const issueURL of issueURLs) {
