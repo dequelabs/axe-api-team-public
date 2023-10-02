@@ -10995,7 +10995,7 @@ exports["default"] = getIssueProjectInfo;
 
 /***/ }),
 
-/***/ 6074:
+/***/ 1831:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -11082,7 +11082,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const getIssueProjectInfo_1 = __importDefault(__nccwpck_require__(4422));
-const getReferencedIssues_1 = __importDefault(__nccwpck_require__(6074));
+const getReferencedClosedIssues_1 = __importDefault(__nccwpck_require__(1831));
 const getProjectBoardID_1 = __importDefault(__nccwpck_require__(6966));
 const getProjectBoardFieldList_1 = __importDefault(__nccwpck_require__(9663));
 const addIssueToBoard_1 = __importDefault(__nccwpck_require__(8660));
@@ -11134,7 +11134,7 @@ async function run(core, github) {
                 core.info('\nNo PR found for commit, moving on...');
                 continue;
             }
-            const referenceClosedIssues = await (0, getReferencedIssues_1.default)({
+            const referenceClosedIssues = await (0, getReferencedClosedIssues_1.default)({
                 owner,
                 repo,
                 pullRequestID: parseInt(id),
@@ -11156,8 +11156,7 @@ async function run(core, github) {
                 core.info(`Found stats: ${JSON.stringify(issueStatus)}`);
                 const projectBoard = issueStatus.repository.issue.projectItems.nodes.find(n => n.project.number === projectNumber);
                 if (!projectBoard) {
-                    core.warning(`
-            Could not find the project board "${projectNumber}" for issue ${issueNumber}, moving on...`);
+                    core.info(`\nCould not find the project board "${projectNumber}" for issue ${issueNumber}, moving on...`);
                     continue;
                 }
                 const { name: columnNameStatus } = projectBoard.fieldValueByName;
@@ -11204,8 +11203,6 @@ async function run(core, github) {
             });
             core.info(`\nSuccessfully moved issue card ${issueCardID}`);
         }
-        core.info(`\n Setting issue-urls output to: ${JSON.stringify(issueURLs)}`);
-        core.setOutput('issue-urls', issueURLs.join(','));
     }
     catch (error) {
         core.setFailed(error.message);
