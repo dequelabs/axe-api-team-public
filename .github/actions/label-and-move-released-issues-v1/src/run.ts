@@ -1,6 +1,7 @@
-import type { CommitList, Core, GitHub } from './types'
+import type { Core, GitHub } from './types'
+import type { ParsedCommitList } from '../../generate-commit-list-v1/src/types'
 import getIssueProjectInfo from './getIssueProjectInfo'
-import getReferencedClosedIssues from './getReferencedIssues'
+import getReferencedClosedIssues from './getReferencedClosedIssues'
 import getProjectBoardID from '../../add-to-board-v1/src/getProjectBoardID'
 import getProjectBoardFieldList from '../../add-to-board-v1/src/getProjectBoardFieldList'
 import addIssueToBoard from '../../add-to-board-v1/src/addIssueToBoard'
@@ -70,7 +71,7 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
      */
     const issueURLs: string[] = []
 
-    const commits = JSON.parse(commitList) as CommitList[]
+    const commits = JSON.parse(commitList) as ParsedCommitList[]
     core.info(`Found ${commits.length} commits`)
 
     for (const { id } of commits) {
@@ -116,8 +117,9 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
           )
 
         if (!projectBoard) {
-          core.warning(`
-            Could not find the project board "${projectNumber}" for issue ${issueNumber}, moving on...`)
+          core.info(
+            `\nCould not find the project board "${projectNumber}" for issue ${issueNumber}, moving on...`
+          )
           continue
         }
 
@@ -179,9 +181,6 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
 
       core.info(`\nSuccessfully moved issue card ${issueCardID}`)
     }
-
-    core.info(`\n Setting issue-urls output to: ${JSON.stringify(issueURLs)}`)
-    core.setOutput('issue-urls', issueURLs.join(','))
   } catch (error) {
     core.setFailed((error as Error).message)
   }
