@@ -319,7 +319,6 @@ describe('run', () => {
       }
 
       await run(core as unknown as Core, github as unknown as GitHub)
-      console.log(setFailed.args)
 
       assert.isTrue(setFailed.calledOnce)
       assert.isTrue(
@@ -517,8 +516,6 @@ describe('run', () => {
         }
 
         await run(core as unknown as Core, github as unknown as GitHub)
-
-        console.log(info.args)
 
         assert.isTrue(setFailed.notCalled)
         assert.isTrue(
