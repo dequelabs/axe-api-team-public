@@ -1,5 +1,5 @@
 {
-  "name": "label-and-move-released-issues--v1",
+  "name": "label-and-move-released-issues-v1",
   "version": "1.0.0",
   "description": "A GitHub Action to to label all issues included in a PR",
   "repository": {
