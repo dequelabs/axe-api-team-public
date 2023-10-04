@@ -57,14 +57,13 @@ runs:
       if: ${{ !steps.is_release_in_progress.outputs.in_progress }} && ${{ steps.has_releasable_commits.outputs.should_release }}
       id: prepare_release
       run: |
-        releaseType=""
-        if [ "${{ inputs.version-locked }}" = "true" ]; then
+        if [ "${{ inputs.version-locked }}" = "true" ]
+        then
           # We will always release as patch if the version is locked to axe-core
-          releaseType="patch"
+          bash ${{ inputs.shell-script }} patch
+        else 
+          bash ${{ inputs.shell-script }}
         fi
-
-        # Run the prepare_release shell script
-        bash ./${{ inputs.shell-script }} releaseType
 
         # Get the version number from the prepare_release shell script and set it as an output
 
