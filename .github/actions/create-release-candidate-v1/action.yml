@@ -135,7 +135,7 @@ runs:
           hub pull-request --file /tmp/pr.txt --base release
 
           # echo "pull-request-url=$PullRequestURL" >> $GITHUB_OUTPUT
-      with:
+      env:
         GITHUB_TOKEN: ${{ inputs.token }}
 
     - name: Create release notes issue
