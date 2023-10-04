@@ -105,11 +105,11 @@ runs:
         labels: 'PRIORITY: high,release'
         assignees: 'enlarsen'
         column-name: 'To Do'
-        title: '${{ GITHUB_REPOSITORY }} v${{ steps.prepare_release.outputs.version }} - Release Notes Needed'
+        title: '${{ github.repository }} v${{ steps.prepare_release.outputs.version }} - Release Notes Needed'
         body: |
           PR: ${{ steps.create_pull_request.outputs.pull-request-url }}
 
-          Release Notes are needed for ${{ GITHUB_REPOSITORY }} v${{ steps.prepare_release.outputs.version }}. Please make sure this issue is closed when the PR is merged.
+          Release Notes are needed for ${{ github.repository }} v${{ steps.prepare_release.outputs.version }}. Please make sure this issue is closed when the PR is merged.
 
           ${{ steps.generate_commit_list.outputs.commit_list }}
 
@@ -121,7 +121,7 @@ runs:
         token: ${{ inputs.token }}
         labels: 'PRIORITY: high,release'
         column-name: 'Ready for QA'
-        title: '${{ GITHUB_REPOSITORY }} v${{ steps.prepare_release.outputs.version }}'
+        title: '${{ github.repository }} v${{ steps.prepare_release.outputs.version }}'
         body: |
           Below is everything related to this release 
 
