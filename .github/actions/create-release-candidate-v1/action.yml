@@ -132,9 +132,9 @@ runs:
           # hub pull-request --file /tmp/pr.txt --base release
           
           # Create the pull request via hub and get the URL to set as an output
-          hub pull-request --file /tmp/pr.txt --base release
+          pullRequestURL=$(hub pull-request --file /tmp/pr.txt --base release)
 
-          # echo "pull-request-url=$PullRequestURL" >> $GITHUB_OUTPUT
+          echo "pull-request-url=$pullRequestURL" >> $GITHUB_OUTPUT
       env:
         GITHUB_TOKEN: ${{ inputs.token }}
 
@@ -154,7 +154,7 @@ runs:
 
           Release Notes are needed for ${{ github.repository }} v${{ steps.prepare_release.outputs.version }}. Please make sure this issue is closed when the PR is merged.
 
-          ${{ steps.generate_commit_list.outputs.commit_list }}
+          ${{ steps.generate_commit_list.outputs.commit-list }}
 
     - name: Create release issue
       if: ${{ !steps.is_release_in_progress.outputs.in_progress }} && ${{ steps.has_releasable_commits.outputs.should_release }}
