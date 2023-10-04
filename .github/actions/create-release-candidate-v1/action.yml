@@ -81,23 +81,60 @@ runs:
       id: get_date
       run: echo "date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
 
-    - name: Create pull request
+    # - name: Create pull request
+    #   if: ${{ !steps.is_release_in_progress.outputs.in_progress }} && ${{ steps.has_releasable_commits.outputs.should_release }}
+
+    #   uses: peter-evans/create-pull-request@v3
+    #   id: create_pull_request
+    #   with:
+    #     token: ${{ inputs.token }}
+    #     title: 'chore: RC v${{ steps.prepare_release.outputs.version }}'
+    #     commit-message: 'chore: RC v${{ steps.prepare_release.outputs.version }}'
+    #     branch: 'release-${{ steps.get_date.outputs.date }}'
+    #     base: release
+    #     body: |
+    #       $(
+    #         git show \
+    #           --no-color \
+    #           --no-prefix \
+    #           --output-indicator-new=! CHANGELOG.md | egrep '^!' | awk -F'^[!]' '{print $2}' | sed -e 's/\n/$0A/g'
+    #       )
+
+    - name: Create RC pull request
       if: ${{ !steps.is_release_in_progress.outputs.in_progress }} && ${{ steps.has_releasable_commits.outputs.should_release }}
-      uses: peter-evans/create-pull-request@v3
+      shell: bash
       id: create_pull_request
-      with:
-        token: ${{ inputs.token }}
-        title: 'chore: RC v${{ steps.prepare_release.outputs.version }}'
-        commit-message: 'chore: RC v${{ steps.prepare_release.outputs.version }}'
-        branch: 'release-${{ steps.get_date.outputs.date }}'
-        base: release
-        body: |
-          $(
+      run: |
+        Branch="release-$(date +%Y-%m-%d)"
+          echo "Branch: $Branch"
+
+          git config user.name "API Team CI User"
+          git config user.email "aciattestteamci@deque.com"
+          git checkout -b "$Branch"
+          git add .
+          git commit -m "chore: RC v$Version"
+          git push --follow-tags origin "$Branch" --force
+
+          # Stolen from <private deque repo>
+          ReleaseNotes=$(
             git show \
               --no-color \
               --no-prefix \
               --output-indicator-new=! CHANGELOG.md | egrep '^!' | awk -F'^[!]' '{print $2}' | sed -e 's/\n/$0A/g'
           )
+
+          echo "chore: RC v$Version" > /tmp/pr.txt
+          echo "" >> /tmp/pr.txt
+          echo "$ReleaseNotes" >> /tmp/pr.txt
+          echo "" >> /tmp/pr.txt
+          echo "This PR was opened by a robot :robot: :tada:" >> /tmp/pr.txt
+
+          # hub pull-request --file /tmp/pr.txt --base release
+          
+          # Create the pull request via hub and get the URL to set as an output
+          pullRequestURL=$(hub pull-request --file /tmp/pr.txt --base release)
+
+          echo "pull-request-url=$PullRequestURL" >> $GITHUB_OUTPUT
 
     - name: Create release notes issue
       if: ${{ inputs.docs-repo }} != 'null' && ${{ !steps.is_release_in_progress.outputs.in_progress }}  && ${{ steps.has_releasable_commits.outputs.should_release }}
