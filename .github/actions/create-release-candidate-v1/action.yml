@@ -135,6 +135,8 @@ runs:
           hub pull-request --file /tmp/pr.txt --base release
 
           # echo "pull-request-url=$PullRequestURL" >> $GITHUB_OUTPUT
+      with:
+        GITHUB_TOKEN: ${{ inputs.token }}
 
     - name: Create release notes issue
       if: ${{ inputs.docs-repo }} != 'null' && ${{ !steps.is_release_in_progress.outputs.in_progress }}  && ${{ steps.has_releasable_commits.outputs.should_release }}
