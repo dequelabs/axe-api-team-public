@@ -1,0 +1,173 @@
+name: create-release-candidate
+description: 'A GitHub Action to create a new release candidate'
+inputs:
+  token:
+    description: 'A GitHub token used for octokit and GH CLI with the required permissions'
+    required: true
+  base:
+    description: 'The branch the pull request will be merged into'
+    required: true
+  head:
+    description: 'The branch that contains the changes you want to merge'
+    required: true
+  version-locked:
+    description: 'Whether or not the version should be locked to axe-core'
+    default: 'false'
+    required: true
+  shell-script:
+    description: 'The location of the shell script that creates the changelogs and version bumps'
+    required: true
+  docs-repo:
+    description: 'The name of the repo where the release notes for the repo running this action live'
+    default: 'null'
+    required: false
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        # Fetch all history
+        fetch-depth: 0
+
+    - name: Is release in progress
+      uses: dequelabs/axe-api-team-public/.github/actions/is-release-in-progress-v1@main
+      id: is_release_in_progress
+      with:
+        github-token: ${{ inputs.token }}
+
+    - name: Generate commit list
+      if: ${{ !steps.is_release_in_progress.outputs.in_progress }}
+      uses: dequelabs/axe-api-team-public/.github/actions/generate-commit-list-v1@main
+      id: generate_commit_list
+      with:
+        base: ${{ inputs.base }}
+        head: ${{ inputs.head }}
+
+    - name: Has releasable commits
+      if: ${{ !steps.is_release_in_progress.outputs.in_progress }}
+      uses: dequelabs/axe-api-team-public/.github/actions/has-auto-releasable-commits-v1@main
+      id: has_releasable_commits
+      with:
+        commits: ${{ steps.generate_commit_list.outputs.commit_list }}
+        version-locked: ${{ inputs.version-locked }}
+
+    - name: Run prepare_release shell script
+      shell: bash
+      if: ${{ !steps.is_release_in_progress.outputs.in_progress }} && ${{ steps.has_releasable_commits.outputs.should_release }}
+      id: prepare_release
+      run: |
+        releaseType=""
+        if [ "${{ inputs.version-locked }}" = "true" ]; then
+          # We will always release as patch if the version is locked to axe-core
+          releaseType="patch"
+        fi
+
+        # Run the prepare_release shell script
+        ./${{ inputs.shell-script }} releaseType
+
+        # Get the version number from the prepare_release shell script and set it as an output
+
+        # Monorepos have a lerna.json file that contains the updated version number
+        # Non-monorepos, or non-npm repos, have a package.json file that contains the updated version number
+        if [ -f "lerna.json" ]; then
+          #TODO: prove Jennn wrong
+          echo "version=$(cat lerna.json | jq -r '.version')" >> $GITHUB_OUTPUT
+        else
+          echo "version=$(cat package.json | jq -r '.version')" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Create pull request
+      if: ${{ !steps.is_release_in_progress.outputs.in_progress }} && ${{ steps.has_releasable_commits.outputs.should_release }}
+      uses: peter-evans/create-pull-request@v3
+      id: create_pull_request
+      with:
+        token: ${{ inputs.token }}
+        title: 'chore: RC v${{ steps.prepare_release.outputs.version }}'
+        commit-message: 'chore: RC v${{ steps.prepare_release.outputs.version }}'
+        branch: 'release-$(date +%Y-%m-%d)'
+        base: release
+        body: |
+          $(
+            git show \
+              --no-color \
+              --no-prefix \
+              --output-indicator-new=! CHANGELOG.md | egrep '^!' | awk -F'^[!]' '{print $2}' | sed -e 's/\n/$0A/g'
+          )
+
+    - name: Create release notes issue
+      if: ${{ inputs.docs-repo }} != 'null' && ${{ !steps.is_release_in_progress.outputs.in_progress }}  && ${{ steps.has_releasable_commits.outputs.should_release }}
+      uses: dequelabs/axe-api-team-public/.github/actions/create-project-issue-v1@main
+      id: create_release_notes_issue
+      with:
+        token: ${{ inputs.token }}
+        repo: ${{ inputs.docs-repo }}
+        labels: 'PRIORITY: high,release'
+        assignees: 'enlarsen'
+        column-name: 'To Do'
+        title: '${{ GITHUB_REPOSITORY }} v${{ steps.prepare_release.outputs.version }} - Release Notes Needed'
+        body: |
+          PR: ${{ steps.create_pull_request.outputs.pull-request-url }}
+
+          Release Notes are needed for ${{ GITHUB_REPOSITORY }} v${{ steps.prepare_release.outputs.version }}. Please make sure this issue is closed when the PR is merged.
+
+          ${{ steps.generate_commit_list.outputs.commit_list }}
+
+    - name: Create release issue
+      if: ${{ !steps.is_release_in_progress.outputs.in_progress }} && ${{ steps.has_releasable_commits.outputs.should_release }}
+      uses: dequelabs/axe-api-team-public/.github/actions/create-project-issue-v1@main
+      id: create_release_issue
+      with:
+        token: ${{ inputs.token }}
+        labels: 'PRIORITY: high,release'
+        column-name: 'Ready for QA'
+        title: '${{ GITHUB_REPOSITORY }} v${{ steps.prepare_release.outputs.version }}'
+        body: |
+          Below is everything related to this release 
+
+          ### !!!!!!!!!! DEPENDENCIES / BLOCKERS !!!!!!!!!!
+          (List anything blocking this RC from continuing here)
+          ### !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+          ```[tasklist]
+          ### Links
+          - [X] Release candidate PR: ${{ steps.create_pull_request.outputs.pull-request-url }}
+          - [ ] Release PR:
+          - [ ] Release audit:
+          ``` 
+          ## Release Steps
+          - [ ] Requested QA
+          - [ ] QA signoff on RC
+          - [ ] Release created
+          - [ ] Release audit done
+          - [ ] Release audit posted
+          - [ ] Release merged
+          - [ ] Deployed
+          - [ ] Posted in product-channel
+
+          ## Additional Steps For AWS Deploys
+          - [ ] AWS NOT NEEDED
+          - [ ] Emailed IHD
+          - [ ] Set up meeting for deployment
+          - [ ] Data migrations:
+          - [ ] Environment variables:
+          - [ ] Docker image:
+          - [ ] Smoke test passed
+
+          ## Additional Steps Release Notes
+          - [ ] RELEASE NOTES NOT NEEDED
+          - [ ] Ticket created for release notes: ${{ steps.create_release_notes_issue.outputs.html_url }}
+          - [ ] Release notes reviewed
+          - [ ] Release notes published 
+          - [ ] Release notes: (public URL)
+          ```
+
+    - name: Add release issue to release project board
+      if: ${{ steps.create_pull_request.outputs.pull-request-url }}
+      uses: dequelabs/axe-api-team-public/.github/actions/add-to-board-v1@main
+      with:
+        issue-urls: ${{ steps.create_release_issue.outputs.html_url }}
+        project-number: '103'
+        column-name: 'RC Created'
+
+    #TODO: Add slack because i want to test this thing
