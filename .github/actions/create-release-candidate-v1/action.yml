@@ -147,7 +147,7 @@ runs:
         repo: ${{ inputs.docs-repo }}
         labels: 'PRIORITY: high,release'
         assignees: 'enlarsen'
-        column-name: 'To Do'
+        column_name: 'To Do'
         title: '${{ github.repository }} v${{ steps.prepare_release.outputs.version }} - Release Notes Needed'
         body: |
           PR: ${{ steps.create_pull_request.outputs.pull-request-url }}
@@ -163,7 +163,7 @@ runs:
       with:
         token: ${{ inputs.token }}
         labels: 'PRIORITY: high,release'
-        column-name: 'Ready for QA'
+        column_name: 'Ready for QA'
         title: '${{ github.repository }} v${{ steps.prepare_release.outputs.version }}'
         body: |
           Below is everything related to this release 
