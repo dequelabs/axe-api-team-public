@@ -112,7 +112,7 @@ runs:
           git config user.email "aciattestteamci@deque.com"
           git checkout -b "$Branch"
           git add .
-          git commit -m "chore: RC v$Version"
+          git commit -m "chore: RC v${{ steps.prepare_release.outputs.version }}}}"
           git push --follow-tags origin "$Branch" --force
 
           # Stolen from <private deque repo>
@@ -123,7 +123,7 @@ runs:
               --output-indicator-new=! CHANGELOG.md | egrep '^!' | awk -F'^[!]' '{print $2}' | sed -e 's/\n/$0A/g'
           )
 
-          echo "chore: RC v$Version" > /tmp/pr.txt
+          echo "chore: RC v${{ steps.prepare_release.outputs.version }}" > /tmp/pr.txt
           echo "" >> /tmp/pr.txt
           echo "$ReleaseNotes" >> /tmp/pr.txt
           echo "" >> /tmp/pr.txt
@@ -132,9 +132,9 @@ runs:
           # hub pull-request --file /tmp/pr.txt --base release
           
           # Create the pull request via hub and get the URL to set as an output
-          pullRequestURL=$(hub pull-request --file /tmp/pr.txt --base release)
+          hub pull-request --file /tmp/pr.txt --base release
 
-          echo "pull-request-url=$PullRequestURL" >> $GITHUB_OUTPUT
+          # echo "pull-request-url=$PullRequestURL" >> $GITHUB_OUTPUT
 
     - name: Create release notes issue
       if: ${{ inputs.docs-repo }} != 'null' && ${{ !steps.is_release_in_progress.outputs.in_progress }}  && ${{ steps.has_releasable_commits.outputs.should_release }}
