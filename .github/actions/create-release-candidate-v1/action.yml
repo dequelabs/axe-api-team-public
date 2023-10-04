@@ -64,7 +64,7 @@ runs:
         fi
 
         # Run the prepare_release shell script
-        ./${{ inputs.shell-script }} releaseType
+        bash ./${{ inputs.shell-script }} releaseType
 
         # Get the version number from the prepare_release shell script and set it as an output
 
