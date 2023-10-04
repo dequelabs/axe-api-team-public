@@ -49,7 +49,7 @@ runs:
       uses: dequelabs/axe-api-team-public/.github/actions/has-auto-releasable-commits-v1@main
       id: has_releasable_commits
       with:
-        commits: ${{ steps.generate_commit_list.outputs.commit_list }}
+        commits: '${{ steps.generate_commit_list.outputs.commit-list }}'
         version-locked: ${{ inputs.version-locked }}
 
     - name: Run prepare_release shell script
