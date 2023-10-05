@@ -106,7 +106,6 @@ runs:
           echo "This PR was opened by a robot :robot: :tada:" >> /tmp/pr.txt
 
           hub pull-request --file /tmp/pr.txt --base release
-
       env:
         GITHUB_TOKEN: ${{ inputs.token }}
 
