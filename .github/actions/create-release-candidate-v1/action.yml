@@ -102,21 +102,6 @@ runs:
       run: |
         echo "release-date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
 
-    - name: Save release notes
-      if: ${{ !steps.is_release_in_progress.outputs.in_progress }} && ${{ steps.has_releasable_commits.outputs.should_release }}
-      shell: bash
-      id: save_release_notes
-      run: |
-        releaseNotes=$(
-           git show \
-            --no-color \
-            --no-prefix \
-            --output-indicator-new=! CHANGELOG.md | egrep '^!' | awk -F'^[!]' '{print $2}' | sed -e 's/\n/$0A/g'
-        )
-
-        # Save release notes to file
-        echo "release-notes='$releaseNotes'" >> $GITHUB_OUTPUT
-
     # https://github.com/dequelabs/axe-core-npm/blob/62fd241fb3748ca8ce4adb30d7976947ccaa18ee/.github/workflows/create-release.yml#L32-L57
     - name: Create pull request
       if: ${{ !steps.is_release_in_progress.outputs.in_progress }} && ${{ steps.has_releasable_commits.outputs.should_release }}
@@ -129,7 +114,13 @@ runs:
         branch: release-${{ steps.get_release_date.outputs.release-date }}
         base: release
         title: 'chore: release v${{ steps.prepare_release.outputs.version }}'
-        body: ${{ steps.save_release_notes.outputs.release-notes }}
+        body: |
+          $(
+           git show \
+            --no-color \
+            --no-prefix \
+            --output-indicator-new=! CHANGELOG.md | egrep '^!' | awk -F'^[!]' '{print $2}' | sed -e 's/\n/$0A/g'
+          )
         # If there are any changes not already committed, they will be added to
         # a commit with this as the message.
         # If there are no changes no commit will be created.
