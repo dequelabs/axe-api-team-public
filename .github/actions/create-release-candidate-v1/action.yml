@@ -76,62 +76,39 @@ runs:
           echo "version=$(cat package.json | jq -r '.version')" >> $GITHUB_OUTPUT
         fi
 
-    - name: Get current date
-      shell: bash
-      id: get_date
-      run: echo "date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
+      # TODO: might be related to the PR outage, getting hub not found, even thought it was working yday?
+      # - name: Create RC pull request
+      #   if: ${{ !steps.is_release_in_progress.outputs.in_progress }} && ${{ steps.has_releasable_commits.outputs.should_release }}
+      #   shell: bash
+      #   id: create_pull_request
+      #   run: |
+      #     Branch="release-$(date +%Y-%m-%d)"
+      #       echo "Branch: $Branch"
 
-    # - name: Create pull request
-    #   if: ${{ !steps.is_release_in_progress.outputs.in_progress }} && ${{ steps.has_releasable_commits.outputs.should_release }}
+      #       git config user.name "API Team CI User"
+      #       git config user.email "aciattestteamci@deque.com"
+      #       git checkout -b "$Branch"
+      #       git add .
+      #       git commit -m "chore: RC v${{ steps.prepare_release.outputs.version }}"
+      #       git push --follow-tags origin "$Branch" --force
 
-    #   uses: peter-evans/create-pull-request@v3
-    #   id: create_pull_request
-    #   with:
-    #     token: ${{ inputs.token }}
-    #     title: 'chore: RC v${{ steps.prepare_release.outputs.version }}'
-    #     commit-message: 'chore: RC v${{ steps.prepare_release.outputs.version }}'
-    #     branch: 'release-${{ steps.get_date.outputs.date }}'
-    #     base: release
-    #     body: |
-    #       $(
-    #         git show \
-    #           --no-color \
-    #           --no-prefix \
-    #           --output-indicator-new=! CHANGELOG.md | egrep '^!' | awk -F'^[!]' '{print $2}' | sed -e 's/\n/$0A/g'
-    #       )
+      #       # Stolen from <private deque repo>
+      #       ReleaseNotes=$(
+      #         git show \
+      #           --no-color \
+      #           --no-prefix \
+      #           --output-indicator-new=! CHANGELOG.md | egrep '^!' | awk -F'^[!]' '{print $2}' | sed -e 's/\n/$0A/g'
+      #       )
 
-    - name: Create RC pull request
-      if: ${{ !steps.is_release_in_progress.outputs.in_progress }} && ${{ steps.has_releasable_commits.outputs.should_release }}
-      shell: bash
-      id: create_pull_request
-      run: |
-        Branch="release-$(date +%Y-%m-%d)"
-          echo "Branch: $Branch"
+      #       echo "chore: RC v${{ steps.prepare_release.outputs.version }}" > /tmp/pr.txt
+      #       echo "" >> /tmp/pr.txt
+      #       echo "$ReleaseNotes" >> /tmp/pr.txt
+      #       echo "" >> /tmp/pr.txt
+      #       echo "This PR was opened by a robot :robot: :tada:" >> /tmp/pr.txt
 
-          git config user.name "API Team CI User"
-          git config user.email "aciattestteamci@deque.com"
-          git checkout -b "$Branch"
-          git add .
-          git commit -m "chore: RC v${{ steps.prepare_release.outputs.version }}"
-          git push --follow-tags origin "$Branch" --force
-
-          # Stolen from <private deque repo>
-          ReleaseNotes=$(
-            git show \
-              --no-color \
-              --no-prefix \
-              --output-indicator-new=! CHANGELOG.md | egrep '^!' | awk -F'^[!]' '{print $2}' | sed -e 's/\n/$0A/g'
-          )
-
-          echo "chore: RC v${{ steps.prepare_release.outputs.version }}" > /tmp/pr.txt
-          echo "" >> /tmp/pr.txt
-          echo "$ReleaseNotes" >> /tmp/pr.txt
-          echo "" >> /tmp/pr.txt
-          echo "This PR was opened by a robot :robot: :tada:" >> /tmp/pr.txt
-
-          hub pull-request --file /tmp/pr.txt --base release
-      env:
-        GITHUB_TOKEN: ${{ inputs.token }}
+      #       hub pull-request --file /tmp/pr.txt --base release
+      # env:
+      #   GITHUB_TOKEN: ${{ inputs.token }}
 
     - name: Create release notes issue
       if: ${{ inputs.docs-repo }} != 'null' && ${{ !steps.is_release_in_progress.outputs.in_progress }}  && ${{ steps.has_releasable_commits.outputs.should_release }}
