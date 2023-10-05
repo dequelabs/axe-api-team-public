@@ -74,21 +74,10 @@ runs:
         # Monorepos have a lerna.json file that contains the updated version number
         # Non-monorepos, or non-npm repos, have a package.json file that contains the updated version number
         if [ -f "lerna.json" ]; then
-          #TODO: prove Jennn wrong
           echo "version=$(cat lerna.json | jq -r '.version')" >> $GITHUB_OUTPUT
         else
           echo "version=$(cat package.json | jq -r '.version')" >> $GITHUB_OUTPUT
         fi
-
-        # Stolen from <private deque repo>
-        ReleaseNotes=$(
-          git show \
-            --no-color \
-            --no-prefix \
-            --output-indicator-new=! CHANGELOG.md | egrep '^!' | awk -F'^[!]' '{print $2}' | sed -e 's/\n/$0A/g'
-        )
-
-        echo "release_notes=$ReleaseNotes" >> $GITHUB_OUTPUT
 
     # https://github.com/dequelabs/axe-core-npm/blob/62fd241fb3748ca8ce4adb30d7976947ccaa18ee/.github/workflows/create-release.yml#L32-L57
     - name: Create release commit
@@ -98,6 +87,7 @@ runs:
         git config user.email "aciattestteamci@deque.com"
         git commit -am "chore: release v${{ steps.get-new-version.outputs.version }}"
 
+    # https://github.com/dequelabs/axe-core-npm/blob/62fd241fb3748ca8ce4adb30d7976947ccaa18ee/.github/workflows/create-release.yml#L32-L57
     # create-pull-request has no way of setting the target branch that won't also
     # get rid of all commits (aside from the release commit).
     # So, we have to be on master and manually grab all the changes.
@@ -109,15 +99,16 @@ runs:
         git checkout ${{inputs.master-branch }}
         git reset --hard "$commitHash"
 
+    # https://github.com/dequelabs/axe-core-npm/blob/62fd241fb3748ca8ce4adb30d7976947ccaa18ee/.github/workflows/create-release.yml#L32-L57
     - name: Create pull request
       # Last commit on v5 tag: https://github.com/peter-evans/create-pull-request/commit/153407881ec5c347639a548ade7d8ad1d6740e38
       uses: peter-evans/create-pull-request@153407881ec5c347639a548ade7d8ad1d6740e38
       id: create_pull_request
       with:
         token: ${{ inputs.token }}
-        branch: ${{ inputs.head }}
+        branch: release
         branch-suffix: timestamp
-        base: ${{ inputs.base }}
+        base: release
         title: 'chore: release v${{ steps.prepare_release.outputs.version }}'
         body: ${{ steps.prepare_release.outputs.release_notes }}
         # If there are any changes not already committed, they will be added to
