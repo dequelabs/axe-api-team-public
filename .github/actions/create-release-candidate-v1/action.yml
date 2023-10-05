@@ -102,8 +102,8 @@ runs:
       id: create_pull_request
       with:
         token: ${{ inputs.token }}
-        branch: release
-        branch-suffix: timestamp
+        # append the DD-MM-YYYY timestamp to the release branch name
+        branch: release-$(date +%d-%m-%Y)
         base: release
         title: 'chore: release v${{ steps.prepare_release.outputs.version }}'
         body: |
