@@ -112,7 +112,7 @@ runs:
           git config user.email "aciattestteamci@deque.com"
           git checkout -b "$Branch"
           git add .
-          git commit -m "chore: RC v${{ steps.prepare_release.outputs.version }}}}"
+          git commit -m "chore: RC v${{ steps.prepare_release.outputs.version }}"
           git push --follow-tags origin "$Branch" --force
 
           # Stolen from <private deque repo>
