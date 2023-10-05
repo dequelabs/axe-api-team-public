@@ -95,22 +95,6 @@ runs:
         git checkout release
         git reset --hard "$commitHash"
 
-    - name: Release notes
-      shell: bash
-      id: release_notes
-      if: ${{ inputs.docs-repo }} != 'null' && ${{ !steps.is_release_in_progress.outputs.in_progress }} && ${{ steps.has_releasable_commits.outputs.should_release }}
-      run: |
-        # Stolen from <private deque repo>
-        ReleaseNotes=$(
-          git show \
-            --no-color \
-            --no-prefix \
-            --output-indicator-new=! CHANGELOG.md | egrep '^!' | awk -F'^[!]' '{print $2}' | sed -e 's/\n/$0A/g'
-        )
-
-        # Save the release notes to output be called in the next steps
-        echo "release-notes=$ReleaseNotes" >> $GITHUB_OUTPUT
-
     # https://github.com/dequelabs/axe-core-npm/blob/62fd241fb3748ca8ce4adb30d7976947ccaa18ee/.github/workflows/create-release.yml#L32-L57
     - name: Create pull request
       # Last commit on v5 tag: https://github.com/peter-evans/create-pull-request/commit/153407881ec5c347639a548ade7d8ad1d6740e38
@@ -122,7 +106,13 @@ runs:
         branch-suffix: timestamp
         base: release
         title: 'chore: release v${{ steps.prepare_release.outputs.version }}'
-        body: ${{ steps.release_notes.outputs.release-notes }}}
+        body: |
+          $(
+          git show \
+            --no-color \
+            --no-prefix \
+            --output-indicator-new=! CHANGELOG.md | egrep '^!' | awk -F'^[!]' '{print $2}' | sed -e 's/\n/$0A/g'
+          )
         # If there are any changes not already committed, they will be added to
         # a commit with this as the message.
         # If there are no changes no commit will be created.
@@ -143,8 +133,6 @@ runs:
           PR: ${{ steps.create_pull_request.outputs.pull-request-url }}
 
           Release Notes are needed for ${{ github.repository }} v${{ steps.prepare_release.outputs.version }}. Please make sure this issue is closed when the PR is merged.
-
-          ${{ steps.release_notes.outputs.release-notes }}
 
     - name: Create release issue
       if: ${{ !steps.is_release_in_progress.outputs.in_progress }} && ${{ steps.has_releasable_commits.outputs.should_release }}
