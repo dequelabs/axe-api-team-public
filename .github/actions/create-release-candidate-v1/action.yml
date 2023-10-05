@@ -77,23 +77,11 @@ runs:
 
     # https://github.com/dequelabs/axe-core-npm/blob/62fd241fb3748ca8ce4adb30d7976947ccaa18ee/.github/workflows/create-release.yml#L32-L57
     - name: Create release commit
+      id: master_branch
       shell: bash
       run: |
         git config user.name "API Team CI User"
         git config user.email "aciattestteamci@deque.com"
-        git commit -am "chore: release v${{ steps.get-new-version.outputs.version }}"
-
-    # https://github.com/dequelabs/axe-core-npm/blob/62fd241fb3748ca8ce4adb30d7976947ccaa18ee/.github/workflows/create-release.yml#L32-L57
-    # create-pull-request has no way of setting the target branch that won't also
-    # get rid of all commits (aside from the release commit).
-    # So, we have to be on master and manually grab all the changes.
-    # We do that by just telling git "master is now develop (+ the release commit)".
-    - name: Update local master from develop
-      id: master_branch
-      shell: bash
-      run: |
-        commitHash="$(git log -1 --format='%H')"
-        doesMainExist=$(git branch | grep "main")
         if [ -z "$doesMainExist" ]
         then
           git checkout master
@@ -101,10 +89,22 @@ runs:
           git checkout main
         fi
 
-        git reset --hard "$commitHash"
-
+        git commit -am "chore: release v${{ steps.prepare_release.outputs.version }}"
         # Send the master branch name to output so we can access it in the next step
         echo "master-branch=$(git branch --show-current)" >> $GITHUB_OUTPUT
+
+    # https://github.com/dequelabs/axe-core-npm/blob/62fd241fb3748ca8ce4adb30d7976947ccaa18ee/.github/workflows/create-release.yml#L32-L57
+    # create-pull-request has no way of setting the target branch that won't also
+    # get rid of all commits (aside from the release commit).
+    # So, we have to be on master and manually grab all the changes.
+    # We do that by just telling git "master is now develop (+ the release commit)".
+    - name: Update local master from develop
+      shell: bash
+      run: |
+        commitHash="$(git log -1 --format='%H')"
+        doesMainExist=$(git branch | grep "main")
+
+        git reset --hard "$commitHash"
 
     - name: Release notes
       shell: bash
