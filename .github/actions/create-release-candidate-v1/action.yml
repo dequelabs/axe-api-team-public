@@ -108,7 +108,7 @@ runs:
         token: ${{ inputs.token }}
         branch: release
         branch-suffix: timestamp
-        base: release
+        base: ${{ inputs.master-branch }}
         title: 'chore: release v${{ steps.prepare_release.outputs.version }}'
         body: ${{ steps.prepare_release.outputs.release_notes }}
         # If there are any changes not already committed, they will be added to
