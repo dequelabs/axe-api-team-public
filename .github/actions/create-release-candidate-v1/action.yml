@@ -105,12 +105,8 @@ runs:
           echo "" >> /tmp/pr.txt
           echo "This PR was opened by a robot :robot: :tada:" >> /tmp/pr.txt
 
-          # hub pull-request --file /tmp/pr.txt --base release
-          
-          # Create the pull request via hub and get the URL to set as an output
-          pullRequestURL=`hub pull-request --file /tmp/pr.txt --base release`
+          hub pull-request --file /tmp/pr.txt --base release
 
-          echo "pull-request-url=$pullRequestURL" >> $GITHUB_OUTPUT
       env:
         GITHUB_TOKEN: ${{ inputs.token }}
 
