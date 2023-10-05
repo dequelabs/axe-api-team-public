@@ -149,7 +149,7 @@ describe('run', () => {
         setFailed
       }
 
-      await run(core as unknown as Core, {} as any)
+      await run(core as unknown as Core, {} as unknown as Github)
 
       assert.isTrue(setFailed.calledOnce)
       assert.isTrue(setFailed.calledWith('`project-number` must be a number'))
@@ -380,7 +380,7 @@ describe('run', () => {
         setFailed
       }
 
-      await run(core as unknown as Core, {} as any)
+      await run(core as unknown as Core, {} as unknown as Github)
 
       assert.isTrue(setFailed.calledOnce)
       assert.isTrue(
