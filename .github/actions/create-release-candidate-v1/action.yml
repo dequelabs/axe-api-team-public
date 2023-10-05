@@ -101,9 +101,10 @@ runs:
           git checkout main
         fi
 
+        git reset --hard "$commitHash"
+
         # Send the master branch name to output so we can access it in the next step
         echo "master-branch=$(git branch --show-current)" >> $GITHUB_OUTPUT
-        git reset --hard "$commitHash"
 
     - name: Release notes
       shell: bash
