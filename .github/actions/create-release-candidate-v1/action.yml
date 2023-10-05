@@ -89,26 +89,11 @@ runs:
     # So, we have to be on master and manually grab all the changes.
     # We do that by just telling git "master is now develop (+ the release commit)".
     - name: Update local master from develop
-      id: master_branch
       shell: bash
       run: |
         commitHash="$(git log -1 --format='%H')"
-        # grep main and remove whitespace
-        doesMainExist=$(git branch -a | grep main)
-
-        echo "What is this value: $doesMainExist"
-
-        if [ -z "$doesMainExist" ]
-        then
-          git checkout master
-        else
-          git checkout main
-        fi
-
+        git checkout release
         git reset --hard "$commitHash"
-
-        # Send the master branch name to output so we can access it in the next step
-        echo "master-branch=$(git branch --show-current)" >> $GITHUB_OUTPUT
 
     - name: Release notes
       shell: bash
@@ -135,7 +120,7 @@ runs:
         token: ${{ inputs.token }}
         branch: release
         branch-suffix: timestamp
-        base: ${{ steps.master_branch.outputs.master-branch }}
+        base: release
         title: 'chore: release v${{ steps.prepare_release.outputs.version }}'
         body: ${{ steps.release_notes.outputs.release-notes }}}
         # If there are any changes not already committed, they will be added to
