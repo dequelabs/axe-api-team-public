@@ -42,7 +42,7 @@ runs:
       uses: dacbd/create-issue-action@ba4d1c45cccf9c483f2720cefb40e437f0ee6f7d
       id: create_issue
       with:
-        token: ${{ github.token }}
+        token: ${{ inputs.token }}
         title: ${{ inputs.title }}
         body: ${{ inputs.body }}
         repo: ${{ inputs.repo }}
