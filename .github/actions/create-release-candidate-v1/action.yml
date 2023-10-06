@@ -207,4 +207,13 @@ runs:
         project-number: '103'
         column-name: 'RC Created'
 
-    #TODO: Add slack because i want to test this thing
+    - name: Slack Notification
+      # https://github.com/rtCamp/action-slack-notify/commit/b24d75fe0e728a4bf9fc42ee217caa686d141ee8
+      uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7
+      env:
+        SLACK_CHANNEL: api-team-releases
+        SLACK_COLOR: ${{ job.status }}
+        SLACK_TITLE: '${{ github.event.repository.name }} v${{ steps.prepare_release.outputs.version }} QA NEEDED'
+        SLACK_MESSAGE: ${{ steps.create_release_issue.outputs.issue_url }}
+        SLACK_WEBHOOK: ${{ inputs.slack_webhook }}
+        MSG_MINIMAL: true
