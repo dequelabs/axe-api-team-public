@@ -1,5 +1,6 @@
 name: create-release-candidate
-description: 'A GitHub Action to create a new release candidate'
+description: 'A GitHub Action to create a release candidate'
+
 inputs:
   token:
     description: 'A GitHub token used for octokit and GH CLI with the required permissions'
@@ -10,20 +11,21 @@ inputs:
   head:
     description: 'The branch that contains the changes you want to merge'
     required: true
-  version-locked:
-    description: 'Whether or not the version should be locked to axe-core'
-    default: 'false'
-    required: true
   shell-script:
-    description: 'The location of the shell script that creates the changelogs and version bumps'
+    description: 'The location of the `prepare_release.sh` shell script that creates the changelogs and version bumps'
     required: true
   slack-webhook:
     description: 'The Slack webhook to use for notifications'
     required: true
+  version-locked:
+    description: 'Whether or not the version should be locked to axe-core'
+    default: 'false'
+    required: false
   docs-repo:
-    description: 'The name of the repo where the release notes for the repo running this action live'
+    description: 'The name of the repo where the release notes live'
     default: 'null'
     required: false
+
 runs:
   using: 'composite'
   steps:
@@ -219,4 +221,4 @@ runs:
         SLACK_TITLE: '${{ github.event.repository.name }} v${{ steps.prepare_release.outputs.version }} QA NEEDED'
         SLACK_MESSAGE: ${{ steps.create_release_issue.outputs.issue_url }}
         SLACK_WEBHOOK: ${{ inputs.slack-webhook }}
-        MSG_MINIMAL: true
+        MSG_MINIMAL: 'true'
