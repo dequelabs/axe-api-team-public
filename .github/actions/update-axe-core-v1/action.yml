@@ -1,0 +1,5 @@
+name: 'Update axe-core'
+description: 'A GitHub action for updating axe-core to the latest stable version'
+runs:
+  using: 'node20'
+  main: 'dist/index.js'

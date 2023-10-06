@@ -35,6 +35,7 @@
     "conventional-commits-parser": "^5.0.0",
     "dedent": "^1.5.1",
     "eslint": "^8.27.0",
+    "glob": "^10.3.10",
     "husky": "^8.0.2",
     "lint-staged": "^13.0.3",
     "mocha": "^10.1.0",
