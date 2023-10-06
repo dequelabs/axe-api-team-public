@@ -1,5 +1,6 @@
 name: create-project-issue
 description: 'A GitHub Action to create a new issue and move the issue to a specific column on a project board'
+
 inputs:
   token:
     description: 'The GitHub token to use for authentication'
@@ -33,6 +34,13 @@ inputs:
     description: 'The column name to create the issue in'
     default: 'Backlog'
     required: false
+
+# Allows other actions to use the output of the composite action
+outputs:
+  issue_url:
+    description: 'The URL of the issue that was created'
+    value: ${{ steps.create_issue.outputs.html_url }}
+
 runs:
   using: 'composite'
   steps:
