@@ -37,7 +37,7 @@ runs:
         github-token: ${{ inputs.token }}
 
     - name: Generate commit list
-      if: ${{ !steps.is_release_in_progress.outputs.in_progress }}
+      if: steps.is_release_in_progress.outputs.in_progress == 'false'
       uses: dequelabs/axe-api-team-public/.github/actions/generate-commit-list-v1@main
       id: generate_commit_list
       with:
@@ -45,7 +45,7 @@ runs:
         head: ${{ inputs.head }}
 
     - name: Has releasable commits
-      if: ${{ !steps.is_release_in_progress.outputs.in_progress }}
+      if: steps.is_release_in_progress.outputs.in_progress == 'false'
       uses: dequelabs/axe-api-team-public/.github/actions/has-auto-releasable-commits-v1@main
       id: has_releasable_commits
       with:
@@ -54,7 +54,7 @@ runs:
 
     - name: Run prepare_release shell script
       shell: bash
-      if: ${{ !steps.is_release_in_progress.outputs.in_progress }} && ${{ steps.has_releasable_commits.outputs.should_release }}
+      if: steps.is_release_in_progress.outputs.in_progress == 'false' && steps.has_releasable_commits.outputs.should_release == 'true'
       id: prepare_release
       run: |
         if [ "${{ inputs.version-locked }}" = "true" ]
@@ -77,6 +77,7 @@ runs:
 
     # https://github.com/dequelabs/axe-core-npm/blob/62fd241fb3748ca8ce4adb30d7976947ccaa18ee/.github/workflows/create-release.yml#L32-L57
     - name: Create release commit
+      if: steps.is_release_in_progress.outputs.in_progress == 'false' && steps.has_releasable_commits.outputs.should_release == 'true'
       shell: bash
       run: |
         git config user.name "API Team CI User"
@@ -89,45 +90,45 @@ runs:
     # So, we have to be on master and manually grab all the changes.
     # We do that by just telling git "master is now develop (+ the release commit)".
     - name: Update local master from develop
+      if: steps.is_release_in_progress.outputs.in_progress == 'false' && steps.has_releasable_commits.outputs.should_release == 'true'
       shell: bash
       run: |
         commitHash="$(git log -1 --format='%H')"
         git checkout release
         git reset --hard "$commitHash"
 
-    - name: Get release date
-      if: ${{ !steps.is_release_in_progress.outputs.in_progress }} && ${{ steps.has_releasable_commits.outputs.should_release }}
+    - name: Get release date and changelog
+      if: steps.is_release_in_progress.outputs.in_progress == 'false' && steps.has_releasable_commits.outputs.should_release == 'true'
       shell: bash
-      id: get_release_date
+      id: get_release_info
       run: |
+        echo "release-notes=$(
+            git show \
+            --no-color \
+            --no-prefix \
+            --output-indicator-new=! CHANGELOG.md | egrep '^!' | awk -F'^[!]' '{print $2}' | sed -e 's/\n/$0A/g'
+          )" >> $GITHUB_OUTPUT
         echo "release-date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
 
     # https://github.com/dequelabs/axe-core-npm/blob/62fd241fb3748ca8ce4adb30d7976947ccaa18ee/.github/workflows/create-release.yml#L32-L57
     - name: Create pull request
-      if: ${{ !steps.is_release_in_progress.outputs.in_progress }} && ${{ steps.has_releasable_commits.outputs.should_release }}
+      if: steps.is_release_in_progress.outputs.in_progress == 'false' && steps.has_releasable_commits.outputs.should_release == 'true'
       # Last commit on v5 tag: https://github.com/peter-evans/create-pull-request/commit/153407881ec5c347639a548ade7d8ad1d6740e38
       uses: peter-evans/create-pull-request@153407881ec5c347639a548ade7d8ad1d6740e38
       id: create_pull_request
       with:
         token: ${{ inputs.token }}
-        # append the DD-MM-YYYY timestamp to the release branch name
-        branch: release-${{ steps.get_release_date.outputs.release-date }}
+        branch: release-${{ steps.get_release_info.outputs.release-date }}
         base: release
         title: 'chore: release v${{ steps.prepare_release.outputs.version }}'
-        body: |
-          $(
-           git show \
-            --no-color \
-            --no-prefix \
-            --output-indicator-new=! CHANGELOG.md | egrep '^!' | awk -F'^[!]' '{print $2}' | sed -e 's/\n/$0A/g'
-          )
+        body: ${{ steps.get_release_info.outputs.release-notes }}
         # If there are any changes not already committed, they will be added to
         # a commit with this as the message.
         # If there are no changes no commit will be created.
         commit-message: 'chore: applying release changes'
 
     - name: Create release notes issue
-      if: ${{ inputs.docs-repo }} != 'null' && ${{ !steps.is_release_in_progress.outputs.in_progress }}  && ${{ steps.has_releasable_commits.outputs.should_release }}
+      if: inputs.docs-repo != 'null' && steps.is_release_in_progress.outputs.in_progress == 'false' && steps.has_releasable_commits.outputs.should_release == 'true'
       uses: dequelabs/axe-api-team-public/.github/actions/create-project-issue-v1@main
       id: create_release_notes_issue
       with:
@@ -143,7 +144,7 @@ runs:
           Release Notes are needed for ${{ github.repository }} v${{ steps.prepare_release.outputs.version }}. Please make sure this issue is closed when the PR is merged.
 
     - name: Create release issue
-      if: ${{ !steps.is_release_in_progress.outputs.in_progress }} && ${{ steps.has_releasable_commits.outputs.should_release }}
+      if: steps.is_release_in_progress.outputs.in_progress == 'false' && steps.has_releasable_commits.outputs.should_release == 'true'
       uses: dequelabs/axe-api-team-public/.github/actions/create-project-issue-v1@main
       id: create_release_issue
       with:
@@ -185,17 +186,16 @@ runs:
 
           ## Additional Steps Release Notes
           - [ ] RELEASE NOTES NOT NEEDED
-          - [ ] Ticket created for release notes: ${{ steps.create_release_notes_issue.outputs.html_url }}
+          - [ ] Ticket created for release notes: ${{ steps.create_release_notes_issue.outputs.issue_url }}
           - [ ] Release notes reviewed
           - [ ] Release notes published 
           - [ ] Release notes: (public URL)
-          ```
 
     - name: Add release issue to release project board
-      if: ${{ steps.create_pull_request.outputs.pull-request-url }}
+      if: steps.create_release_issue.outputs.issue_url != 'null'
       uses: dequelabs/axe-api-team-public/.github/actions/add-to-board-v1@main
       with:
-        issue-urls: ${{ steps.create_release_issue.outputs.html_url }}
+        issue-urls: ${{ steps.create_release_issue.outputs.issue_url }}
         project-number: '103'
         column-name: 'RC Created'
 
