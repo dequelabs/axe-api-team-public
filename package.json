@@ -16,7 +16,9 @@
     "./.github/actions/*"
   ],
   "scripts": {
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "build": "npm --workspaces run build",
+    "test": "npm --workspaces run test"
   },
   "devDependencies": {
     "@actions/core": "^1.10.0",

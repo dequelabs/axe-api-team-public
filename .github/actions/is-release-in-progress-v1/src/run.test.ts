@@ -5,7 +5,7 @@ import type { Core, Github } from './types'
 import {
   BUG_PULL_REQUEST,
   RELEASE_PULL_REQUEST
-} from './is-release-in-progress.test'
+} from './isReleaseInProgress.test'
 import run from './run'
 
 const testCases = [

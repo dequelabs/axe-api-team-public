@@ -9648,7 +9648,7 @@ const run_1 = __importDefault(__nccwpck_require__(1738));
 
 /***/ }),
 
-/***/ 1093:
+/***/ 6592:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -9677,12 +9677,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const is_valid_footer_1 = __importDefault(__nccwpck_require__(1093));
+const isValidFooter_1 = __importDefault(__nccwpck_require__(6592));
 function run(core, payload) {
     try {
-        const body = payload &&
-            payload.pull_request &&
-            payload.pull_request.body;
+        const body = payload && payload.pull_request && payload.pull_request.body;
         if (!body) {
             core.setFailed('PR does not have a body');
             return;
@@ -9690,7 +9688,7 @@ function run(core, payload) {
         const bodyLines = body.split(/[\r\n]+/);
         const footer = bodyLines[bodyLines.length - 1];
         core.info(`Validating PR footer: "${footer}"`);
-        if (!(0, is_valid_footer_1.default)(footer)) {
+        if (!(0, isValidFooter_1.default)(footer)) {
             core.setFailed('PR footer does not close an issue (`Closes: `), reference an issue (`Ref: ` or `Refs: `), provide QA notes (`QA notes: `), or state that no QA is needed (`No QA needed` or `No QA required`)');
             return;
         }

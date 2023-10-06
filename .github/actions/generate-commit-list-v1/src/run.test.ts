@@ -7,7 +7,7 @@ import {
   expectedParsedCommitList,
   rawCommitList,
   expectedRepository
-} from './test-utils'
+} from './testUtils'
 
 describe('run', () => {
   let setFailed: sinon.SinonSpy

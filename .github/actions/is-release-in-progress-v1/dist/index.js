@@ -9671,7 +9671,7 @@ const run_1 = __importDefault(__nccwpck_require__(1738));
 
 /***/ }),
 
-/***/ 2116:
+/***/ 7433:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -9694,7 +9694,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const is_release_in_progress_1 = __importDefault(__nccwpck_require__(2116));
+const isReleaseInProgress_1 = __importDefault(__nccwpck_require__(7433));
 async function run(core, github) {
     try {
         const githubToken = core.getInput('github-token', { required: true });
@@ -9703,7 +9703,7 @@ async function run(core, github) {
             ...github.context.repo,
             state: 'open'
         });
-        const result = (0, is_release_in_progress_1.default)(pullRequests);
+        const result = (0, isReleaseInProgress_1.default)(pullRequests);
         core.setOutput('is-release-in-progress', result);
         core.info(`Set is-release-in-progress output: ${result}`);
     }
