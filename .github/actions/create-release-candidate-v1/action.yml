@@ -218,5 +218,5 @@ runs:
         SLACK_COLOR: ${{ job.status }}
         SLACK_TITLE: '${{ github.event.repository.name }} v${{ steps.prepare_release.outputs.version }} QA NEEDED'
         SLACK_MESSAGE: ${{ steps.create_release_issue.outputs.issue_url }}
-        SLACK_WEBHOOK: ${{ inputs.slack_webhook }}
+        SLACK_WEBHOOK: ${{ inputs.slack-webhook }}
         MSG_MINIMAL: true
