@@ -1,7 +1,7 @@
 import { assert } from 'chai'
-import isValidFooter from './is-valid-footer'
+import isValidFooter from './isValidFooter'
 
-describe('is-valid-footer', () => {
+describe('isValidFooter', () => {
   it('returns true for "Closes: "', () => {
     assert.isTrue(isValidFooter('Closes: '))
   })

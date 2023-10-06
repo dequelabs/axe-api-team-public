@@ -1,5 +1,5 @@
 import type { Core, Github, PullRequest } from './types'
-import isReleaseInProgress from './is-release-in-progress'
+import isReleaseInProgress from './isReleaseInProgress'
 
 export default async function run(core: Core, github: Github) {
   try {
