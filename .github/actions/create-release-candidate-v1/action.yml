@@ -17,6 +17,9 @@ inputs:
   shell-script:
     description: 'The location of the shell script that creates the changelogs and version bumps'
     required: true
+  slack-webhook:
+    description: 'The Slack webhook to use for notifications'
+    required: true
   docs-repo:
     description: 'The name of the repo where the release notes for the repo running this action live'
     default: 'null'
