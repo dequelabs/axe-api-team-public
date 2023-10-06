@@ -107,13 +107,16 @@ runs:
     - name: Get release notes
       if: ${{ !steps.is_release_in_progress.outputs.in_progress }} && ${{ steps.has_releasable_commits.outputs.should_release }}
       shell: bash
-      id: get_release_notes
       run: |
-        # Save the output of the release notes to GITHUB_WORKSPACE 
-        git show --no-color --no-prefix --output-indicator-new=! CHANGELOG.md | egrep '^!' | awk -F'^[!]' '{print $2}' | sed -e 's/\n/$0A/g' > $GITHUB_WORKSPACE/output.txt
-
-        # Save the output of the release notes to GITHUB_OUTPUT
-        echo "release-notes=$(cat $GITHUB_WORKSPACE/output.txt)" >> $GITHUB_OUTPUT
+        # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#example-of-a-multiline-string
+        {
+          echo 'RELEASE_NOTES<<EOF'
+          git show \
+            --no-color \
+            --no-prefix \
+            --output-indicator-new=! CHANGELOG.md | egrep '^!' | awk -F'^[!]' '{print $2}' | sed -e 's/\n/$0A/g'
+          echo EOF
+        } >> $GITHUB_ENV
 
     # https://github.com/dequelabs/axe-core-npm/blob/62fd241fb3748ca8ce4adb30d7976947ccaa18ee/.github/workflows/create-release.yml#L32-L57
     - name: Create pull request
@@ -126,7 +129,7 @@ runs:
         branch: release-${{ steps.get_release_date.outputs.release-date }}
         base: release
         title: 'chore: release v${{ steps.prepare_release.outputs.version }}'
-        body: ${{ steps.get_release_notes.outputs.release-notes }}
+        body: ${{ env.RELEASE_NOTES }}
         # If there are any changes not already committed, they will be added to
         # a commit with this as the message.
         # If there are no changes no commit will be created.
