@@ -16,6 +16,12 @@ A GitHub Action to create a new issue and move the issue to a specific column on
 | `repo`           | The repository to create the issue in e.g. if the repository is under dequelabs/axe-core-npm, then supply "axe-core-npm"           | No       | `github.context.repo.repo`  |
 | `owner`          | The owner of the repository to create the issue in e.g. if the repository is under dequelabs/axe-core-npm, then supply "dequelabs" | No       | `github.context.repo.owner` |
 
+## Outputs
+
+| Name        | Description                  |
+| ----------- | ---------------------------- |
+| `issue_url` | The URL of the created issue |
+
 ## Example usage
 
 ```yaml

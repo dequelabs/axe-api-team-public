@@ -2,6 +2,7 @@ import 'mocha'
 import { assert } from 'chai'
 import sinon from 'sinon'
 import { getOctokit } from '@actions/github'
+import type { Endpoints } from '@octokit/types'
 import * as exec from '@actions/exec'
 import { Core, GitHub } from './types'
 import type { ParsedCommitList } from '../../generate-commit-list-v1/src/types'
@@ -26,7 +27,7 @@ const MOCK_LIST_LABELS = {
   description: "Something isn't working",
   color: 'f29513',
   default: true
-} as any
+} as unknown as Endpoints["GET /repos/{owner}/{repo}/labels"]["response"]
 
 const MOCK_CREATED_LABEL = {
   id: 208045946,
@@ -36,7 +37,7 @@ const MOCK_CREATED_LABEL = {
   description: 'release 1.0.0',
   color: 'f29513',
   default: true
-} as any
+} as unknown as Endpoints["POST /repos/{owner}/{repo}/labels"]["response"]
 
 const MOCK_PROJECT_BOARD_ID = {
   id: '123'
@@ -144,7 +145,7 @@ describe('run', () => {
     return sinon.stub(octokit.rest.issues, 'listLabelsForRepo').resolves({
       data: [mockResponse ?? MOCK_LIST_LABELS],
       status: 200
-    } as any)
+    } as Endpoints["GET /repos/{owner}/{repo}/labels"]["response"])
   }
 
   const createLabel = () => {
@@ -383,11 +384,15 @@ describe('run', () => {
           state: 'open'
         },
         status: 200
+      // these responses are very large and require every property, just casting as Endpoints["GET /repos/{owner}/{repo}/issues/{issue_number}"]["response"] doesn't satisfy the type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any)
       // updateIssue 1st call
       updateIssueStub.onFirstCall().resolves({
         data: {},
         status: 200
+      // these responses are very large and require every property, just casting as Endpoints["PATCH /repos/{owner}/{repo}/issues/{issue_number}"]["response"] doesn't satisfy the type
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } as any)
       // addLabels 1st call
       addLabsStub.onFirstCall().resolves({
@@ -395,7 +400,7 @@ describe('run', () => {
           labels: [MOCK_CREATED_LABEL],
           status: 200
         }
-      } as any)
+      } as unknown as Endpoints["POST /repos/{owner}/{repo}/issues/{issue_number}/labels"]["response"])
 
       return {
         graphqlStub,
