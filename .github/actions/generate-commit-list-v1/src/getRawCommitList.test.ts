@@ -2,7 +2,7 @@ import 'mocha'
 import { assert } from 'chai'
 import sinon from 'sinon'
 import * as exec from '@actions/exec'
-import { expectedRawCommitList, rawCommitList } from './test-utils'
+import { expectedRawCommitList, rawCommitList } from './testUtils'
 import getRawCommitList from './getRawCommitList'
 
 describe('getRawCommitList', () => {

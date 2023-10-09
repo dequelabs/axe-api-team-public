@@ -1,6 +1,6 @@
 import type core from '@actions/core'
 import type github from '@actions/github'
-import isValidFooter from './is-valid-footer'
+import isValidFooter from './isValidFooter'
 
 export type Core = Pick<typeof core, 'setFailed' | 'info'>
 
@@ -10,9 +10,7 @@ export default function run(
 ) {
   try {
     const body: string | undefined =
-      payload &&
-      payload.pull_request &&
-      payload.pull_request.body
+      payload && payload.pull_request && payload.pull_request.body
 
     if (!body) {
       core.setFailed('PR does not have a body')
