@@ -59,7 +59,7 @@ runs:
 
     - name: Cancel release if a release is already in progress or there are no releasable commits
       shell: bash
-      if: ${{ steps.is_release_in_progress.outputs.in_progress || !steps.has_releasable_commits.outputs.should_release }}
+      if: ${{ steps.is_release_in_progress.outputs.in_progress == 'true' || steps.has_releasable_commits.outputs.should_release == 'false' }}
       run: |
         echo "Release is in progress: ${{ steps.is_release_in_progress.outputs.in_progress }}"
         echo "Should release: ${{ steps.has_releasable_commits.outputs.should_release }}"
