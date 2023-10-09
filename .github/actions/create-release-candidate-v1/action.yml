@@ -11,7 +11,7 @@ inputs:
   head:
     description: 'The branch that contains the changes you want to merge'
     required: true
-  shell-script:
+  release-script-path:
     description: 'The location of the `prepare_release.sh` shell script that creates the changelogs and version bumps'
     required: true
   slack-webhook:
@@ -57,21 +57,30 @@ runs:
         commits: '${{ steps.generate_commit_list.outputs.commit-list }}'
         version-locked: ${{ inputs.version-locked }}
 
+    - name: Cancel release if a release is already in progress or there are no releasable commits
+      shell: bash
+      if: ${{ steps.is_release_in_progress.outputs.in_progress || !steps.has_releasable_commits.outputs.should_release }}
+      run: |
+        gh run cancel ${{ github.run_id }}
+        gh run watch ${{ github.run_id }}
+
     - name: Run prepare_release shell script
       shell: bash
-      if: ${{ !steps.is_release_in_progress.outputs.in_progress }} && ${{ steps.has_releasable_commits.outputs.should_release }}
       id: prepare_release
       run: |
         if [ "${{ inputs.version-locked }}" = "true" ]
         then
           # We will always release as patch if the version is locked to axe-core
-          bash ${{ inputs.shell-script }} patch
+          bash ${{ inputs.release-script-path }} patch
         else 
-          bash ${{ inputs.shell-script }}
+          bash ${{ inputs.release-script-path }}
         fi
 
+    - name: Get bumped version number
+      shell: bash
+      id: get_bumped_version_number
+      run: |
         # Get the version number from the prepare_release shell script and set it as an output
-
         # Monorepos have a lerna.json file that contains the updated version number
         # Non-monorepos, or non-npm repos, have a package.json file that contains the updated version number
         if [ -f "lerna.json" ]; then
@@ -82,12 +91,11 @@ runs:
 
     # https://github.com/dequelabs/axe-core-npm/blob/62fd241fb3748ca8ce4adb30d7976947ccaa18ee/.github/workflows/create-release.yml#L32-L57
     - name: Create release commit
-      if: ${{ !steps.is_release_in_progress.outputs.in_progress }} && ${{ steps.has_releasable_commits.outputs.should_release }}
       shell: bash
       run: |
         git config user.name "API Team CI User"
         git config user.email "aciattestteamci@deque.com"
-        git commit -am "chore: release v${{ steps.prepare_release.outputs.version }}"
+        git commit -am "chore: release v${{ steps.get_bumped_version_number.outputs.version }}"
 
     # https://github.com/dequelabs/axe-core-npm/blob/62fd241fb3748ca8ce4adb30d7976947ccaa18ee/.github/workflows/create-release.yml#L32-L57
     # create-pull-request has no way of setting the target branch that won't also
@@ -95,7 +103,6 @@ runs:
     # So, we have to be on master and manually grab all the changes.
     # We do that by just telling git "master is now develop (+ the release commit)".
     - name: Update local master from develop
-      if: ${{ !steps.is_release_in_progress.outputs.in_progress }} && ${{ steps.has_releasable_commits.outputs.should_release }}
       shell: bash
       run: |
         commitHash="$(git log -1 --format='%H')"
@@ -103,14 +110,12 @@ runs:
         git reset --hard "$commitHash"
 
     - name: Get release date
-      if: ${{ !steps.is_release_in_progress.outputs.in_progress }} && ${{ steps.has_releasable_commits.outputs.should_release }}
       shell: bash
       id: get_release_date
       run: |
         echo "release-date=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
 
     - name: Get release notes
-      if: ${{ !steps.is_release_in_progress.outputs.in_progress }} && ${{ steps.has_releasable_commits.outputs.should_release }}
       shell: bash
       run: |
         # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#example-of-a-multiline-string
@@ -125,7 +130,6 @@ runs:
 
     # https://github.com/dequelabs/axe-core-npm/blob/62fd241fb3748ca8ce4adb30d7976947ccaa18ee/.github/workflows/create-release.yml#L32-L57
     - name: Create pull request
-      if: ${{ !steps.is_release_in_progress.outputs.in_progress }} && ${{ steps.has_releasable_commits.outputs.should_release }}
       # Last commit on v5 tag: https://github.com/peter-evans/create-pull-request/commit/153407881ec5c347639a548ade7d8ad1d6740e38
       uses: peter-evans/create-pull-request@153407881ec5c347639a548ade7d8ad1d6740e38
       id: create_pull_request
@@ -133,7 +137,7 @@ runs:
         token: ${{ inputs.token }}
         branch: release-${{ steps.get_release_date.outputs.release-date }}
         base: release
-        title: 'chore: release v${{ steps.prepare_release.outputs.version }}'
+        title: 'chore: release v${{ steps.get_bumped_version_number.outputs.version }}'
         body: ${{ env.RELEASE_NOTES }}
         # If there are any changes not already committed, they will be added to
         # a commit with this as the message.
@@ -141,7 +145,7 @@ runs:
         commit-message: 'chore: applying release changes'
 
     - name: Create release notes issue
-      if: ${{inputs.docs-repo != 'null' }} && ${{ !steps.is_release_in_progress.outputs.in_progress }} && ${{ steps.has_releasable_commits.outputs.should_release }}
+      if: ${{ inputs.docs-repo != 'null' }}
       uses: dequelabs/axe-api-team-public/.github/actions/create-project-issue-v1@main
       id: create_release_notes_issue
       with:
@@ -150,27 +154,25 @@ runs:
         labels: 'PRIORITY: high,release'
         assignees: 'enlarsen'
         column_name: 'To Do'
-        title: '${{ github.repository }} v${{ steps.prepare_release.outputs.version }} - Release Notes Needed'
+        title: '${{ github.repository }} v${{ steps.get_bumped_version_number.outputs.version }} - Release Notes Needed'
         body: |
           PR: ${{ steps.create_pull_request.outputs.pull-request-url }}
 
-          Release Notes are needed for ${{ github.repository }} v${{ steps.prepare_release.outputs.version }}. Please make sure this issue is closed when the PR is merged.
+          Release Notes are needed for ${{ github.repository }} v${{ steps.get_bumped_version_number.outputs.version }}. Please make sure this issue is closed when the PR is merged.
 
     - name: Create release issue
-      if: ${{ !steps.is_release_in_progress.outputs.in_progress }} && ${{ steps.has_releasable_commits.outputs.should_release }}
       uses: dequelabs/axe-api-team-public/.github/actions/create-project-issue-v1@main
       id: create_release_issue
       with:
         token: ${{ inputs.token }}
         labels: 'PRIORITY: high,release'
         column_name: 'Ready for QA'
-        title: '${{ github.repository }} v${{ steps.prepare_release.outputs.version }}'
+        title: '${{ github.repository }} v${{ steps.get_bumped_version_number.outputs.version }}'
         body: |
-          Below is everything related to this release 
+          # Below is everything related to this release 
 
-          ### !!!!!!!!!! DEPENDENCIES / BLOCKERS !!!!!!!!!!
+          ## !!!!!!!!!! DEPENDENCIES / BLOCKERS !!!!!!!!!!
           (List anything blocking this RC from continuing here)
-          ### !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
           ```[tasklist]
           ### Links
@@ -205,7 +207,6 @@ runs:
           - [ ] Release notes: (public URL)
 
     - name: Add release issue to release project board
-      if: ${{ !steps.is_release_in_progress.outputs.in_progress }} && ${{ steps.has_releasable_commits.outputs.should_release }}
       uses: dequelabs/axe-api-team-public/.github/actions/add-to-board-v1@main
       with:
         issue-urls: ${{ steps.create_release_issue.outputs.issue_url }}
@@ -218,7 +219,7 @@ runs:
       env:
         SLACK_CHANNEL: api-team-releases
         SLACK_COLOR: ${{ job.status }}
-        SLACK_TITLE: '${{ github.event.repository.name }} v${{ steps.prepare_release.outputs.version }} QA NEEDED'
+        SLACK_TITLE: '${{ github.event.repository.name }} v${{ steps.get_bumped_version_number.outputs.version }} QA NEEDED'
         SLACK_MESSAGE: ${{ steps.create_release_issue.outputs.issue_url }}
         SLACK_WEBHOOK: ${{ inputs.slack-webhook }}
         MSG_MINIMAL: 'true'
