@@ -1,34 +1,43 @@
 import type { Core } from './types'
-import { glob } from 'glob'
+import { glob, type GlobOptions } from 'glob'
 import { getExecOutput } from '@actions/exec'
 import path from 'path'
 import type { getPackageManagerReturn } from './types'
 
 export default async function run(
   core: Core,
-  getPackageManager: (dirPath: string) => getPackageManagerReturn
+  getPackageManager: (dirPath: string) => getPackageManagerReturn,
+  cwd?: string
 ) {
   try {
     const { stdout: latestAxeCoveVersion } = await getExecOutput('npm', ['info', 'axe-core', 'version'])
     core.info(`latest axe-core version ${latestAxeCoveVersion}`)
 
-    // npm and yarn workspaces will have a lock file at the root of
-    // the project
+    // npm and yarn workspaces will have a lock file at the root
+    // of the project
     const rootPackageManager = await getPackageManager('./')
     core.info(`root package manager detected as ${rootPackageManager}`)
 
-    const packages = await glob('!node_modules/**/package.json')
+    const packages = await glob('**/package.json', {
+      absolute: true,
+      cwd,
+      ignore: '**/node_modules/**/package.json'
+    })
+    let installedAxeCoreVersion: string | null = null
+
     for (const filePath of packages) {
       core.info(`package.json found in ${filePath}`)
-      const pkg = await import(filePath)
+      const pkg = await import(filePath as string)
 
-      // no axe-core dependency
-      if (!pkg.dependencies?.['axe-core'] && !pkg.devDependencies?.['axe-core']) {
-        core.info('no axe-core dependency')
+      if (
+        !pkg.dependencies?.['axe-core'] &&
+        !pkg.devDependencies?.['axe-core']
+      ) {
+        core.info(`no axe-core dependency`)
         continue;
       }
 
-      const dirPath = path.dirname(filePath)
+      const dirPath = path.dirname(filePath as string)
       const packageManager = await getPackageManager(dirPath) ?? rootPackageManager ?? 'npm'
       core.info(`package specific package manager detected as ${packageManager}`)
 
@@ -38,15 +47,28 @@ export default async function run(
 
       const dependencyType = dependency === 'dependencies'
         ? ''
-        : ' -D'
-      let pinStrategy = pkg[dependency]['axe-core'].charAt(0)
+        : '-D'
+      const axeCoreVersion = pkg[dependency]['axe-core']
+      let pinStrategy = axeCoreVersion.charAt(0)
 
       // axe-core version was exactly pinned but not using "="
       if (pinStrategy.match(/\d/)) {
         pinStrategy = '='
       }
 
-      core.info(`current axe-core version ${pkg[dependency]['axe-core']}`)
+      core.info(`current axe-core version ${axeCoreVersion}`)
+
+      // we expect that all axe-core versions will be the same
+      // for every package
+      if (!installedAxeCoreVersion) {
+        installedAxeCoreVersion = axeCoreVersion.replace(/^[=^~]/,'')
+      }
+
+      if (installedAxeCoreVersion === latestAxeCoveVersion) {
+        core.info('axe-core version is currently at latest, no update required')
+        core.setOutput('commit-type', null)
+        return
+      }
 
       getExecOutput(packageManager, [
         packageManager === 'npm' ? 'i' : 'add',
@@ -55,6 +77,25 @@ export default async function run(
       ], {
         cwd: dirPath
       })
+    }
+
+    if (!installedAxeCoreVersion) {
+      core.info('no packages contain axe-core dependency')
+      core.setOutput('commit-type', null)
+      return
+    }
+
+    const [ installedMajor, installedMinor ] = installedAxeCoreVersion.split('.')
+    const [ latestMajor, latestMinor ] = latestAxeCoveVersion.split('.')
+
+    if (
+      installedMajor !== latestMajor ||
+      installedMinor !== latestMinor
+    ) {
+      core.setOutput('commit-type', 'feat')
+    }
+    else {
+      core.setOutput('commit-type', 'fix')
     }
   } catch (error) {
     console.log(error)
