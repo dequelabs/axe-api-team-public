@@ -97,7 +97,7 @@ runs:
       run: |
         git config user.name "API Team CI User"
         git config user.email "aciattestteamci@deque.com"
-        git commit -am "chore: release v${{ steps.get_bumped_version_number.outputs.version }}"
+        git commit -am "chore: RC v${{ steps.get_bumped_version_number.outputs.version }}"
 
     # https://github.com/dequelabs/axe-core-npm/blob/62fd241fb3748ca8ce4adb30d7976947ccaa18ee/.github/workflows/create-release.yml#L32-L57
     # create-pull-request has no way of setting the target branch that won't also
@@ -139,7 +139,7 @@ runs:
         token: ${{ inputs.token }}
         branch: release-${{ steps.get_release_date.outputs.release-date }}
         base: release
-        title: 'chore: release v${{ steps.get_bumped_version_number.outputs.version }}'
+        title: 'chore: RC v${{ steps.get_bumped_version_number.outputs.version }}'
         body: ${{ env.RELEASE_NOTES }}
         # If there are any changes not already committed, they will be added to
         # a commit with this as the message.
