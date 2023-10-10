@@ -38,5 +38,6 @@
       "coverage",
       "**/*.test.ts"
     ]
-  }
+  },
+  "devDependencies": {}
 }
