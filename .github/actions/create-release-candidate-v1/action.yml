@@ -174,8 +174,13 @@ runs:
         body: |
           # Below is everything related to this release 
 
-          ## !!!!!!!!!! DEPENDENCIES / BLOCKERS !!!!!!!!!!
+          ---
+          
+          **DEPENDENCIES / BLOCKERS** 
+
           (List anything blocking this RC from continuing here)
+
+          ---
 
           ```[tasklist]
           ### Links
