@@ -145,6 +145,7 @@ runs:
         # a commit with this as the message.
         # If there are no changes no commit will be created.
         commit-message: 'chore: applying release changes'
+        labels: 'release'
 
     - name: Create release notes issue
       if: ${{ inputs.docs-repo != 'null' }}
