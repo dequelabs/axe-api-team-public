@@ -9,9 +9,9 @@ inputs:
     type: string
   # A JSON file with a top-level key "version"
   version-json:
-    required: "false"
+    required: 'false'
     type: string
-    default: "package.json"
+    default: 'package.json'
   release-branch:
     required: true
     type: string
@@ -30,9 +30,9 @@ inputs:
   skip_checks:
     required: false
     type: string
-    default: "false"
+    default: 'false'
 runs:
-  using: "composite"
+  using: 'composite'
   steps:
     # Unlike patch release, it is expected that the integration script does work beforehand
     # Specifically, updating axe-core and calculating major vs minor release is done before this
@@ -63,7 +63,8 @@ runs:
         JSON_FILE: ${{ inputs.version-json }}
 
     - name: Generate commit list
-      id: commit-list
+      id:
+        commit-list
         # Multi-line output format:
       # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#example-of-a-multiline-string
       shell: bash
@@ -84,13 +85,13 @@ runs:
         DEFAULT_BRANCH: ${{ inputs.default-branch }}
 
     - name: Create Docs issue
-      uses: dacbd/create-issue-action@ba4d1c45cccf9c483f2720cefb40e437f0ee6f7d
+      uses: dacbd/create-issue-action@ba4d1c45cccf9c483f2720cefb40e437f0ee6f7d # tag=v1
       id: new-docs-issue
       with:
         token: ${{ inputs.project_token }}
         repo: docs-devtools-html
         assignees: enlarsen
-        title: "${{ github.event.repository.name }} v${{ steps.get-new-version.outputs.version }} Release Notes Needed"
+        title: '${{ github.event.repository.name }} v${{ steps.get-new-version.outputs.version }} Release Notes Needed'
         labels: release
         body: |
           Please create release notes for ${{ github.event.repository.name }}. Here are all changes since last release
@@ -98,13 +99,12 @@ runs:
           The following commit(s) were added in this release:
           ${{ steps.commit-list.outputs.commits }}
 
-
     - name: Create QA issue
-      uses: dacbd/create-issue-action@ba4d1c45cccf9c483f2720cefb40e437f0ee6f7d
+      uses: dacbd/create-issue-action@ba4d1c45cccf9c483f2720cefb40e437f0ee6f7d # tag=v1
       id: new-issue
       with:
         token: ${{ inputs.token }}
-        title: "${{ github.event.repository.name }} v${{ steps.get-new-version.outputs.version }} QA Needed"
+        title: '${{ github.event.repository.name }} v${{ steps.get-new-version.outputs.version }} QA Needed'
         labels: release
         body: |
           The develop branch of ${{ github.event.repository.name }} is ready for QA.
@@ -137,14 +137,14 @@ runs:
         # 66 taken from the url: https://github.com/orgs/dequelabs/projects/66
         project-number: 66
     - name: Slack Notification
-      uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7
+      uses: rtCamp/action-slack-notify@b24d75fe0e728a4bf9fc42ee217caa686d141ee8 # tag=v2
       env:
         SLACK_CHANNEL: api-team-releases
         SLACK_COLOR: ${{ job.status }} # or a specific color like 'good' or '#ff00ff'
         SLACK_MESSAGE: |
           The develop branch of ${{ github.event.repository.name }} is ready for QA.
           Issue: ${{ steps.issue-url.outputs.url }}
-        SLACK_TITLE: "${{ github.event.repository.name }} v${{ steps.get-new-version.outputs.version }} QA Needed"
+        SLACK_TITLE: '${{ github.event.repository.name }} v${{ steps.get-new-version.outputs.version }} QA Needed'
         SLACK_WEBHOOK: ${{ inputs.slack_webhook }}
         SLACK_FOOTER: ''
         MSG_MINIMAL: true
@@ -165,15 +165,15 @@ runs:
         RELEASE_BRANCH: ${{ inputs.release-branch }}
     - name: Create pull request
       id: new-pr
-      uses: peter-evans/create-pull-request@284f54f989303d2699d373481a0cfa13ad5a6666
+      uses: peter-evans/create-pull-request@153407881ec5c347639a548ade7d8ad1d6740e38 # tag=v5
       with:
         token: ${{ inputs.token }}
         branch: release
         branch-suffix: timestamp
         base: ${{ inputs.release-branch }}
         labels: release
-        title: "chore: release v${{ steps.get-new-version.outputs.version }}"
+        title: 'chore: release v${{ steps.get-new-version.outputs.version }}'
         # If there are any changes not already committed, they will be added to
         # a commit with this as the message.
         # If there are no changes no commit will be created.
-        commit-message: "chore: applying release changes"
+        commit-message: 'chore: applying release changes'

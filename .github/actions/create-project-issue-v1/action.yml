@@ -46,8 +46,7 @@ runs:
   steps:
     - uses: actions/checkout@v4
     - name: Create project issue
-      # Pinned to latest commit from tagged release v1.2.1: https://github.com/dacbd/create-issue-action/releases/tag/v1.2.1
-      uses: dacbd/create-issue-action@ba4d1c45cccf9c483f2720cefb40e437f0ee6f7d
+      uses: dacbd/create-issue-action@ba4d1c45cccf9c483f2720cefb40e437f0ee6f7d # tag=v1
       id: create_issue
       with:
         token: ${{ inputs.token }}

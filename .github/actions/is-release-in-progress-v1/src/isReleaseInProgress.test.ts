@@ -1,6 +1,6 @@
 import { assert } from 'chai'
 import type { PullRequest } from './types'
-import isReleaseInProgress from './is-release-in-progress'
+import isReleaseInProgress from './isReleaseInProgress'
 
 export const BUG_PULL_REQUEST: PullRequest = {
   id: 1,

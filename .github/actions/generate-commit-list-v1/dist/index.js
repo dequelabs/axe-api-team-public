@@ -11424,7 +11424,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const conventionalCommitsParser = __importStar(__nccwpck_require__(5911));
 function getCommitType(title) {
-    const { type, header } = conventionalCommitsParser.sync(title, {
+    const { type } = conventionalCommitsParser.sync(title, {
         mergePattern: /^Merge pull request #(\d+) from (.*)$/,
         mergeCorrespondence: ['id', 'source'],
         headerPattern: /^(\w*)(?:\(([\w$.\-*,/ ]*)\))?!?: (.*)$/

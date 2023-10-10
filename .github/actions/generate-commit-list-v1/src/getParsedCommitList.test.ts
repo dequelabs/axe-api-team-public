@@ -4,7 +4,7 @@ import {
   expectedParsedCommitList,
   expectedRawCommitList,
   expectedRepository
-} from './test-utils'
+} from './testUtils'
 import sinon from 'sinon'
 import * as exec from '@actions/exec'
 import getParsedCommitList from './getParsedCommitList'
