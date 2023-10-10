@@ -9,13 +9,13 @@ inputs:
     description: 'The branch the pull request will be merged into'
     required: true
   head:
-    description: 'The branch that contains the changes you want to merge'
+    description: 'The branch that contains the changes the pull request is trying to merge'
     required: true
   release-script-path:
     description: 'The location of the `prepare_release.sh` shell script that creates the changelogs and version bumps'
     required: true
   slack-webhook:
-    description: 'The Slack webhook to use for notifications'
+    description: 'The Slack webhook to send the release candidate notification to'
     required: true
   version-locked:
     description: 'Whether or not the version should be locked to axe-core'
