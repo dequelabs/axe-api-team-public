@@ -97,6 +97,16 @@ describe('run', () => {
     assert.isTrue(info.calledWith('current axe-core version =4.7.2'))
   })
 
+  it('fails if anything throws', async () => {
+    const core = {
+      setFailed: sinon.spy(),
+      info() { throw new Error('failure!') }
+    }
+    await run(core as unknown as Core, getPackageManagerStub)
+
+    assert.isTrue(core.setFailed.calledWith('failure!'))
+  })
+
   describe('package manager', () => {
     it('gets root package manager', async () => {
       const core = { info, setOutput }
