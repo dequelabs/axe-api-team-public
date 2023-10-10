@@ -4,8 +4,8 @@ A GitHub action for updating axe-core to the latest stable version.
 
 ## Outputs
 
-| Name                     | Description                                         |
-| ------------------------ | --------------------------------------------------- |
+| Name          | Description                                                             |
+| --------------| ----------------------------------------------------------------------- |
 | `commit-type` | The SemVer type of the axe-core update. Is `null` if no update occurred |
 
 ## Example usage
