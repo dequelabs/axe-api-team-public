@@ -12,7 +12,7 @@ inputs:
     description: 'The branch that contains the changes the pull request is trying to merge'
     required: true
   release-script-path:
-    description: 'The location of the `prepare_release.sh` shell script that creates the changelogs and version bumps'
+    description: 'The path to the script that creates the changelogs and bumps the version of the package(s)'
     required: true
   slack-webhook:
     description: 'The Slack webhook to send the release candidate notification to'
