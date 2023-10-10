@@ -73,9 +73,9 @@ runs:
         if [ "${{ inputs.version-locked }}" = "true" ]
         then
           # We will always release as patch if the version is locked to axe-core
-          bash ${{ inputs.release-script-path }} patch
+          ${{ inputs.release-script-path }} patch
         else 
-          bash ${{ inputs.release-script-path }}
+          ${{ inputs.release-script-path }}
         fi
 
     - name: Get bumped version number
