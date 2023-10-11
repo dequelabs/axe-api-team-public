@@ -51,6 +51,7 @@ describe('run', () => {
 
   it('finds all package.json files excluding node_modules', async () => {
     const core = { info, setOutput }
+    getPackageManagerStub.withArgs('./').returns('npm')
     await run(core as unknown as Core, getPackageManagerStub, cwd)
 
     const matchedCalls = info
