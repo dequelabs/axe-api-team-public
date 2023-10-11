@@ -1,10 +1,10 @@
 import { promises as fs } from 'fs'
 import path from 'path'
-import type { getPackageManagerReturn } from './types'
+import type { PackageManager } from './types'
 
 export default async function getPackageManager(
   dirPath: string
-): getPackageManagerReturn {
+): PackageManager {
   if (await exists(path.join(dirPath, 'package-lock.json'))) {
     return 'npm'
   }

@@ -5,4 +5,4 @@ export type Core = Pick<
   'setOutput' | 'info' | 'setFailed'
 >
 
-export type getPackageManagerReturn = Promise<'npm' | 'yarn' | undefined>
+export type PackageManager = Promise<'npm' | 'yarn' | undefined>

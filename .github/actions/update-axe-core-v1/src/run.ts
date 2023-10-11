@@ -2,11 +2,11 @@ import type { Core } from './types'
 import { glob, type GlobOptions } from 'glob'
 import { getExecOutput } from '@actions/exec'
 import path from 'path'
-import type { getPackageManagerReturn } from './types'
+import type { PackageManager } from './types'
 
 export default async function run(
   core: Core,
-  getPackageManager: (dirPath: string) => getPackageManagerReturn,
+  getPackageManager: (dirPath: string) => PackageManager,
   cwd?: string
 ) {
   try {
