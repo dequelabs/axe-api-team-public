@@ -2,7 +2,7 @@ name: 'Update axe-core'
 description: 'A GitHub action for updating axe-core to the latest stable version'
 outputs:
   commit-type:
-    description: '`feat` if axe-core updated to a minor version, `fix` if it updated to a patch version, or `null` if no update occurred'
+    description: '`feat` if axe-core updated to a major or minor version, `fix` if it updated to a patch version, or `null` if no update occurred'
 runs:
   using: 'node20'
   main: 'dist/index.js'
