@@ -4344,8 +4344,8 @@ const exec_1 = __nccwpck_require__(1518);
 const path_1 = __importDefault(__nccwpck_require__(1017));
 async function run(core, getPackageManager, cwd) {
     try {
-        const { stdout: latestAxeCoveVersion } = await (0, exec_1.getExecOutput)('npm', ['info', 'axe-core', 'version']);
-        core.info(`latest axe-core version ${latestAxeCoveVersion}`);
+        const { stdout: latestAxeCoreVersion } = await (0, exec_1.getExecOutput)('npm', ['info', 'axe-core', 'version']);
+        core.info(`latest axe-core version ${latestAxeCoreVersion}`);
         const rootPackageManager = await getPackageManager('./');
         core.info(`root package manager detected as ${rootPackageManager}`);
         const packages = await (0, glob_1.glob)('**/package.json', {
@@ -4359,11 +4359,15 @@ async function run(core, getPackageManager, cwd) {
             const pkg = await Promise.resolve().then(() => __importStar(require(filePath)));
             if (!pkg.dependencies?.['axe-core'] &&
                 !pkg.devDependencies?.['axe-core']) {
-                core.info(`no axe-core dependency`);
+                core.info(`no axe-core dependency found, moving on...`);
                 continue;
             }
             const dirPath = path_1.default.dirname(filePath);
-            const packageManager = await getPackageManager(dirPath) ?? rootPackageManager ?? 'npm';
+            const packageManager = await getPackageManager(dirPath) ?? rootPackageManager;
+            if (!packageManager) {
+                core.info('No package manager detected, moving on...');
+                continue;
+            }
             core.info(`package specific package manager detected as ${packageManager}`);
             const dependency = pkg.dependencies?.['axe-core']
                 ? 'dependencies'
@@ -4380,7 +4384,7 @@ async function run(core, getPackageManager, cwd) {
             if (!installedAxeCoreVersion) {
                 installedAxeCoreVersion = axeCoreVersion.replace(/^[=^~]/, '');
             }
-            if (installedAxeCoreVersion === latestAxeCoveVersion) {
+            if (installedAxeCoreVersion === latestAxeCoreVersion) {
                 core.info('axe-core version is currently at latest, no update required');
                 core.setOutput('commit-type', null);
                 return;
@@ -4388,7 +4392,7 @@ async function run(core, getPackageManager, cwd) {
             (0, exec_1.getExecOutput)(packageManager, [
                 packageManager === 'npm' ? 'i' : 'add',
                 dependencyType,
-                `axe-core@${pinStrategy}${latestAxeCoveVersion}`
+                `axe-core@${pinStrategy}${latestAxeCoreVersion}`
             ], {
                 cwd: dirPath
             });
@@ -4399,7 +4403,7 @@ async function run(core, getPackageManager, cwd) {
             return;
         }
         const [installedMajor, installedMinor] = installedAxeCoreVersion.split('.');
-        const [latestMajor, latestMinor] = latestAxeCoveVersion.split('.');
+        const [latestMajor, latestMinor] = latestAxeCoreVersion.split('.');
         if (installedMajor !== latestMajor ||
             installedMinor !== latestMinor) {
             core.setOutput('commit-type', 'feat');
@@ -4409,7 +4413,6 @@ async function run(core, getPackageManager, cwd) {
         }
     }
     catch (error) {
-        console.log(error);
         core.setFailed(error.message);
     }
 }

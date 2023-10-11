@@ -4,9 +4,9 @@ A GitHub action for updating axe-core to the latest stable version.
 
 ## Outputs
 
-| Name          | Description                                                             |
-| --------------| ----------------------------------------------------------------------- |
-| `commit-type` | The SemVer type of the axe-core update. Is `null` if no update occurred |
+| Name          | Description                                                                                                            |
+| --------------| ---------------------------------------------------------------------------------------------------------------------- |
+| `commit-type` | `feat` if axe-core updated to a minor version, `fix` if it updated to a patch version, or `null` if no update occurred |
 
 ## Example usage
 

@@ -10,8 +10,8 @@ export default async function run(
   cwd?: string
 ) {
   try {
-    const { stdout: latestAxeCoveVersion } = await getExecOutput('npm', ['info', 'axe-core', 'version'])
-    core.info(`latest axe-core version ${latestAxeCoveVersion}`)
+    const { stdout: latestAxeCoreVersion } = await getExecOutput('npm', ['info', 'axe-core', 'version'])
+    core.info(`latest axe-core version ${latestAxeCoreVersion}`)
 
     // npm and yarn workspaces will have a lock file at the root
     // of the project
@@ -27,7 +27,7 @@ export default async function run(
 
     for (const filePath of packages) {
       core.info(`package.json found in ${filePath}`)
-      const pkg = await import(filePath as string)
+      const pkg = await import(filePath)
 
       if (
         !pkg.dependencies?.['axe-core'] &&
@@ -37,8 +37,14 @@ export default async function run(
         continue;
       }
 
-      const dirPath = path.dirname(filePath as string)
-      const packageManager = await getPackageManager(dirPath) ?? rootPackageManager ?? 'npm'
+      const dirPath = path.dirname(filePath)
+      const packageManager = await getPackageManager(dirPath) ?? rootPackageManager
+
+      if (!packageManager) {
+        core.info('No package manager detected, moving on...')
+        continue
+      }
+
       core.info(`package specific package manager detected as ${packageManager}`)
 
       const dependency = pkg.dependencies?.['axe-core']
@@ -64,7 +70,7 @@ export default async function run(
         installedAxeCoreVersion = axeCoreVersion.replace(/^[=^~]/,'')
       }
 
-      if (installedAxeCoreVersion === latestAxeCoveVersion) {
+      if (installedAxeCoreVersion === latestAxeCoreVersion) {
         core.info('axe-core version is currently at latest, no update required')
         core.setOutput('commit-type', null)
         return
@@ -73,7 +79,7 @@ export default async function run(
       getExecOutput(packageManager, [
         packageManager === 'npm' ? 'i' : 'add',
         dependencyType,
-        `axe-core@${pinStrategy}${latestAxeCoveVersion}`
+        `axe-core@${pinStrategy}${latestAxeCoreVersion}`
       ], {
         cwd: dirPath
       })
@@ -86,7 +92,7 @@ export default async function run(
     }
 
     const [ installedMajor, installedMinor ] = installedAxeCoreVersion.split('.')
-    const [ latestMajor, latestMinor ] = latestAxeCoveVersion.split('.')
+    const [ latestMajor, latestMinor ] = latestAxeCoreVersion.split('.')
 
     if (
       installedMajor !== latestMajor ||

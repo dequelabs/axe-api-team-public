@@ -72,7 +72,7 @@ describe('run', () => {
       path.join(cwd, 'packages', 'no-axe-core')
     )
 
-    assert.isTrue(info.calledWith('no axe-core dependency'))
+    assert.isTrue(info.calledWith('no axe-core dependency found, moving on...'))
   })
 
   it('skips packages without any dependencies', async () => {
@@ -83,11 +83,12 @@ describe('run', () => {
       path.join(cwd, 'packages', 'no-deps')
     )
 
-    assert.isTrue(info.calledWith('no axe-core dependency'))
+    assert.isTrue(info.calledWith('no axe-core dependency found, moving on...'))
   })
 
   it('detects axe-core version', async () => {
     const core = { info, setOutput }
+    getPackageManagerStub.withArgs('./').returns('npm')
     await run(
       core as unknown as Core,
       getPackageManagerStub,
@@ -130,6 +131,7 @@ describe('run', () => {
     it('installs axe-core using npm in package directory', async () => {
       const core = { info, setOutput }
       const dirPath = path.join(cwd, 'packages', 'exact-pin')
+      getPackageManagerStub.withArgs('./').returns('npm')
       await run(
         core as unknown as Core,
         getPackageManagerStub,
@@ -196,7 +198,7 @@ describe('run', () => {
       ))
     })
 
-    it('defaults to use npm if no package manager is detected', async () => {
+    it('skips packages when no package manager is detected', async () => {
       const core = { info, setOutput }
       const dirPath = path.join(cwd, 'packages', 'exact-pin')
       getPackageManagerStub.withArgs('./').returns(undefined)
@@ -207,21 +209,15 @@ describe('run', () => {
         dirPath
       )
 
-      assert.isTrue(getExecOutputStub.calledWith(
-        'npm',
-        [
-          'i',
-          '',
-          sinon.match.any
-        ],
-        {
-          cwd: dirPath
-        }
-      ))
+      assert.isTrue(info.calledWith('No package manager detected, moving on...'))
     })
   })
 
   describe('output', () => {
+    beforeEach(() => {
+      getPackageManagerStub.withArgs('./').returns('npm')
+    })
+
     it('sets to "null" if axe-core version is up-to-date', async () => {
       const core = { info, setOutput }
       await run(
@@ -281,6 +277,10 @@ describe('run', () => {
   })
 
   describe('matches axe-core pinning strategy', () => {
+    beforeEach(() => {
+      getPackageManagerStub.withArgs('./').returns('npm')
+    })
+
     const testCases = [
       {
         title: 'when using exact pin with "="',
