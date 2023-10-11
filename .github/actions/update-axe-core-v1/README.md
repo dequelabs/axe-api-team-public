@@ -1,4 +1,4 @@
-# semantic-pr-footer-v1
+# update-axe-core-v1
 
 A GitHub action for updating axe-core to the latest stable version.
 
@@ -23,10 +23,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: 20
       - id: update
         uses: dequelabs/axe-api-team-public/.github/actions/update-axe-core-v1@main
 ```

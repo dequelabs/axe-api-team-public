@@ -1,5 +1,5 @@
 import type { Core } from './types'
-import { glob, type GlobOptions } from 'glob'
+import { glob } from 'glob'
 import { getExecOutput } from '@actions/exec'
 import path from 'path'
 import type { PackageManager } from './types'
@@ -33,7 +33,7 @@ export default async function run(
         !pkg.dependencies?.['axe-core'] &&
         !pkg.devDependencies?.['axe-core']
       ) {
-        core.info(`no axe-core dependency`)
+        core.info(`no axe-core dependency found, moving on...`)
         continue;
       }
 
@@ -98,7 +98,6 @@ export default async function run(
       core.setOutput('commit-type', 'fix')
     }
   } catch (error) {
-    console.log(error)
     core.setFailed((error as Error).message)
   }
 }
