@@ -4,15 +4,14 @@ A GitHub Action to create a release candidate.
 
 ## Inputs
 
-| Name                  | Required | Description                                                                                         | Default |
-| --------------------- | -------- | --------------------------------------------------------------------------------------------------- | ------- |
-| `token`               | Yes      | A GitHub token used for octokit and GH CLI with the required permissions                            | NA      |
-| `base`                | Yes      | The branch the pull request will be merged into                                                     | NA      |
-| `head`                | Yes      | The branch that contains the changes the pull request is trying to merge                            | NA      |
+| Name                  | Required | Description                                                                                | Default |
+| --------------------- | -------- | ------------------------------------------------------------------------------------------ | ------- |
+| `token`               | Yes      | A GitHub token used for octokit and GH CLI with the required permissions                   | NA      |
+| `base`                | Yes      | The branch the pull request will be merged into                                            | NA      |
+| `head`                | Yes      | The branch that contains the changes the pull request is trying to merge                   | NA      |
 | `release-script-path` | Yes      | The path to the script that creates the changelogs and bumps the version of the package(s) | NA      |
-| `slack-webhook`       | Yes      | The Slack webhook to send the release candidate notification to                                     | NA      |
-| `version-locked`      | No       | Whether or not the version should be locked to axe-core                                             | `false` |
-| `docs-repo`           | No       | The name of the repo where the release notes live                                                   | `null`  |
+| `version-locked`      | No       | Whether or not the version should be locked to axe-core                                    | `false` |
+| `docs-repo`           | No       | The name of the repo where the release notes live                                          | `null`  |
 
 ## Example usage
 
@@ -28,7 +27,6 @@ jobs:
       - uses: dequelabs/axe-api-team-public/.github/actions/create-release-candidate-v1@main
         with:
           token: ${{ secrets.PAT }}
-          slack-webhook: ${{ secrets.SLACK }}
           base: 'main'
           head: 'develop'
           version-locked: 'false'

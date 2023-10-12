@@ -14,9 +14,6 @@ inputs:
   release-script-path:
     description: 'The path to the script that creates the changelogs and bumps the version of the package(s)'
     required: true
-  slack-webhook:
-    description: 'The Slack webhook to send the release candidate notification to'
-    required: true
   version-locked:
     description: 'Whether or not the version should be locked to axe-core'
     default: 'false'
@@ -175,7 +172,7 @@ runs:
           # Below is everything related to this release 
 
           ---
-          
+
           **DEPENDENCIES / BLOCKERS** 
 
           (List anything blocking this RC from continuing here)
@@ -220,14 +217,3 @@ runs:
         issue-urls: ${{ steps.create_release_issue.outputs.issue_url }}
         project-number: '103'
         column-name: 'RC Created'
-
-    - name: Slack Notification
-      # https://github.com/rtCamp/action-slack-notify/commit/b24d75fe0e728a4bf9fc42ee217caa686d141ee8
-      uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7
-      env:
-        SLACK_CHANNEL: api-team-releases
-        SLACK_COLOR: ${{ job.status }}
-        SLACK_TITLE: '${{ github.event.repository.name }} v${{ steps.get_bumped_version_number.outputs.version }} QA NEEDED'
-        SLACK_MESSAGE: ${{ steps.create_release_issue.outputs.issue_url }}
-        SLACK_WEBHOOK: ${{ inputs.slack-webhook }}
-        MSG_MINIMAL: 'true'
