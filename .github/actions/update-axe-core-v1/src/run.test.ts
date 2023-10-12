@@ -27,6 +27,9 @@ describe('run', () => {
     setOutput = sinon.spy()
     setFailed = sinon.spy()
     getExecOutputStub = sinon.stub(exec, 'getExecOutput')
+    getExecOutputStub.returns({
+      exitCode: 0
+    })
     getExecOutputStub.onFirstCall().returns({
       exitCode: 0,
       stdout: '4.8.1'
@@ -101,12 +104,57 @@ describe('run', () => {
 
   it('fails if anything throws', async () => {
     const core = {
-      setFailed: sinon.spy(),
+      setFailed,
       info() { throw new Error('failure!') }
     }
     await run(core as unknown as Core, getPackageManagerStub)
 
     assert.isTrue(core.setFailed.calledWith('failure!'))
+  })
+
+  it('fails if getting axe-core version returns non-zero exit code', async () => {
+    getExecOutputStub.onFirstCall().returns({
+      exitCode: 1,
+      stderr: 'failure!'
+    })
+    const core = {
+      setFailed
+    }
+    await run(core as unknown as Core, getPackageManagerStub)
+
+    assert.isTrue(core.setFailed.calledWith('Error getting latest axe-core version:\nfailure!'))
+  })
+
+  it('fails if axe-core install returns non-zero exit code', async () => {
+    const core = { info, setFailed }
+    getPackageManagerStub.withArgs('./').returns('npm')
+    getExecOutputStub.onSecondCall().returns({
+      exitCode: 1,
+      stderr: 'failure!'
+    })
+    await run(
+      core as unknown as Core,
+      getPackageManagerStub,
+      path.join(cwd, 'packages', 'exact-pin')
+    )
+
+    assert.isTrue(core.setFailed.calledWith('Error installing axe-core:\nfailure!'))
+  })
+
+  it('fails if package has an axe-core peer dependency', async () => {
+    await createFile(cwd, 'packages/peer-dep/package.json', {
+      peerDependencies: {
+        'axe-core': '>=4.5.0'
+      }
+    })
+    const core = { info, setFailed }
+    await run(
+      core as unknown as Core,
+      getPackageManagerStub,
+      path.join(cwd, 'packages', 'peer-dep')
+    )
+
+    assert.isTrue(core.setFailed.calledWith('axe-core peerDependencies not currently supported'))
   })
 
   describe('package manager', () => {

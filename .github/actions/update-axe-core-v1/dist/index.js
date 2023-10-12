@@ -4344,7 +4344,10 @@ const exec_1 = __nccwpck_require__(1518);
 const path_1 = __importDefault(__nccwpck_require__(1017));
 async function run(core, getPackageManager, cwd) {
     try {
-        const { stdout: latestAxeCoreVersion } = await (0, exec_1.getExecOutput)('npm', ['info', 'axe-core', 'version']);
+        const { stdout: latestAxeCoreVersion, stderr: npmInfoError, exitCode: npmExitCode } = await (0, exec_1.getExecOutput)('npm', ['info', 'axe-core', 'version']);
+        if (npmExitCode) {
+            throw new Error(`Error getting latest axe-core version:\n${npmInfoError}`);
+        }
         core.info(`latest axe-core version ${latestAxeCoreVersion}`);
         const rootPackageManager = await getPackageManager('./');
         core.info(`root package manager detected as ${rootPackageManager}`);
@@ -4357,6 +4360,9 @@ async function run(core, getPackageManager, cwd) {
         for (const filePath of packages) {
             core.info(`package.json found in ${filePath}`);
             const pkg = await Promise.resolve().then(() => __importStar(require(filePath)));
+            if (pkg.peerDependencies?.['axe-core']) {
+                throw new Error('axe-core peerDependencies not currently supported');
+            }
             if (!pkg.dependencies?.['axe-core'] &&
                 !pkg.devDependencies?.['axe-core']) {
                 core.info(`no axe-core dependency found, moving on...`);
@@ -4389,13 +4395,16 @@ async function run(core, getPackageManager, cwd) {
                 core.setOutput('commit-type', null);
                 return;
             }
-            (0, exec_1.getExecOutput)(packageManager, [
+            const { stderr: installError, exitCode: installExitCode } = await (0, exec_1.getExecOutput)(packageManager, [
                 packageManager === 'npm' ? 'i' : 'add',
                 dependencyType,
                 `axe-core@${pinStrategy}${latestAxeCoreVersion}`
             ], {
                 cwd: dirPath
             });
+            if (installError) {
+                throw new Error(`Error installing axe-core:\n${installError}`);
+            }
         }
         if (!installedAxeCoreVersion) {
             core.info('no packages contain axe-core dependency');

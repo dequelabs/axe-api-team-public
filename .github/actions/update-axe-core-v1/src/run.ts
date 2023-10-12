@@ -10,7 +10,15 @@ export default async function run(
   cwd?: string
 ) {
   try {
-    const { stdout: latestAxeCoreVersion } = await getExecOutput('npm', ['info', 'axe-core', 'version'])
+    const {
+      stdout: latestAxeCoreVersion,
+      stderr: npmInfoError,
+      exitCode: npmExitCode
+    } = await getExecOutput('npm', ['info', 'axe-core', 'version'])
+    if (npmExitCode) {
+      throw new Error(`Error getting latest axe-core version:\n${npmInfoError}`)
+    }
+
     core.info(`latest axe-core version ${latestAxeCoreVersion}`)
 
     // npm and yarn workspaces will have a lock file at the root
@@ -28,6 +36,16 @@ export default async function run(
     for (const filePath of packages) {
       core.info(`package.json found in ${filePath}`)
       const pkg = await import(filePath)
+
+      /*
+        we don't currently have any packages that have axe-core
+        peer dependencies, but if we do eventually add one we
+        want this update script to fail and inform us that we
+        need to update the script to handle updating it
+      */
+      if (pkg.peerDependencies?.['axe-core']) {
+        throw new Error('axe-core peerDependencies not currently supported')
+      }
 
       if (
         !pkg.dependencies?.['axe-core'] &&
@@ -76,13 +94,19 @@ export default async function run(
         return
       }
 
-      getExecOutput(packageManager, [
+      const {
+        stderr: installError,
+        exitCode: installExitCode
+      } = await getExecOutput(packageManager, [
         packageManager === 'npm' ? 'i' : 'add',
         dependencyType,
         `axe-core@${pinStrategy}${latestAxeCoreVersion}`
       ], {
         cwd: dirPath
       })
+      if (installError) {
+        throw new Error(`Error installing axe-core:\n${installError}`)
+      }
     }
 
     if (!installedAxeCoreVersion) {
