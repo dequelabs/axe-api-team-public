@@ -35,8 +35,6 @@ runs:
         echo "Pull request ID: $pullRequestID"
 
         # Get the version number from the pull request title e.g. 1.33.7
-
-        # comment | grep -E -o '\d+.\d+.\d+' | awk '{print $NF}'
-        versionNumber=$(gh pr view $pullRequestID --repo ${{ github.repository }} --json title --jq '.title')
+        versionNumber=$(gh pr view $pullRequestID --repo ${{ github.repository }} --json title --jq '.title') | grep -E -o '\d+.\d+.\d+'
 
         echo "version-number=$versionNumber" >> $GITHUB_OUTPUT
