@@ -39,5 +39,6 @@ runs:
 
         # Get the version number from the pull request title e.g. 1.33.7 with regex that can match any number of digits 
         versionNumber=$(echo $pullRequestTitle | grep --only-matching --extended-regexp '[0-9]+.[0-9]+.[0-9]+')
+        echo "Version number: $versionNumber"
 
         echo "version-number=$versionNumber" >> $GITHUB_OUTPUT
