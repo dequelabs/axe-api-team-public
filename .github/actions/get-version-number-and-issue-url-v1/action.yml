@@ -1,6 +1,12 @@
 name: get-version-number-and-issue-url
 description: 'A small GitHub Action to get the version number and issue URL for a release candidate'
 
+inputs:
+  disable-get-issue-url:
+    description: 'Whether or not to get the issue URL for the release candidate'
+    default: 'false'
+    required: false
+
 outputs:
   version-number:
     description: 'The version number for the release candidate'
@@ -19,6 +25,7 @@ runs:
         fetch-depth: 0
 
     - name: Get release-candidate issue URL
+      if: ${{ inputs.disable-get-issue-url == 'false' }}
       id: get_issue_url
       shell: bash
       run: |
