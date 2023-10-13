@@ -30,5 +30,12 @@ runs:
       run: |
         pullRequestID=$(gh pr list --repo ${{ github.repository }} --json number -s merged --base release --jq '.[0].number')
 
+        echo "Found pull request ID: $pullRequestID"
+
+        if [ -z "$pullRequestID" ]; then
+          echo "No pull request ID found"
+          exit 1
+        fi
+
         # Get the version number from the pull request title e.g. 1.33.7
         echo "version-number=$(gh pr view $pullRequestID --repo ${{ github.repository }} --json title --jq '.title' | grep grep -E -o '\d+.\d+.\d+' | awk '{print $NF}')" >> $GITHUB_OUTPUT
