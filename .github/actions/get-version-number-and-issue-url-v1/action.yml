@@ -1,0 +1,34 @@
+name: get-version-number-and-issue-url
+description: 'A small GitHub Action to get the version number and issue URL for a release candidate'
+
+outputs:
+  version-number:
+    description: 'The version number for the release candidate'
+    value: ${{ steps.get_version_number.outputs.version-number }}
+  issue-url:
+    description: 'The issue URL for the release candidate'
+    value: ${{ steps.get_issue_url.outputs.issue-url }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        # Fetch all history
+        fetch-depth: 0
+
+    - name: Get release-candidate issue URL
+      id: get_issue_url
+      shell: bash
+      run: |
+        echo "issue-url=$(gh issue list --repo ${{ github.repository }} --label release --state open --json url --jq '.[0].url')" >> $GITHUB_OUTPUT
+
+    - name: Get release-candidate version number
+      id: get_version_number
+      shell: bash
+      run: |
+        pullRequestID=$(gh pr list --repo ${{ github.repository }} --json number -s merged --base release --jq '.[0].number')
+
+        # Get the version number from the pull request title e.g. 1.33.7
+        echo "version-number=$(gh pr view $pullRequestID --repo ${{ github.repository }} --json title --jq '.title' | grep grep -E -o '\d+.\d+.\d+' | awk '{print $NF}')" >> $GITHUB_OUTPUT
