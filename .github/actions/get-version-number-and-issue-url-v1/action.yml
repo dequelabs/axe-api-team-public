@@ -23,11 +23,7 @@ runs:
       shell: bash
       run: |
         issueUrl=$(gh issue list --repo ${{ github.repository }} --label release --state open --json url --jq '.[0].url')
-
-        if [ -z "$issueUrl" ]; then
-          echo "No issue URL found"
-          exit 1
-        fi
+        echo "Issue URL: $issueUrl"
 
         echo "issue-url=$issueUrl" >> $GITHUB_OUTPUT
 
@@ -36,15 +32,9 @@ runs:
       shell: bash
       run: |
         pullRequestID=$(gh pr list --repo ${{ github.repository }} --json number -s merged --base release --jq '.[0].number')
-
-        if [ -z "$pullRequestID" ]; then
-          echo "No pull request ID found"
-          exit 1
-        fi
-
-        echo "Found pull request ID: $pullRequestID"
+        echo "Pull request ID: $pullRequestID"
 
         # Get the version number from the pull request title e.g. 1.33.7
-        versionNumber=$(gh pr view $pullRequestID --repo ${{ github.repository }} --json title --jq '.title' | grep -E -o '\d+.\d+.\d+')
+        versionNumber=$(gh pr view $pullRequestID --repo ${{ github.repository }} --json title --jq '.title' | grep -E -o '\d+.\d+.\d+' | awk '{print $NF}')
 
         echo "version-number=$versionNumber" >> $GITHUB_OUTPUT
