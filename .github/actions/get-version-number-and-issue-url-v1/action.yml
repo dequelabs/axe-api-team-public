@@ -37,7 +37,7 @@ runs:
         pullRequestTitle=$(gh pr view $pullRequestID --repo ${{ github.repository }} --json title --jq '.title')
         echo "Pull request title: $pullRequestTitle"
 
-        # Get the version number from the pull request title e.g. 1.33.7
-        versionNumber=$(echo $pullRequestTitle | grep -E -o '\d+.\d+.\d+')
+        # Get the version number from the pull request title e.g. 1.33.7 with regex that can match any number of digits 
+        versionNumber=$(echo $pullRequestTitle | grep --only-matching --extended-regexp '[0-9]+.[0-9]+.[0-9]+')
 
         echo "version-number=$versionNumber" >> $GITHUB_OUTPUT
