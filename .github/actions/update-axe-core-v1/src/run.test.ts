@@ -323,6 +323,17 @@ describe('run', () => {
 
       assert.isTrue(setOutput.calledWith('commit-type', 'fix'))
     })
+
+    it('sets version as axe-core version', async () => {
+      const core = { info, setOutput }
+      await run(
+        core as unknown as Core,
+        getPackageManagerStub,
+        path.join(cwd, 'packages', 'patch-behind')
+      )
+
+      assert.isTrue(setOutput.calledWith('version', '4.8.1'))
+    })
   })
 
   describe('matches axe-core pinning strategy', () => {

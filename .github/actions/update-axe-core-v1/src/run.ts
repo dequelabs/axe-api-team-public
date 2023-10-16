@@ -127,6 +127,8 @@ export default async function run(
     else {
       core.setOutput('commit-type', 'fix')
     }
+
+    core.setOutput('version', latestAxeCoreVersion)
   } catch (error) {
     core.setFailed((error as Error).message)
   }
