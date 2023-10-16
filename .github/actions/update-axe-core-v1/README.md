@@ -1,0 +1,32 @@
+# update-axe-core-v1
+
+A GitHub action for updating axe-core to the latest stable version.
+
+## Outputs
+
+| Name          | Description                                                                                                            |
+| --------------| ---------------------------------------------------------------------------------------------------------------------- |
+| `commit-type` | `feat` if axe-core updated to a major or minor version, `fix` if it updated to a patch version, or `null` if no update occurred |
+
+## Example usage
+
+```yaml
+name: Update axe-core
+
+on:
+  schedule:
+    # Run every night at midnight
+    - cron: '0 0 * * *'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20
+      - id: update
+        uses: dequelabs/axe-api-team-public/.github/actions/update-axe-core-v1@main
+```
