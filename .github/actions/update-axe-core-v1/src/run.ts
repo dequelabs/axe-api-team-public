@@ -104,7 +104,7 @@ export default async function run(
       ], {
         cwd: dirPath
       })
-      if (installError) {
+      if (installExitCode) {
         throw new Error(`Error installing axe-core:\n${installError}`)
       }
     }
