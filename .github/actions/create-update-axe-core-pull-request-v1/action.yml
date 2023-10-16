@@ -1,0 +1,31 @@
+name: create-update-axe-pull-core-request
+description: 'A GitHub Action to update axe-core and create a pull request'
+
+inputs:
+  token:
+    description: '`GITHUB_TOKEN` (permissions `contents: write` and `pull-requests: write`) or a repo scoped Personal Access Token (PAT).'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          cache: 'npm'
+    - id: update-axe-core
+      uses: dequelabs/axe-api-team-public/.github/actions/update-axe-core-v1@main
+    - name: Open PR
+      uses: peter-evans/create-pull-request@153407881ec5c347639a548ade7d8ad1d6740e38 # tag=v5
+      with:
+        token: ${{ inputs.token }}
+        commit-message: '${{ steps.update-axe-core.outputs.commit-type }}: Update axe-core to v${{ steps.update-axe-core.outputs.version }}'
+        branch: auto-update-axe-core
+        base: develop
+        title: '${{ steps.update-axe-core.outputs.commit-type }}: Update axe-core to v${{ steps.update-axe-core.outputs.version }}'
+        body: |
+          This pull request updates the version of [`axe-core`](https://npmjs.org/axe-core) to v${{ steps.update-axe-core.outputs.version }}.
+
+          This PR was opened by a robot :robot: :tada:.
