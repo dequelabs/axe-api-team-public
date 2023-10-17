@@ -19,7 +19,7 @@ runs:
         node-version: 18
         cache: 'npm'
     - id: update-axe-core
-      uses: dequelabs/axe-api-team-public/.github/actions/create-update-axe-core-pull-request-v1@create-update-axe-core-pull-request
+      uses: dequelabs/axe-api-team-public/.github/actions/update-axe-core-v1@create-update-axe-core-pull-request
     - name: Open PR
       if: ${{ steps.update-axe-core.outputs.commit-type != 'null' }}
       uses: peter-evans/create-pull-request@153407881ec5c347639a548ade7d8ad1d6740e38 # tag=v5
