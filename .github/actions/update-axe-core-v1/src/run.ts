@@ -83,7 +83,6 @@ export default async function run(
       }
 
       core.info(`current axe-core version ${axeCoreVersion}`)
-      core.info(`installedAxeCoreVersion before "${installedAxeCoreVersion}"`)
 
       // we expect that all axe-core versions will be the same
       // for every package
@@ -91,22 +90,11 @@ export default async function run(
         installedAxeCoreVersion = axeCoreVersion.replace(/^[=^~]/,'')
       }
 
-      core.info(`installedAxeCoreVersion after "${installedAxeCoreVersion}"`)
-      core.info(`latestAxeCoreVersion "${latestAxeCoreVersion}"`)
-
-      core.info(`typeof latestAxeCoreVersion "${typeof
-        latestAxeCoreVersion}"`)
-      core.info(`typeof installedAxeCoreVersion "${typeof installedAxeCoreVersion}"`)
-
-      core.info(`installedAxeCoreVersion === latestAxeCoreVersion ${installedAxeCoreVersion === latestAxeCoreVersion}`)
-
       if (installedAxeCoreVersion === latestAxeCoreVersion) {
         core.info('axe-core version is currently at latest, no update required')
         core.setOutput('commit-type', null)
         return
       }
-
-      core.info(`installing axe-core`)
 
       const {
         stderr: installError,

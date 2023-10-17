@@ -4388,21 +4388,14 @@ async function run(core, getPackageManager, cwd) {
                 pinStrategy = '=';
             }
             core.info(`current axe-core version ${axeCoreVersion}`);
-            core.info(`installedAxeCoreVersion before "${installedAxeCoreVersion}"`);
             if (!installedAxeCoreVersion) {
                 installedAxeCoreVersion = axeCoreVersion.replace(/^[=^~]/, '');
             }
-            core.info(`installedAxeCoreVersion after "${installedAxeCoreVersion}"`);
-            core.info(`latestAxeCoreVersion "${latestAxeCoreVersion}"`);
-            core.info(`typeof latestAxeCoreVersion "${typeof latestAxeCoreVersion}"`);
-            core.info(`typeof installedAxeCoreVersion "${typeof installedAxeCoreVersion}"`);
-            core.info(`installedAxeCoreVersion === latestAxeCoreVersion ${installedAxeCoreVersion === latestAxeCoreVersion}`);
             if (installedAxeCoreVersion === latestAxeCoreVersion) {
                 core.info('axe-core version is currently at latest, no update required');
                 core.setOutput('commit-type', null);
                 return;
             }
-            core.info(`installing axe-core`);
             const { stderr: installError, exitCode: installExitCode } = await (0, exec_1.getExecOutput)(packageManager, [
                 packageManager === 'npm' ? 'i' : 'add',
                 dependencyType,

@@ -32,7 +32,7 @@ describe('run', () => {
     })
     getExecOutputStub.onFirstCall().returns({
       exitCode: 0,
-      stdout: '4.8.1'
+      stdout: '   4.8.1\n'
     })
     getPackageManagerStub = sinon.stub()
   })
@@ -45,7 +45,7 @@ describe('run', () => {
     await fs.rm(cwd, { recursive: true })
   })
 
-  it('gets latest axe-core version', async () => {
+  it('gets latest axe-core version and trims', async () => {
     const core = { info, setOutput }
     await run(core as unknown as Core, getPackageManagerStub)
 
