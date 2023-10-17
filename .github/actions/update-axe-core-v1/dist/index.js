@@ -4402,7 +4402,7 @@ async function run(core, getPackageManager, cwd) {
             ], {
                 cwd: dirPath
             });
-            if (installError) {
+            if (installExitCode) {
                 throw new Error(`Error installing axe-core:\n${installError}`);
             }
         }
@@ -4420,6 +4420,7 @@ async function run(core, getPackageManager, cwd) {
         else {
             core.setOutput('commit-type', 'fix');
         }
+        core.setOutput('version', latestAxeCoreVersion);
     }
     catch (error) {
         core.setFailed(error.message);
