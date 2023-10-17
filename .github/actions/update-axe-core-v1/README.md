@@ -2,6 +2,14 @@
 
 A GitHub action for updating axe-core to the latest stable version.
 
+- It updates `package.json`, `yarn.lock`, and `package-lock.json`.
+- It is compatible with both workspaces and non-workspaces monorepos.
+- It handles dependencies and devDependencies.
+- It maintains whatever pinning strategy was already in place (`~`, `^`, or `=`).
+- It does *not* commit changes or create a PR.
+
+Workflows should generally use [create-update-axe-core-pull-request](../create-update-axe-core-pull-request-v1/README.md) instead of using this action directly.
+
 ## Outputs
 
 | Name          | Description                                                                                                            |

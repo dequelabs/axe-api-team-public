@@ -1,6 +1,15 @@
-# create-update-axe-pull-core-request-v1
+# create-update-axe-core-pull-request-v1
 
-A GitHub Action to update axe-core and create a pull request.
+A GitHub action to create a PR that updates axe-core to the latest stable version. It noops if no update is available.
+
+- It updates `package.json`, `yarn.lock`, and `package-lock.json`.
+- It is compatible with both workspaces and non-workspaces monorepos.
+- It handles dependencies and devDependencies.
+- It maintains whatever pinning strategy was already in place (`~`, `^`, or `=`).
+
+Workflows should generally use this instead of using [update-axe-core](../update-axe-core-v1/README.md) directly.
+
+This action can be replaced with dependabot config once [dependabot-core#1778](https://github.com/dependabot/dependabot-core/issues/1778) is resolved.
 
 ## Inputs
 

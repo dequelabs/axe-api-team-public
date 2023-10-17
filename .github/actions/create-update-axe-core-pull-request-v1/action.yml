@@ -1,4 +1,4 @@
-name: create-update-axe-pull-core-request
+name: create-update-axe-core-pull-request
 description: 'A GitHub Action to update axe-core and create a pull request'
 
 inputs:
