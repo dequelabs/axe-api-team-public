@@ -4344,10 +4344,11 @@ const exec_1 = __nccwpck_require__(1518);
 const path_1 = __importDefault(__nccwpck_require__(1017));
 async function run(core, getPackageManager, cwd) {
     try {
-        const { stdout: latestAxeCoreVersion, stderr: npmInfoError, exitCode: npmExitCode } = await (0, exec_1.getExecOutput)('npm', ['info', 'axe-core', 'version']);
+        const { stdout: npmInfoOut, stderr: npmInfoError, exitCode: npmExitCode } = await (0, exec_1.getExecOutput)('npm', ['info', 'axe-core', 'version']);
         if (npmExitCode) {
             throw new Error(`Error getting latest axe-core version:\n${npmInfoError}`);
         }
+        const latestAxeCoreVersion = npmInfoOut.trim();
         core.info(`latest axe-core version ${latestAxeCoreVersion}`);
         const rootPackageManager = await getPackageManager('./');
         core.info(`root package manager detected as ${rootPackageManager}`);

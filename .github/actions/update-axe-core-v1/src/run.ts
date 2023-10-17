@@ -11,7 +11,7 @@ export default async function run(
 ) {
   try {
     const {
-      stdout: latestAxeCoreVersion,
+      stdout: npmInfoOut,
       stderr: npmInfoError,
       exitCode: npmExitCode
     } = await getExecOutput('npm', ['info', 'axe-core', 'version'])
@@ -19,6 +19,8 @@ export default async function run(
       throw new Error(`Error getting latest axe-core version:\n${npmInfoError}`)
     }
 
+    // `npm info`` adds newline character to end of the output
+    const latestAxeCoreVersion = npmInfoOut.trim()
     core.info(`latest axe-core version ${latestAxeCoreVersion}`)
 
     // npm and yarn workspaces will have a lock file at the root
