@@ -5,6 +5,9 @@ inputs:
   token:
     description: '`GITHUB_TOKEN` (permissions `contents: write` and `pull-requests: write`) or a repo scoped Personal Access Token (PAT).'
     required: true
+  base:
+    description: 'The branch the pull request will be merged into'
+    default: 'develop'
 
 runs:
   using: 'composite'
@@ -24,7 +27,7 @@ runs:
         token: ${{ inputs.token }}
         commit-message: '${{ steps.update-axe-core.outputs.commit-type }}: Update axe-core to v${{ steps.update-axe-core.outputs.version }}'
         branch: auto-update-axe-core
-        base: develop
+        base: ${{ inputs.base }}
         title: '${{ steps.update-axe-core.outputs.commit-type }}: Update axe-core to v${{ steps.update-axe-core.outputs.version }}'
         body: |
           This pull request updates the version of [`axe-core`](https://npmjs.org/axe-core) to v${{ steps.update-axe-core.outputs.version }}.

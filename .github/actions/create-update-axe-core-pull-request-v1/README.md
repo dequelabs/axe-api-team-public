@@ -7,6 +7,7 @@ A GitHub Action to update axe-core and create a pull request.
 | Name                  | Required | Description                                                                                | Default |
 | --------------------- | -------- | ------------------------------------------------------------------------------------------ | ------- |
 | `token`               | Yes      | `GITHUB_TOKEN` (permissions `contents: write` and `pull-requests: write`) or a repo scoped Personal Access Token (PAT).                   | NA      |
+| `base`                | No       | The branch the pull request will be merged into                                            | `develop`      |
 
 ## Example usage
 
@@ -25,5 +26,5 @@ jobs:
     steps:
       - uses: dequelabs/axe-api-team-public/.github/actions/create-update-axe-core-pull-request-v1@main
         with:
-          token: ${{ secrets.PAT }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 ```
