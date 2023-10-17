@@ -4392,6 +4392,9 @@ async function run(core, getPackageManager, cwd) {
                 installedAxeCoreVersion = axeCoreVersion.replace(/^[=^~]/, '');
             }
             core.info(`installedAxeCoreVersion after "${installedAxeCoreVersion}"`);
+            core.info(`latestAxeCoreVersion "${latestAxeCoreVersion}"`);
+            core.info(`typeof latestAxeCoreVersion "${typeof latestAxeCoreVersion}"`);
+            core.info(`typeof installedAxeCoreVersion "${typeof installedAxeCoreVersion}"`);
             core.info(`installedAxeCoreVersion === latestAxeCoreVersion ${installedAxeCoreVersion === latestAxeCoreVersion}`);
             if (installedAxeCoreVersion === latestAxeCoreVersion) {
                 core.info('axe-core version is currently at latest, no update required');

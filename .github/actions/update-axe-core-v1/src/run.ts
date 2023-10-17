@@ -90,6 +90,12 @@ export default async function run(
       }
 
       core.info(`installedAxeCoreVersion after "${installedAxeCoreVersion}"`)
+      core.info(`latestAxeCoreVersion "${latestAxeCoreVersion}"`)
+
+      core.info(`typeof latestAxeCoreVersion "${typeof
+        latestAxeCoreVersion}"`)
+      core.info(`typeof installedAxeCoreVersion "${typeof installedAxeCoreVersion}"`)
+
       core.info(`installedAxeCoreVersion === latestAxeCoreVersion ${installedAxeCoreVersion === latestAxeCoreVersion}`)
 
       if (installedAxeCoreVersion === latestAxeCoreVersion) {
