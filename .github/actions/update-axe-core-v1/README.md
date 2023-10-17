@@ -7,6 +7,7 @@ A GitHub action for updating axe-core to the latest stable version.
 | Name          | Description                                                                                                            |
 | --------------| ---------------------------------------------------------------------------------------------------------------------- |
 | `commit-type` | `feat` if axe-core updated to a major or minor version, `fix` if it updated to a patch version, or `null` if no update occurred |
+| `version`     | The version that axe-core was updated to |
 
 ## Example usage
 

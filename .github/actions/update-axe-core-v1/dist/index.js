@@ -4421,6 +4421,7 @@ async function run(core, getPackageManager, cwd) {
         else {
             core.setOutput('commit-type', 'fix');
         }
+        core.setOutput('version', latestAxeCoreVersion);
     }
     catch (error) {
         core.setFailed(error.message);
