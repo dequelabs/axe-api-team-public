@@ -23,7 +23,7 @@ jobs:
   create-project-issue:
     runs-on: ubuntu-latest
     steps:
-      - uses: dequelabs/axe-api-team-public/.github/actions/create-update-axe-pull-core-request-v1@main
+      - uses: dequelabs/axe-api-team-public/.github/actions/create-update-axe-core-pull-request-v1@main
         with:
           token: ${{ secrets.PAT }}
 ```
