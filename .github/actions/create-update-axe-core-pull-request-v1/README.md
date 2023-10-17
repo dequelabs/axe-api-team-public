@@ -21,7 +21,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  create-project-issue:
+  update-axe-core:
     runs-on: ubuntu-latest
     steps:
       - uses: dequelabs/axe-api-team-public/.github/actions/create-update-axe-core-pull-request-v1@main
