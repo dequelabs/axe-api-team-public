@@ -1,12 +1,6 @@
-# get-version-number-and-issue-url-v1
+# get-issue-url-and-version-number-v1
 
-This action gets the version number and issue url from the release-candidate.
-
-## Inputs
-
-| Input                   | Description                                                   | Required | Default |
-| ----------------------- | ------------------------------------------------------------- | -------- | ------- |
-| `disable-get-issue-url` | Whether or not to get the issue URL for the release candidate | false    | `false` |
+This GitHub Action gets the version number and issue url from the release candidate issue.
 
 ## Outputs
 
