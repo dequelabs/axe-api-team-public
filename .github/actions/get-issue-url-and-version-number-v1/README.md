@@ -21,7 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: get version number and release-candidate issue URL
-      - uses: dequelabs/axe-api-team-public/.github/actions/get-version-number-and-issue-url-v1@main
+      - uses: dequelabs/axe-api-team-public/.github/actions/get-issue-url-and-version-number-v1@main
         id: get-version-number-and-issue-url
 
       - name: Slack Notification
