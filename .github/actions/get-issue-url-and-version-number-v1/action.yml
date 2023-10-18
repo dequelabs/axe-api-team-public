@@ -20,7 +20,7 @@ runs:
         echo "Issue: $issue"
         
         issueURL=$(echo $issue | jq -r '.[0].url')
-        echo "Issue URL: $issueUrl"
+        echo "Issue URL: $issueURL"
 
         issueTitle=$(echo $issue | jq -r '.[0].title')
         echo "Issue Title: $issueTitle"
@@ -29,6 +29,6 @@ runs:
         versionNumber=$(echo $issueTitle | grep --only-matching --extended-regexp '[0-9]+.[0-9]+.[0-9]+')
         echo "Version Number: $versionNumber"
 
-        echo "issue-url=$issueUrl" >> $GITHUB_OUTPUT
+        echo "issue-url=$issueURL" >> $GITHUB_OUTPUT
         echo "version-number=$versionNumber" >> $GITHUB_OUTPUT
 
