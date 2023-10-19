@@ -59,6 +59,7 @@ The `release-script-path` should point to a script which meets the following req
    - if `$GITHUB_REF` is anything else, exit with fail
 - Should update the version numbers in all files in the repo (`lerna.json`, `package.json`, `pom.xml`, etc.)
    - This MUST include either a `lerna.json` or `package.json` at the root of the repo (even for non-js repos)
+- Should update CHANGELOG.md files
 - Should exit with 0 on success or non-zero on failure
 - No specific requirements on stdout/stderr format
 
