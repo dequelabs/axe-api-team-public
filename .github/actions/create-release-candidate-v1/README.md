@@ -10,7 +10,7 @@ A GitHub Action to create a release candidate.
 | `base`                | Yes      | The branch that should be compared to `head` when identifying commits for the release, usually `main` or `master`. **NOT** the base branch of the release candidate PR (that is not configurable and will always be `release`). | NA      |
 | `head`                | Yes      | The branch that contains the changes the pull request is trying to merge (usually `develop`) | NA      |
 | `release-script-path` | Yes      | The path to the [release script](#release-script-requirements) that creates the changelogs and bumps the version of the package(s) | NA      |
-| `version-locked`      | No       | Whether or not the version should be locked to axe-core                                    | `false` |
+| `version-locked`      | No       | Whether or not the version bump should treat major/minor as "locked". Repos which version-lock to axe-core should default this to `true`, overriding it to `false` only for releases that update `axe-core`. | `false` |
 | `docs-repo`           | No       | The name of the repo where the release notes live                                          | `null`  |
 
 ## Example usage
