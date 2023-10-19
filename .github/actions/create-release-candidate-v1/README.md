@@ -63,6 +63,8 @@ The `release-script-path` should point to a script which meets the following req
 - Should exit with 0 on success or non-zero on failure
 - No specific requirements on stdout/stderr format
 
+An example of a [`prepare_release.sh` script](https://github.com/dequelabs/axe-core-npm/blob/develop/.github/scripts/prepare_release.sh).
+
 ## Updating QA Issue Template
 
 If you ever need to update the QA issue template, please do the following:
