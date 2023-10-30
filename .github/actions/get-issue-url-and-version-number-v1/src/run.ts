@@ -17,7 +17,7 @@ export default async function run(core: Core, github: GitHub) {
     }
 
     const [issue] = JSON.parse(rawIssue.trim()) as Issue[]
-    core.info(`Found issue: ${issue}`)
+    core.info(`Found issue: ${JSON.stringify(issue, null, 2)}`)
 
     const issueUrl = issue.url
     core.info(`Issue URL: ${issueUrl}`)
@@ -33,7 +33,9 @@ export default async function run(core: Core, github: GitHub) {
     }
     core.info(`Version number: ${versionNumber}`)
 
-    core.info(`Setting output for ${issueUrl} and ${versionNumber}`)
+    core.info(
+      `Setting output for issue URL: ${issueUrl} and version number: ${versionNumber}`
+    )
     core.setOutput('issue-url', issueUrl)
     core.setOutput('version-number', versionNumber)
   } catch (error) {

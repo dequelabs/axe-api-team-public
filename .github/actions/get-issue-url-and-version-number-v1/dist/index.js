@@ -10917,7 +10917,7 @@ async function run(core, github) {
             throw new Error(`Error getting issue:\n${issueError}`);
         }
         const [issue] = JSON.parse(rawIssue.trim());
-        core.info(`Found issue: ${issue}`);
+        core.info(`Found issue: ${JSON.stringify(issue, null, 2)}`);
         const issueUrl = issue.url;
         core.info(`Issue URL: ${issueUrl}`);
         const issueTitle = issue.title;
@@ -10927,7 +10927,7 @@ async function run(core, github) {
             throw new Error(`Could not find version number in issue title`);
         }
         core.info(`Version number: ${versionNumber}`);
-        core.info(`Setting output for ${issueUrl} and ${versionNumber}`);
+        core.info(`Setting output for issue URL: ${issueUrl} and version number: ${versionNumber}`);
         core.setOutput('issue-url', issueUrl);
         core.setOutput('version-number', versionNumber);
     }
