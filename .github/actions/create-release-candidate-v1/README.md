@@ -6,11 +6,11 @@ A GitHub Action to create a release candidate.
 
 | Name                  | Required | Description                                                                                | Default |
 | --------------------- | -------- | ------------------------------------------------------------------------------------------ | ------- |
-| `token`               | Yes      | A GitHub token used for octokit and GH CLI with the required permissions                   | NA      |
-| `base`                | Yes      | The branch the pull request will be merged into                                            | NA      |
-| `head`                | Yes      | The branch that contains the changes the pull request is trying to merge                   | NA      |
-| `release-script-path` | Yes      | The path to the script that creates the changelogs and bumps the version of the package(s) | NA      |
-| `version-locked`      | No       | Whether or not the version should be locked to axe-core                                    | `false` |
+| `token`               | Yes      | A GitHub token used for octokit and GH CLI with the [required permissions](#permissions)   | NA      |
+| `base`                | Yes      | The branch that should be compared to `head` when identifying commits for the release, usually `main` or `master`. **NOT** the base branch of the release candidate PR (that is not configurable and will always be `release`). | NA      |
+| `head`                | Yes      | The branch that contains the changes the pull request is trying to merge (usually `develop`) | NA      |
+| `release-script-path` | Yes      | The path to the [release script](#release-script-requirements) that creates the changelogs and bumps the version of the package(s) | NA      |
+| `version-locked`      | No       | Whether or not the version bump should treat major/minor as "locked". Repos which version-lock to axe-core should default this to `true`, overriding it to `false` only for releases that update `axe-core`. | `false` |
 | `docs-repo`           | No       | The name of the repo where the release notes live                                          | `null`  |
 
 ## Example usage
@@ -45,6 +45,25 @@ This action requires the following permission scopes:
 - `write:org` - To add the issue to a project board
 - `read:org` - To read the project board
 - `project` - access to project board
+
+## Release script requirements
+
+The `release-script-path` should point to a script which meets the following requirements:
+
+- May be invoked with either no arguments or a single argument (the string `patch`)
+   - in `patch` mode, version should bump to the next patch version
+   - in no-argument mode, version should bump to the appropriate next semver determined by commits since the previous version (via `lerna version`, `commit-and-tag-version`, or similar)
+- Should use `$GITHUB_REF` to determine a version suffix:
+   - if `$GITHUB_REF` is `refs/heads/develop`, append a `-next` version suffix (eg, `"-next." + process.env.GITHUB_SHA.substring(0, 8)` for NPM)
+   - if `$GITHUB_REF` is `refs/heads/main`, do not append a version suffix
+   - if `$GITHUB_REF` is anything else, exit with fail
+- Should update the version numbers in all files in the repo (`lerna.json`, `package.json`, `pom.xml`, etc.)
+   - This MUST include either a `lerna.json` or `package.json` at the root of the repo (even for non-js repos)
+- Should update CHANGELOG.md files
+- Should exit with 0 on success or non-zero on failure
+- No specific requirements on stdout/stderr format
+
+An example of a [`prepare_release.sh` script](https://github.com/dequelabs/axe-core-npm/blob/develop/.github/scripts/prepare_release.sh).
 
 ## Updating QA Issue Template
 
