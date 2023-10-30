@@ -4,31 +4,9 @@ description: 'A small GitHub Action to get the version number and issue URL for 
 outputs:
   version-number:
     description: 'The version number for the release candidate'
-    value: ${{ steps.get_issue_url_and_version_number.outputs.version-number }}
   issue-url:
     description: 'The issue URL for the release candidate'
-    value: ${{ steps.get_issue_url_and_version_number.outputs.issue-url }}
 
 runs:
-  using: 'composite'
-  steps:
-    - name: Get release-candidate issue URL and version number
-      id: get_issue_url_and_version_number
-      shell: bash
-      run: |
-        issue=$(gh issue list --repo ${{ github.repository }} --label release --state open --json url,title)
-        echo "Issue: $issue"
-        
-        issueURL=$(echo $issue | jq -r '.[0].url')
-        echo "Issue URL: $issueURL"
-
-        issueTitle=$(echo $issue | jq -r '.[0].title')
-        echo "Issue Title: $issueTitle"
-
-        # Get the version number from the issue title e.g. 1.33.7
-        versionNumber=$(echo $issueTitle | grep --only-matching --extended-regexp '[0-9]+.[0-9]+.[0-9]+')
-        echo "Version Number: $versionNumber"
-
-        echo "issue-url=$issueURL" >> $GITHUB_OUTPUT
-        echo "version-number=$versionNumber" >> $GITHUB_OUTPUT
-
+  using: 'node20'
+  main: 'dist/index.js'
