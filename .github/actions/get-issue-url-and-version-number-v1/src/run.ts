@@ -2,14 +2,14 @@ import type { Core, GitHub, Issue } from './types'
 import { getExecOutput } from '@actions/exec'
 
 export default async function run(core: Core, github: GitHub) {
-  const repo = github.context.repo.repo
+  const { repo, owner } = github.context.repo
   try {
     const {
       stdout: rawIssue,
       stderr: issueError,
       exitCode: issueExitCode
     } = await getExecOutput(
-      `gh issue list --repo ${repo} --label release --state open --json url,title`
+      `gh issue list --repo ${owner}/${repo} --label release --state open --json url,title`
     )
 
     if (issueExitCode) {

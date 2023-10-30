@@ -10910,9 +10910,9 @@ const run_1 = __importDefault(__nccwpck_require__(1738));
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const exec_1 = __nccwpck_require__(1518);
 async function run(core, github) {
-    const repo = github.context.repo.repo;
+    const { repo, owner } = github.context.repo;
     try {
-        const { stdout: rawIssue, stderr: issueError, exitCode: issueExitCode } = await (0, exec_1.getExecOutput)(`gh issue list --repo ${repo} --label release --state open --json url,title`);
+        const { stdout: rawIssue, stderr: issueError, exitCode: issueExitCode } = await (0, exec_1.getExecOutput)(`gh issue list --repo ${owner}/${repo} --label release --state open --json url,title`);
         if (issueExitCode) {
             throw new Error(`Error getting issue:\n${issueError}`);
         }
