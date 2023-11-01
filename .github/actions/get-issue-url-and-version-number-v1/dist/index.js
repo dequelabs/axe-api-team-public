@@ -10916,17 +10916,21 @@ async function run(core, github) {
         if (issueExitCode) {
             throw new Error(`Error getting issue:\n${issueError}`);
         }
-        const [issue] = JSON.parse(rawIssue.trim());
+        const issueParsed = JSON.parse(rawIssue.trim());
+        if (!issueParsed.length) {
+            throw new Error(`No issue found`);
+        }
+        const [issue] = issueParsed;
         core.info(`Found issue: ${JSON.stringify(issue, null, 2)}`);
         const issueUrl = issue.url;
         core.info(`Issue URL: ${issueUrl}`);
         const issueTitle = issue.title;
         core.info(`Issue title: ${issueTitle}`);
-        const versionNumber = issueTitle.match(/\d+.\d+.\d+/);
-        if (!versionNumber) {
+        const versionMatch = issueTitle.match(/\d+\.\d+\.\d+/);
+        if (!versionMatch) {
             throw new Error(`Could not find version number in issue title`);
         }
-        core.info(`Version number: ${versionNumber}`);
+        const versionNumber = versionMatch[0];
         core.info(`Setting output for issue URL: ${issueUrl} and version number: ${versionNumber}`);
         core.setOutput('issue-url', issueUrl);
         core.setOutput('version-number', versionNumber);

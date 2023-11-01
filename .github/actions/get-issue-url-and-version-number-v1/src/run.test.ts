@@ -46,6 +46,31 @@ describe('run', () => {
     })
   })
 
+  describe('when no issue is found', () => {
+    it('sets the action as failed', async () => {
+      const core = { info, setFailed } as unknown as Core
+      const github = {
+        context: {
+          repo: {
+            owner: 'owner',
+            repo: 'repo'
+          }
+        }
+      } as unknown as GitHub
+
+      getExecOutput.resolves({
+        // gh issue list returns an empty array when no issues are found when given --json flag
+        stdout: '[]',
+        stderr: '',
+        exitCode: 0
+      })
+
+      await run(core, github)
+
+      assert.isTrue(setFailed.calledWith('No issue found'))
+    })
+  })
+
   describe('when the version number cannot be found in the issue title', () => {
     it('sets the action as failed', async () => {
       const core = { info, setFailed } as unknown as Core
@@ -73,12 +98,6 @@ describe('run', () => {
       })
 
       await run(core, github)
-
-      assert.isTrue(
-        getExecOutput.calledWith(
-          'gh issue list --repo owner/repo --label release --state open --json url,title'
-        )
-      )
 
       assert.isTrue(
         setFailed.calledWith('Could not find version number in issue title')
@@ -112,12 +131,6 @@ describe('run', () => {
       })
 
       await run(core, github)
-
-      assert.isTrue(
-        getExecOutput.calledWith(
-          'gh issue list --repo owner/repo --label release --state open --json url,title'
-        )
-      )
 
       assert.equal(setOutput.callCount, 2)
       assert.equal(setOutput.getCall(0).lastArg, url)

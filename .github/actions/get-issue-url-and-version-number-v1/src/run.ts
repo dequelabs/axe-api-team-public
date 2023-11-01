@@ -16,7 +16,12 @@ export default async function run(core: Core, github: GitHub) {
       throw new Error(`Error getting issue:\n${issueError}`)
     }
 
-    const [issue] = JSON.parse(rawIssue.trim()) as Issue[]
+    const issueParsed = JSON.parse(rawIssue.trim())
+    if (!issueParsed.length) {
+      throw new Error(`No issue found`)
+    }
+
+    const [issue] = issueParsed as Issue[]
     core.info(`Found issue: ${JSON.stringify(issue, null, 2)}`)
 
     const issueUrl = issue.url
@@ -26,12 +31,13 @@ export default async function run(core: Core, github: GitHub) {
     core.info(`Issue title: ${issueTitle}`)
 
     // get version number from issue title (e.g. "1.33.7")
-    const versionNumber = issueTitle.match(/\d+.\d+.\d+/)
+    const versionMatch = issueTitle.match(/\d+\.\d+\.\d+/)
 
-    if (!versionNumber) {
+    if (!versionMatch) {
       throw new Error(`Could not find version number in issue title`)
     }
-    core.info(`Version number: ${versionNumber}`)
+
+    const versionNumber = versionMatch[0]
 
     core.info(
       `Setting output for issue URL: ${issueUrl} and version number: ${versionNumber}`
