@@ -14,7 +14,10 @@ This GitHub Action gets the version number and issue url from the release candid
 ```yaml
 name: Get version number and issue url and post to Slack
 
-on: push
+on:
+  push:
+    branches:
+      - release
 
 jobs:
   post-to-slack:

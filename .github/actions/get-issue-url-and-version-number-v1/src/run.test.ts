@@ -137,4 +137,40 @@ describe('run', () => {
       assert.equal(setOutput.getCall(1).lastArg, '1.33.7')
     })
   })
+
+  describe('when an unexpected error occurs', () => {
+    it('catches the error', async () => {
+      const core = {
+        info() {
+          throw new Error('boom')
+        },
+        setFailed
+      } as unknown as Core
+      const github = {
+        context: {
+          repo: {
+            owner: 'owner',
+            repo: 'repo'
+          }
+        }
+      } as unknown as GitHub
+
+      const url = 'https://github.com/owner/repo/issues/1'
+      const title = 'chore: RC v1.33.7'
+      getExecOutput.resolves({
+        stdout: JSON.stringify([
+          {
+            url,
+            title
+          }
+        ]),
+        stderr: '',
+        exitCode: 0
+      })
+
+      await run(core, github)
+
+      assert.isTrue(setFailed.calledWith('boom'))
+    })
+  })
 })
