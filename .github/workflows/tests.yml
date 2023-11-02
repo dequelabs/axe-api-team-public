@@ -103,3 +103,15 @@ jobs:
           cache: 'npm'
       - run: npm ci
       - run: npm run coverage --workspace=label-and-move-released-issues-v1
+
+  update-axe-core-v1:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run coverage --workspace=update-axe-core-v1
