@@ -27223,7 +27223,7 @@ async function run(core, getPackageManager, cwd) {
                 continue;
             }
             const dirPath = path_1.default.dirname(filePath);
-            const packageManager = await getPackageManager(dirPath) ?? rootPackageManager;
+            const packageManager = (await getPackageManager(dirPath)) ?? rootPackageManager;
             if (!packageManager) {
                 core.info('No package manager detected, moving on...');
                 continue;
@@ -27232,9 +27232,7 @@ async function run(core, getPackageManager, cwd) {
             const dependency = pkg.dependencies?.['axe-core']
                 ? 'dependencies'
                 : 'devDependencies';
-            const dependencyType = dependency === 'dependencies'
-                ? ''
-                : '-D';
+            const dependencyType = dependency === 'dependencies' ? '' : '-D';
             const axeCoreVersion = pkg[dependency]['axe-core'];
             let pinStrategy = axeCoreVersion.charAt(0);
             if (pinStrategy.match(/\d/)) {
@@ -27267,8 +27265,7 @@ async function run(core, getPackageManager, cwd) {
         }
         const [installedMajor, installedMinor] = installedAxeCoreVersion.split('.');
         const [latestMajor, latestMinor] = latestAxeCoreVersion.split('.');
-        if (installedMajor !== latestMajor ||
-            installedMinor !== latestMinor) {
+        if (installedMajor !== latestMajor || installedMinor !== latestMinor) {
             core.setOutput('commit-type', 'feat');
         }
         else {
