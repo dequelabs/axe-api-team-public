@@ -6,16 +6,16 @@ A GitHub action for updating axe-core to the latest stable version.
 - It is compatible with both workspaces and non-workspaces monorepos.
 - It handles dependencies and devDependencies.
 - It maintains whatever pinning strategy was already in place (`~`, `^`, or `=`).
-- It does *not* commit changes or create a PR.
+- It does _not_ commit changes or create a PR.
 
 Workflows should generally use [create-update-axe-core-pull-request](../create-update-axe-core-pull-request-v1/README.md) instead of using this action directly.
 
 ## Outputs
 
-| Name          | Description                                                                                                            |
-| --------------| ---------------------------------------------------------------------------------------------------------------------- |
+| Name          | Description                                                                                                                     |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | `commit-type` | `feat` if axe-core updated to a major or minor version, `fix` if it updated to a patch version, or `null` if no update occurred |
-| `version`     | The version that axe-core was updated to |
+| `version`     | The version that axe-core was updated to                                                                                        |
 
 ## Example usage
 

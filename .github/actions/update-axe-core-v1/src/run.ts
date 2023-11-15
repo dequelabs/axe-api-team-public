@@ -54,26 +54,27 @@ export default async function run(
         !pkg.devDependencies?.['axe-core']
       ) {
         core.info(`no axe-core dependency found, moving on...`)
-        continue;
+        continue
       }
 
       const dirPath = path.dirname(filePath)
-      const packageManager = await getPackageManager(dirPath) ?? rootPackageManager
+      const packageManager =
+        (await getPackageManager(dirPath)) ?? rootPackageManager
 
       if (!packageManager) {
         core.info('No package manager detected, moving on...')
         continue
       }
 
-      core.info(`package specific package manager detected as ${packageManager}`)
+      core.info(
+        `package specific package manager detected as ${packageManager}`
+      )
 
       const dependency = pkg.dependencies?.['axe-core']
         ? 'dependencies'
         : 'devDependencies'
 
-      const dependencyType = dependency === 'dependencies'
-        ? ''
-        : '-D'
+      const dependencyType = dependency === 'dependencies' ? '' : '-D'
       const axeCoreVersion = pkg[dependency]['axe-core']
       let pinStrategy = axeCoreVersion.charAt(0)
 
@@ -87,7 +88,7 @@ export default async function run(
       // we expect that all axe-core versions will be the same
       // for every package
       if (!installedAxeCoreVersion) {
-        installedAxeCoreVersion = axeCoreVersion.replace(/^[=^~]/,'')
+        installedAxeCoreVersion = axeCoreVersion.replace(/^[=^~]/, '')
       }
 
       if (installedAxeCoreVersion === latestAxeCoreVersion) {
@@ -96,16 +97,18 @@ export default async function run(
         return
       }
 
-      const {
-        stderr: installError,
-        exitCode: installExitCode
-      } = await getExecOutput(packageManager, [
-        packageManager === 'npm' ? 'i' : 'add',
-        dependencyType,
-        `axe-core@${pinStrategy}${latestAxeCoreVersion}`
-      ], {
-        cwd: dirPath
-      })
+      const { stderr: installError, exitCode: installExitCode } =
+        await getExecOutput(
+          packageManager,
+          [
+            packageManager === 'npm' ? 'i' : 'add',
+            dependencyType,
+            `axe-core@${pinStrategy}${latestAxeCoreVersion}`
+          ],
+          {
+            cwd: dirPath
+          }
+        )
       if (installExitCode) {
         throw new Error(`Error installing axe-core:\n${installError}`)
       }
@@ -117,16 +120,12 @@ export default async function run(
       return
     }
 
-    const [ installedMajor, installedMinor ] = installedAxeCoreVersion.split('.')
-    const [ latestMajor, latestMinor ] = latestAxeCoreVersion.split('.')
+    const [installedMajor, installedMinor] = installedAxeCoreVersion.split('.')
+    const [latestMajor, latestMinor] = latestAxeCoreVersion.split('.')
 
-    if (
-      installedMajor !== latestMajor ||
-      installedMinor !== latestMinor
-    ) {
+    if (installedMajor !== latestMajor || installedMinor !== latestMinor) {
       core.setOutput('commit-type', 'feat')
-    }
-    else {
+    } else {
       core.setOutput('commit-type', 'fix')
     }
 

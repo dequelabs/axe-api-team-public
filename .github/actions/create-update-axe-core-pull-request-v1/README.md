@@ -13,10 +13,10 @@ This action can be replaced with dependabot config once [dependabot-core#1778](h
 
 ## Inputs
 
-| Name                  | Required | Description                                                                                | Default |
-| --------------------- | -------- | ------------------------------------------------------------------------------------------ | ------- |
-| `token`               | Yes      | `GITHUB_TOKEN` (permissions `contents: write` and `pull-requests: write`) or a repo scoped Personal Access Token (PAT).                   | NA      |
-| `base`                | No       | The branch the pull request will be merged into                                            | `develop`      |
+| Name    | Required | Description                                                                                                             | Default   |
+| ------- | -------- | ----------------------------------------------------------------------------------------------------------------------- | --------- |
+| `token` | Yes      | `GITHUB_TOKEN` (permissions `contents: write` and `pull-requests: write`) or a repo scoped Personal Access Token (PAT). | NA        |
+| `base`  | No       | The branch the pull request will be merged into                                                                         | `develop` |
 
 ## Example usage
 

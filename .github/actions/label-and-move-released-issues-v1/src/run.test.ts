@@ -27,7 +27,7 @@ const MOCK_LIST_LABELS = {
   description: "Something isn't working",
   color: 'f29513',
   default: true
-} as unknown as Endpoints["GET /repos/{owner}/{repo}/labels"]["response"]
+} as unknown as Endpoints['GET /repos/{owner}/{repo}/labels']['response']
 
 const MOCK_CREATED_LABEL = {
   id: 208045946,
@@ -37,7 +37,7 @@ const MOCK_CREATED_LABEL = {
   description: 'release 1.0.0',
   color: 'f29513',
   default: true
-} as unknown as Endpoints["POST /repos/{owner}/{repo}/labels"]["response"]
+} as unknown as Endpoints['POST /repos/{owner}/{repo}/labels']['response']
 
 const MOCK_PROJECT_BOARD_ID = {
   id: '123'
@@ -141,19 +141,6 @@ describe('run', () => {
     }
   }
 
-  const listLabels = (mockResponse?: object) => {
-    return sinon.stub(octokit.rest.issues, 'listLabelsForRepo').resolves({
-      data: [mockResponse ?? MOCK_LIST_LABELS],
-      status: 200
-    } as Endpoints["GET /repos/{owner}/{repo}/labels"]["response"])
-  }
-
-  const createLabel = () => {
-    return sinon
-      .stub(octokit.rest.issues, 'createLabel')
-      .resolves(MOCK_CREATED_LABEL)
-  }
-
   describe('when the `commit-list` input is not provided', () => {
     it('throws an error', async () => {
       getInput.withArgs('commit-list', { required: true }).throws({
@@ -245,9 +232,6 @@ describe('run', () => {
         ]
       })
 
-      listLabels()
-      createLabel()
-
       // getProjectBoardID Stub
       getExecOutput.onFirstCall().resolves({
         stdout: JSON.stringify(MOCK_PROJECT_BOARD_ID)
@@ -270,7 +254,26 @@ describe('run', () => {
             repo: 'repo'
           }
         },
-        getOctokit: () => octokit
+        getOctokit: () => {
+          return {
+            ...octokit,
+            rest: {
+              issues: {
+                listLabelsForRepo: () => {
+                  return {
+                    data: [MOCK_LIST_LABELS],
+                    status: 200
+                  } as unknown as Endpoints['GET /repos/{owner}/{repo}/labels']['response']
+                },
+                createLabel: () => {
+                  return {
+                    data: MOCK_CREATED_LABEL
+                  } as unknown as Endpoints['POST /repos/{owner}/{repo}/labels']['response']
+                }
+              }
+            }
+          }
+        }
       }
 
       await run(core as unknown as Core, github as unknown as GitHub)
@@ -309,6 +312,7 @@ describe('run', () => {
         setFailed,
         info
       }
+
       const github = {
         context: {
           repo: {
@@ -316,7 +320,26 @@ describe('run', () => {
             repo: 'repo'
           }
         },
-        getOctokit: () => octokit
+        getOctokit: () => {
+          return {
+            ...octokit,
+            rest: {
+              issues: {
+                listLabelsForRepo: () => {
+                  return {
+                    data: [MOCK_LIST_LABELS],
+                    status: 200
+                  } as unknown as Endpoints['GET /repos/{owner}/{repo}/labels']['response']
+                },
+                createLabel: () => {
+                  return {
+                    data: MOCK_CREATED_LABEL
+                  } as unknown as Endpoints['POST /repos/{owner}/{repo}/labels']['response']
+                }
+              }
+            }
+          }
+        }
       }
 
       await run(core as unknown as Core, github as unknown as GitHub)
@@ -338,9 +361,6 @@ describe('run', () => {
       referencedClosedIssues,
       projectInfo
     }: Partial<GenerateResponsesArgs> = {}) => {
-      listLabels()
-      createLabel()
-
       // Quiet awkward to test single cases here (individually tested in add-to-board-v1 withArgs, using onCall here instead)
 
       // getProjectBoardID Stub
@@ -367,9 +387,6 @@ describe('run', () => {
       })
 
       const graphqlStub = sinon.stub(octokit, 'graphql')
-      const getIssueStub = sinon.stub(octokit.rest.issues, 'get')
-      const updateIssueStub = sinon.stub(octokit.rest.issues, 'update')
-      const addLabsStub = sinon.stub(octokit.rest.issues, 'addLabels')
 
       // getReferencedClosedIssues 1st call
       graphqlStub
@@ -377,36 +394,61 @@ describe('run', () => {
         .resolves(referencedClosedIssues ?? MOCK_REFERENCED_CLOSED_ISSUES)
       // getIssueProjectInfo 1st call
       graphqlStub.onSecondCall().resolves(projectInfo ?? MOCK_PROJECT_INFO)
-      // getIssue 1st call
-      getIssueStub.onFirstCall().resolves({
-        data: {
-          html_url: 'https://github.com/owner/repo/issues/1',
-          state: 'open'
-        },
-        status: 200
-      // these responses are very large and require every property, just casting as Endpoints["GET /repos/{owner}/{repo}/issues/{issue_number}"]["response"] doesn't satisfy the type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any)
-      // updateIssue 1st call
-      updateIssueStub.onFirstCall().resolves({
-        data: {},
-        status: 200
-      // these responses are very large and require every property, just casting as Endpoints["PATCH /repos/{owner}/{repo}/issues/{issue_number}"]["response"] doesn't satisfy the type
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any)
-      // addLabels 1st call
-      addLabsStub.onFirstCall().resolves({
-        data: {
-          labels: [MOCK_CREATED_LABEL],
-          status: 200
-        }
-      } as unknown as Endpoints["POST /repos/{owner}/{repo}/issues/{issue_number}/labels"]["response"])
 
       return {
-        graphqlStub,
-        getIssueStub,
-        updateIssueStub,
-        addLabsStub
+        graphqlStub
+      }
+    }
+
+    const github = {
+      context: {
+        repo: {
+          owner: 'owner',
+          repo: 'repo'
+        }
+      },
+      getOctokit: () => {
+        return {
+          ...octokit,
+          rest: {
+            issues: {
+              listLabelsForRepo: () => {
+                return {
+                  data: [MOCK_LIST_LABELS],
+                  status: 200
+                } as unknown as Endpoints['GET /repos/{owner}/{repo}/labels']['response']
+              },
+              createLabel: () => {
+                return {
+                  data: MOCK_CREATED_LABEL
+                } as unknown as Endpoints['POST /repos/{owner}/{repo}/labels']['response']
+              },
+              get: () => {
+                return {
+                  data: {
+                    html_url: 'https://github.com/owner/repo/issues/1',
+                    state: 'open'
+                  },
+                  status: 200
+                }
+              },
+              update: () => {
+                return {
+                  data: {},
+                  status: 200
+                }
+              },
+              addLabels: () => {
+                return {
+                  data: {
+                    labels: [MOCK_CREATED_LABEL],
+                    status: 200
+                  }
+                } as unknown as Endpoints['POST /repos/{owner}/{repo}/issues/{issue_number}/labels']['response']
+              }
+            }
+          }
+        }
       }
     }
 
@@ -418,15 +460,6 @@ describe('run', () => {
         getInput,
         setFailed,
         info
-      }
-      const github = {
-        context: {
-          repo: {
-            owner: 'owner',
-            repo: 'repo'
-          }
-        },
-        getOctokit: () => octokit
       }
 
       await run(core as unknown as Core, github as unknown as GitHub)
@@ -454,16 +487,6 @@ describe('run', () => {
           getInput,
           setFailed,
           info
-        }
-
-        const github = {
-          context: {
-            repo: {
-              owner: 'owner',
-              repo: 'repo'
-            }
-          },
-          getOctokit: () => octokit
         }
 
         await run(core as unknown as Core, github as unknown as GitHub)
@@ -508,16 +531,6 @@ describe('run', () => {
           getInput,
           setFailed,
           info
-        }
-
-        const github = {
-          context: {
-            repo: {
-              owner: 'owner',
-              repo: 'repo'
-            }
-          },
-          getOctokit: () => octokit
         }
 
         await run(core as unknown as Core, github as unknown as GitHub)
@@ -565,16 +578,6 @@ describe('run', () => {
           getInput,
           setFailed,
           info
-        }
-
-        const github = {
-          context: {
-            repo: {
-              owner: 'owner',
-              repo: 'repo'
-            }
-          },
-          getOctokit: () => octokit
         }
 
         await run(core as unknown as Core, github as unknown as GitHub)

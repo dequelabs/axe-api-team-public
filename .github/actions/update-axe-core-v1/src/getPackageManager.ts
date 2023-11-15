@@ -18,9 +18,9 @@ export default async function getPackageManager(
 
 async function exists(filePath: string): Promise<boolean> {
   try {
-    await fs.stat(filePath);
-    return true;
+    await fs.stat(filePath)
+    return true
   } catch {
-    return false;
+    return false
   }
 }
