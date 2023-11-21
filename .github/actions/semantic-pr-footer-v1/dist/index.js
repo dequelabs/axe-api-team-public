@@ -29716,10 +29716,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const core_1 = __importDefault(__nccwpck_require__(2481));
+const core = __importStar(__nccwpck_require__(2481));
 const github = __importStar(__nccwpck_require__(707));
 const run_1 = __importDefault(__nccwpck_require__(1738));
-(0, run_1.default)(core_1.default, github.context.payload);
+(0, run_1.default)(core, github.context.payload);
 
 
 /***/ }),
