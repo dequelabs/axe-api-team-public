@@ -34,6 +34,7 @@ jobs:
 
   is-release-week-v1:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     needs: lint
     steps:
       - uses: actions/checkout@v4
@@ -46,6 +47,7 @@ jobs:
 
   is-release-in-progress-v1:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     needs: lint
     steps:
       - uses: actions/checkout@v4
@@ -58,6 +60,7 @@ jobs:
 
   has-auto-releasable-commits-v1:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     needs: lint
     steps:
       - uses: actions/checkout@v4
@@ -70,6 +73,7 @@ jobs:
 
   generate-commit-list-v1:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     needs: lint
     steps:
       - uses: actions/checkout@v4
@@ -82,6 +86,7 @@ jobs:
 
   add-to-board-v1:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     needs: lint
     steps:
       - uses: actions/checkout@v4
@@ -94,6 +99,7 @@ jobs:
 
   label-and-move-released-issues-v1:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     needs: lint
     steps:
       - uses: actions/checkout@v4
@@ -106,6 +112,7 @@ jobs:
 
   update-axe-core-v1:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     needs: lint
     steps:
       - uses: actions/checkout@v4
