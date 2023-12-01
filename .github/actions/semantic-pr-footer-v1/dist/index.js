@@ -29719,7 +29719,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2481));
 const github = __importStar(__nccwpck_require__(707));
 const run_1 = __importDefault(__nccwpck_require__(1738));
-(0, run_1.default)(core, github.context.payload);
+(0, run_1.default)(core, github);
 
 
 /***/ }),
@@ -29753,9 +29753,28 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.ignoredActors = void 0;
 const isValidFooter_1 = __importDefault(__nccwpck_require__(6592));
-function run(core, payload) {
+exports.ignoredActors = [
+    'dependabot[bot]',
+    'dependabot-preview[bot]',
+    'github-actions[bot]',
+    'axe-core',
+    'attest-team-ci'
+];
+function run(core, github) {
     try {
+        const { payload, actor } = github.context;
+        const ignoreActors = core
+            .getInput('ignore_additional_actors')
+            .split(',')
+            .map(actor => actor.trim().toLowerCase())
+            .filter(actor => actor.length > 0);
+        exports.ignoredActors.push(...ignoreActors);
+        if (exports.ignoredActors.includes(actor)) {
+            core.info(`Skipping PR footer validation for actor: ${actor}`);
+            return;
+        }
         const body = payload && payload.pull_request && payload.pull_request.body;
         if (!body) {
             core.setFailed('PR does not have a body');

@@ -1,14 +1,31 @@
-import type core from '@actions/core'
-import type github from '@actions/github'
 import isValidFooter from './isValidFooter'
+import type { Core, GitHub } from './types'
 
-export type Core = Pick<typeof core, 'setFailed' | 'info'>
+export const ignoredActors = [
+  'dependabot[bot]',
+  'dependabot-preview[bot]',
+  'github-actions[bot]',
+  'axe-core',
+  'attest-team-ci'
+]
 
-export default function run(
-  core: Core,
-  payload?: typeof github.context.payload
-) {
+export default function run(core: Core, github: GitHub) {
   try {
+    const { payload, actor } = github.context
+
+    const ignoreActors = core
+      .getInput('ignore_additional_actors')
+      .split(',')
+      .map(actor => actor.trim().toLowerCase())
+      .filter(actor => actor.length > 0)
+
+    ignoredActors.push(...ignoreActors)
+    if (ignoredActors.includes(actor)) {
+      core.info(`Skipping PR footer validation for actor: ${actor}`)
+
+      return
+    }
+
     const body: string | undefined =
       payload && payload.pull_request && payload.pull_request.body
 
