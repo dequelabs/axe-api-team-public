@@ -1,5 +1,11 @@
 name: 'Semantic PR Footer'
 description: 'Validate pull request footer against team policy'
+
+inputs:
+  ignore_additional_actors:
+    description: 'Comma delimited list of additional actors to ignore when validating pull request footer. List of actors already ignored: dependabot[bot], dependabot-preview[bot], github-actions[bot], axe-core, attest-team-ci'
+    default: ''
+
 runs:
   using: 'node20'
   main: 'dist/index.js'
