@@ -5,7 +5,7 @@ inputs:
   version:
     description: 'The version of the release candidate'
     required: true
-  owner-and_repo:
+  owner-and-repo:
     description: 'The owner and repo where the release issue lives in the format: `owner/repo`'
 
 outputs:
