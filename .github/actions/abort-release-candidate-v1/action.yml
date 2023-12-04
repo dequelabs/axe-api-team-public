@@ -1,0 +1,87 @@
+name: abort-release-candidate
+description: 'A GitHub Action to abort a release candidate'
+
+inputs:
+  token:
+    description: 'Token used for the GH CLI to close and move issue(s) to the correct column. See README for required permissions'
+    required: true
+  base:
+    description: 'The branch the release candidate will be merged into'
+    required: true
+  docs-repo:
+    description: 'The docs repository where the issue for the release candidate is located'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Checking out release branch and get release candidate version
+      shell: bash
+      id: get-release-candidate-version
+      run: |
+        git checkout release
+
+        # Get the release candidate version from package.json
+        release_candidate_version=$(node -p "require('./package.json').version")
+
+        # Set the output variable for the release candidate version
+        echo "$release_candidate_version" >> $GITHUB_ENV
+
+    - name: Get release candidate issue url
+      uses: dequelabs/axe-api-team-public/.github/actions/get-release-issue-v1@main
+      id: get-release-issue
+      with:
+        version: ${{ steps.get-release-candidate-version.outputs.release_candidate_version }}
+
+    - name: Close release candidate issue as `Not Planned`
+      shell: bash
+      run: |
+        gh issue close ${{ steps.get-release-issue.outputs.issue-url }} -r "not planned"
+
+    - name: Move release candidate issue to `Not Planned` column (Board 66)
+      uses: dequelabs/axe-api-team-public/.github/actions/add-to-board-v1@main
+      with:
+        issue-urls: ${{ steps.get-release-issue.outputs.issue-url }}
+        column-name: 'Not Doing'
+        project-number: '66'
+        github-token: ${{ inputs.token }}
+
+    - name: Move release candidate issue to `Release Cancelled` column (Board 103)
+      uses: dequelabs/axe-api-team-public/.github/actions/add-to-board-v1@main
+      with:
+        issue-urls: ${{ steps.get-release-issue.outputs.issue-url }}
+        column-name: 'Release Cancelled'
+        project-number: '103'
+        github-token: ${{ inputs.token }}
+
+    - name: Get release candidate issue url from docs-repo
+      if: ${{ inputs.docs-repo != 'null' }}
+      uses: dequelabs/axe-api-team-public/.github/actions/get-release-issue-v1@main
+      id: get-release-issue-from-docs-repo
+      with:
+        version: ${{ steps.get-release-candidate-version.outputs.release_candidate_version }}
+        owner-and-repo: 'dequelabs/${{ inputs.docs-repo }}'
+
+    - name: Close release candidate issue as `Not Planned` in docs-repo
+      if: ${{ inputs.docs-repo != 'null' }}
+      shell: bash
+      run: |
+        gh issue close ${{ steps.get-release-issue-from-docs-repo.outputs.issue-url }} -r "not planned"
+
+    - name: Move release candidate issue to `Not Planned` column (Board 66) in docs-repo
+      if: ${{ inputs.docs-repo != 'null' }}
+      uses: dequelabs/axe-api-team-public/.github/actions/add-to-board-v1@main
+      with:
+        issue-urls: ${{ steps.get-release-issue-from-docs-repo.outputs.issue-url }}
+        column-name: 'Not Doing'
+        project-number: '66'
+        github-token: ${{ inputs.token }}
+
+    - name: Reset release branch to ${{ inputs.base }}
+      shell: bash
+      run: |
+        git checkout release
+        git reset --hard ${{ inputs.base }}
+        git push --force origin ${{ inputs.base }}
