@@ -3,9 +3,9 @@ import type { GitHub, Core, Issues } from './types'
 
 export default async function run(core: Core, github: GitHub) {
   try {
-    const version = core.getInput('version', { required: true })
+    const version = core.getInput('version', { required: true }).trim()
     const { owner, repo } = github.context.repo
-    let ownerAndRepo = core.getInput('owner-and-repo')
+    let ownerAndRepo = core.getInput('owner-and-repo').toLowerCase().trim()
 
     if (!ownerAndRepo) {
       ownerAndRepo = `${owner}/${repo}`
@@ -20,7 +20,7 @@ export default async function run(core: Core, github: GitHub) {
      */
     const isDocsRepo = ownerAndRepo.split('/')[1]?.startsWith('docs-')
     const ghCommand = isDocsRepo
-      ? `gh issue list --repo ${ownerAndRepo} --label release --state open --json url,title --search "${owner}/${repo} v${version.trim()}"`
+      ? `gh issue list --repo ${ownerAndRepo} --label release --state open --json url,title --search "${owner}/${repo} v${version}"`
       : `gh issue list --repo ${ownerAndRepo} --label release --state open --json url,title`
 
     const {
@@ -41,8 +41,8 @@ export default async function run(core: Core, github: GitHub) {
        */
       ({ title }) =>
         isDocsRepo
-          ? title === `${owner}/${repo} v${version.trim()}`
-          : title === `${ownerAndRepo.toLowerCase().trim()} v${version.trim()}`
+          ? title === `${owner}/${repo} v${version}`
+          : title === `${ownerAndRepo} v${version}`
     )
 
     if (!issue) {

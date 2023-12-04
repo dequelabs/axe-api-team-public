@@ -30964,16 +30964,16 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const exec_1 = __nccwpck_require__(1518);
 async function run(core, github) {
     try {
-        const version = core.getInput('version', { required: true });
+        const version = core.getInput('version', { required: true }).trim();
         const { owner, repo } = github.context.repo;
-        let ownerAndRepo = core.getInput('owner-and-repo');
+        let ownerAndRepo = core.getInput('owner-and-repo').toLowerCase().trim();
         if (!ownerAndRepo) {
             ownerAndRepo = `${owner}/${repo}`;
         }
         core.info(`Getting issues for ${ownerAndRepo} v${version}...`);
         const isDocsRepo = ownerAndRepo.split('/')[1]?.startsWith('docs-');
         const ghCommand = isDocsRepo
-            ? `gh issue list --repo ${ownerAndRepo} --label release --state open --json url,title --search "${owner}/${repo} v${version.trim()}"`
+            ? `gh issue list --repo ${ownerAndRepo} --label release --state open --json url,title --search "${owner}/${repo} v${version}"`
             : `gh issue list --repo ${ownerAndRepo} --label release --state open --json url,title`;
         const { stdout: issueList, stderr: issuesLIstError, exitCode: issuesListExitCode } = await (0, exec_1.getExecOutput)(ghCommand);
         if (issuesListExitCode) {
@@ -30981,8 +30981,8 @@ async function run(core, github) {
         }
         const issues = JSON.parse(issueList);
         const issue = issues.find(({ title }) => isDocsRepo
-            ? title === `${owner}/${repo} v${version.trim()}`
-            : title === `${ownerAndRepo.toLowerCase().trim()} v${version.trim()}`);
+            ? title === `${owner}/${repo} v${version}`
+            : title === `${ownerAndRepo} v${version}`);
         if (!issue) {
             throw new Error(`No issue found for ${ownerAndRepo} v${version}`);
         }
