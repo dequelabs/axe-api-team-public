@@ -36,4 +36,7 @@ jobs:
           version: '1.0.0'
       - name: Print the release issue URL
         run: echo ${{ steps.get-release-issue.outputs.issue-url }}
+    env:
+      # Required for the GH CLI
+      GH_TOKEN: ${{ github.token }}
 ```
