@@ -1,0 +1,17 @@
+name: 'Get release issue'
+description: 'A GitHub action for getting the release issue for a release candidate'
+
+inputs:
+  version:
+    description: 'The version of the release candidate'
+    required: true
+  owner-and_repo:
+    description: 'The owner and repo where the release issue lives in the format: `owner/repo`'
+
+outputs:
+  issue-url:
+    description: 'The URL of the issue created for the release candidate'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
