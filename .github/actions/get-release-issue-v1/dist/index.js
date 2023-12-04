@@ -30971,9 +30971,9 @@ async function run(core, github) {
             ownerAndRepo = `${owner}/${repo}`;
         }
         core.info(`Getting issues for ${ownerAndRepo} v${version}...`);
-        const isDocsRepo = ownerAndRepo.split('/')[1].startsWith('docs-');
+        const isDocsRepo = ownerAndRepo.split('/')[1]?.startsWith('docs-');
         const ghCommand = isDocsRepo
-            ? `gh issue list --repo ${ownerAndRepo} --label release --state open --json url,title --search ${owner}/${repo}`
+            ? `gh issue list --repo ${ownerAndRepo} --label release --state open --json url,title --search "${owner}/${repo} v${version.trim()}"`
             : `gh issue list --repo ${ownerAndRepo} --label release --state open --json url,title`;
         const { stdout: issueList, stderr: issuesLIstError, exitCode: issuesListExitCode } = await (0, exec_1.getExecOutput)(ghCommand);
         if (issuesListExitCode) {

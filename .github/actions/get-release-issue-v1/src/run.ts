@@ -18,9 +18,9 @@ export default async function run(core: Core, github: GitHub) {
      * for the issue that the release was created for. So we use the `--search` flag to search for
      * the issue using using the GitHub context.
      */
-    const isDocsRepo = ownerAndRepo.split('/')[1].startsWith('docs-')
+    const isDocsRepo = ownerAndRepo.split('/')[1]?.startsWith('docs-')
     const ghCommand = isDocsRepo
-      ? `gh issue list --repo ${ownerAndRepo} --label release --state open --json url,title --search ${owner}/${repo}`
+      ? `gh issue list --repo ${ownerAndRepo} --label release --state open --json url,title --search "${owner}/${repo} v${version.trim()}"`
       : `gh issue list --repo ${ownerAndRepo} --label release --state open --json url,title`
 
     const {
