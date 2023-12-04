@@ -232,6 +232,47 @@ describe('run', () => {
     })
   })
 
+  describe('when the `owner-and-repo` points to the docs repo', () => {
+    it('locates the correct issue', async () => {
+      const issueList: Issues = [
+        {
+          url: 'https://github.com/dequelabs/moar-coffee/issues/1',
+          title: 'dequelabs/moar-coffee v1.0.0'
+        }
+      ]
+
+      getInput.withArgs('version', { required: true }).returns('1.0.0')
+      getInput.withArgs('owner-and-repo').returns('dequelabs/docs-moar-coffee')
+
+      getExecOutputStub.returns({
+        stdout: JSON.stringify(issueList)
+      })
+
+      const core = {
+        getInput,
+        setOutput,
+        info
+      }
+
+      const github = {
+        context: {
+          repo: {
+            owner: 'dequelabs',
+            repo: 'moar-coffee'
+          }
+        }
+      }
+
+      await run(core as unknown as Core, github as unknown as GitHub)
+
+      assert.isTrue(
+        core.info.secondCall.calledWith(
+          `Found issue: ${issueList[0].url}. Setting "issue-url" output...`
+        )
+      )
+    })
+  })
+
   describe('when the `gh issue list` command fails', () => {
     it('throws an error', async () => {
       getInput.withArgs('version', { required: true }).returns('1.0.0')

@@ -30971,12 +30971,18 @@ async function run(core, github) {
             ownerAndRepo = `${owner}/${repo}`;
         }
         core.info(`Getting issues for ${ownerAndRepo} v${version}...`);
-        const { stdout: issueList, stderr: issuesLIstError, exitCode: issuesListExitCode } = await (0, exec_1.getExecOutput)(`gh issue list --repo ${ownerAndRepo} --label release --state open --json url,title`);
+        const isDocsRepo = ownerAndRepo.split('/')[1].startsWith('docs-');
+        const ghCommand = isDocsRepo
+            ? `gh issue list --repo ${ownerAndRepo} --label release --state open --json url,title --search ${owner}/${repo}`
+            : `gh issue list --repo ${ownerAndRepo} --label release --state open --json url,title`;
+        const { stdout: issueList, stderr: issuesLIstError, exitCode: issuesListExitCode } = await (0, exec_1.getExecOutput)(ghCommand);
         if (issuesListExitCode) {
             throw new Error(`Error getting issues: \n${issuesLIstError}`);
         }
         const issues = JSON.parse(issueList);
-        const issue = issues.find(({ title }) => title === `${ownerAndRepo.toLowerCase().trim()} v${version.trim()}`);
+        const issue = issues.find(({ title }) => isDocsRepo
+            ? title === `${owner}/${repo} v${version.trim()}`
+            : title === `${ownerAndRepo.toLowerCase().trim()} v${version.trim()}`);
         if (!issue) {
             throw new Error(`No issue found for ${ownerAndRepo} v${version}`);
         }

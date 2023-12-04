@@ -13,13 +13,21 @@ export default async function run(core: Core, github: GitHub) {
 
     core.info(`Getting issues for ${ownerAndRepo} v${version}...`)
 
+    /**
+     * Note: For release-candidate issues (release-notes) that live in the docs repo. We want to search the repo
+     * for the issue that the release was created for. So we use the `--search` flag to search for
+     * the issue using using the GitHub context.
+     */
+    const isDocsRepo = ownerAndRepo.split('/')[1].startsWith('docs-')
+    const ghCommand = isDocsRepo
+      ? `gh issue list --repo ${ownerAndRepo} --label release --state open --json url,title --search ${owner}/${repo}`
+      : `gh issue list --repo ${ownerAndRepo} --label release --state open --json url,title`
+
     const {
       stdout: issueList,
       stderr: issuesLIstError,
       exitCode: issuesListExitCode
-    } = await getExecOutput(
-      `gh issue list --repo ${ownerAndRepo} --label release --state open --json url,title`
-    )
+    } = await getExecOutput(ghCommand)
 
     if (issuesListExitCode) {
       throw new Error(`Error getting issues: \n${issuesLIstError}`)
@@ -32,7 +40,9 @@ export default async function run(core: Core, github: GitHub) {
        * @see https://github.com/dequelabs/axe-api-team-public/blob/main/.github/actions/create-release-candidate-v1/action.yml#L170
        */
       ({ title }) =>
-        title === `${ownerAndRepo.toLowerCase().trim()} v${version.trim()}`
+        isDocsRepo
+          ? title === `${owner}/${repo} v${version.trim()}`
+          : title === `${ownerAndRepo.toLowerCase().trim()} v${version.trim()}`
     )
 
     if (!issue) {
