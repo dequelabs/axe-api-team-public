@@ -49,6 +49,15 @@ runs:
     - name: Generate PR Body and create PR
       shell: bash
       run: |
+        ReleaseNotes=$(
+              git show \
+                --no-color \
+                --no-prefix \
+                --output-indicator-new=! CHANGELOG.md | egrep '^!' | awk -F'^[!]' '{print $2}' | sed -e 's/\n/$0A/g'
+            )
+
+        echo "$ReleaseNotes" >> /tmp/release-notes.txt
+
         if [ -z "${{ inputs.migrations-dir }}" ]; then
           echo "No migrations directory provided. Skipping migrations check"
         else
@@ -61,16 +70,16 @@ runs:
           new_migration_files=$(git diff --name-only --diff-filter=A  origin/${{ inputs.base }}...origin/release -- "${{ inputs.migrations-dir }}" | grep -E '\.sql$')
 
           if [ -z "$new_migration_files" ]; then
-              echo "No new migration files found" >> /tmp/release-notes.txt
+            echo "No new migration files found" >> /tmp/release-notes.txt
           else
-              echo "New migration files found:" >> /tmp/release-notes.txt
-              
-              for file in $new_migration_files; do
-                url="$repo_url/blob/$GITHUB_SHA/$file"
-                echo "- [$file]($url)" >> /tmp/release-notes.txt
-              done
+            echo "New migration files found:" >> /tmp/release-notes.txt
+            
+            for file in $new_migration_files; do
+              url="$repo_url/blob/$GITHUB_SHA/$file"
+              echo "- [$file]($url)" >> /tmp/release-notes.txt
+            done
 
-              echo "" >> /tmp/release-notes.txt
+            echo "" >> /tmp/release-notes.txt
           fi
         fi
 
@@ -85,15 +94,15 @@ runs:
           new_env_vars=$(git diff origin/main...origin/release -- sample.env | grep -E '^\+.*=' | sed -e 's/^\+//g' | sed -e 's/=.//g')
 
           if [ -z "$new_env_vars" ]; then
-              echo "No new environment variables found" >> /tmp/release-notes.txt
+            echo "No new environment variables found" >> /tmp/release-notes.txt
           else
-              echo "New environment variables found:" >> /tmp/release-notes.txt
-              
-              for var in $new_env_vars; do
-                echo "- `$var`" >> /tmp/release-notes.txt
-              done
+            echo "New environment variables found:" >> /tmp/release-notes.txt
+            
+            for var in $new_env_vars; do
+              echo "- $var" >> /tmp/release-notes.txt
+            done
 
-              echo "" >> /tmp/release-notes.txt
+            echo "" >> /tmp/release-notes.txt
           fi
         fi
 
