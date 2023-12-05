@@ -43,21 +43,11 @@ runs:
 
         newVersion=$(node -p -e "require('./package.json').version")
         echo "Setting RELEASE_VERSION GitHub output to $newVersion"
-
         echo "RELEASE_VERSION=$newVersion" >> $GITHUB_ENV
 
     - name: Generate PR Body and create PR
       shell: bash
       run: |
-        ReleaseNotes=$(
-              git show \
-                --no-color \
-                --no-prefix \
-                --output-indicator-new=! CHANGELOG.md | egrep '^!' | awk -F'^[!]' '{print $2}' | sed -e 's/\n/$0A/g'
-            )
-
-        echo "$ReleaseNotes" >> /tmp/release-notes.txt
-
         if [ -z "${{ inputs.migrations-dir }}" ]; then
           echo "No migrations directory provided. Skipping migrations check"
         else
@@ -91,7 +81,7 @@ runs:
           # Get new environment variables added to release branch that are within the provided env file path
           # 1. Extract new ENV vars (exclude comments and empty lines) .e.g. +NEW_ENV_VAR=123
           # 2. use sed to remove the + at the start and assigned value e.g. final output: NEW_ENV_VAR
-          new_env_vars=$(git diff origin/main...origin/release -- sample.env | grep -E '^\+.*=' | sed -e 's/^\+//g' | sed -e 's/=.//g')
+          new_env_vars=$(git diff origin/${{ inputs.base }}...origin/release -- "${{ inputs.env-file-path }}" | grep -E '^\+.*=' | sed -e 's/^\+//g' | sed -e 's/=.//g')
 
           if [ -z "$new_env_vars" ]; then
             echo "No new environment variables found" >> /tmp/release-notes.txt
@@ -99,6 +89,7 @@ runs:
             echo "New environment variables found:" >> /tmp/release-notes.txt
             
             for var in $new_env_vars; do
+              echo "- $var"
               echo "- $var" >> /tmp/release-notes.txt
             done
 
