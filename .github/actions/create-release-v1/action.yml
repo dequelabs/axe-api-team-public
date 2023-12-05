@@ -18,6 +18,9 @@ runs:
   steps:
     - name: Checkout
       uses: actions/checkout@v4
+      with:
+        # Fetch all history
+        fetch-depth: 0
 
     - name: Is release in progress
       uses: dequelabs/axe-api-team-public/.github/actions/is-release-in-progress-v1@main
