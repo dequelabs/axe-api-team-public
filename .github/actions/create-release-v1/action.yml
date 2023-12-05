@@ -1,0 +1,103 @@
+name: Create release
+description: A GitHub Action to create a production release
+
+inputs:
+  token:
+    description: A GitHub token used for octokit and GH CLI with the required permissions
+    required: true
+  base:
+    description: The base branch to merge into
+    required: true
+  migrations-dir:
+    description: The directory where the SQL migration files live e.g. src/database/migrations
+  env-file-path:
+    description: The path to the .env file
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Is release in progress
+      uses: dequelabs/axe-api-team-public/.github/actions/is-release-in-progress-v1@main
+      id: is_release_in_progress
+      with:
+        github-token: ${{ inputs.token }}
+
+    - name: Cancel release if a release is already in progress
+      shell: bash
+      if: ${{ steps.is_release_in_progress.outputs.in_progress == 'true' }}
+      run: |
+        echo "A release is already in progress. Cancelling this release."
+        gh run cancel ${{ github.run_id }}
+        gh run watch ${{ github.run_id }}
+
+    - name: Get release version
+      shell: bash
+      run: |
+        git checkout release
+
+        newVersion = $(node -p -e "require('./package.json').version")
+        echo "Setting RELEASE_VERSION GitHub output to $newVersion"
+
+        echo "RELEASE_VERSION=$newVersion" >> $GITHUB_ENV
+
+    - name: Generate PR Body and create PR
+      shell: bash
+      run: |
+        if [ -z "${{ inputs.migrations-dir }}" ]; then
+          echo "No migrations directory provided. Skipping migrations check"
+        else
+          repo_url="https://github.com/$GITHUB_REPOSITORY"
+
+          echo "Checking for new migration files in ${{ inputs.migrations-dir }}"
+          echo "Repo url: $repo_url"
+
+          # Only get new files added to release branch that are within the provided migrations directory and end in .sql
+          new_migration_files=$(git diff --name-only --diff-filter=A  origin/${{ inputs.base }}...origin/release -- "${{ inputs.migrations-dir }}" | grep -E '\.sql$')
+
+          if [ -z "$new_migration_files" ]; then
+              echo "No new migration files found" >> /tmp/release-notes.txt
+          else
+              echo "New migration files found:" >> /tmp/release-notes.txt
+              
+              for file in $new_migration_files; do
+                url="$repo_url/blob/$GITHUB_SHA/$file"
+                echo "- [$file]($url)" >> /tmp/release-notes.txt
+              done
+
+              echo "" >> /tmp/release-notes.txt
+          fi
+        fi
+
+        if [ -z "${{ inputs.env-file-path }}" ]; then
+          echo "No .env file path provided. Skipping .env file changes check"
+        else
+          echo "Checking for new environment variables in $env_file_path"
+
+          # Get new environment variables added to release branch that are within the provided env file path
+          # 1. Extract new ENV vars (exclude comments and empty lines) .e.g. +NEW_ENV_VAR=123
+          # 2. use sed to remove the + at the start and assigned value e.g. final output: NEW_ENV_VAR
+          new_env_vars=$(git diff origin/main...origin/release -- sample.env | grep -E '^\+.*=' | sed -e 's/^\+//g' | sed -e 's/=.//g')
+
+          if [ -z "$new_env_vars" ]; then
+              echo "No new environment variables found" >> /tmp/release-notes.txt
+          else
+              echo "New environment variables found:" >> /tmp/release-notes.txt
+              
+              for var in $new_env_vars; do
+                echo "- `$var`" >> /tmp/release-notes.txt
+              done
+
+              echo "" >> /tmp/release-notes.txt
+          fi
+        fi
+
+        gh pr create \
+          --title "chore: release v$RELEASE_VERSION" \
+          --body-file /tmp/release-notes.txt \
+          --base ${{ inputs.base }} \
+          --head release
+      env:
+        GH_TOKEN: ${{ inputs.token }}
