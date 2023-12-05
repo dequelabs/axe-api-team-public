@@ -41,7 +41,7 @@ runs:
       run: |
         git checkout release
 
-        newVersion = $(node -p -e "require('./package.json').version")
+        newVersion=$(node -p -e "require('./package.json').version")
         echo "Setting RELEASE_VERSION GitHub output to $newVersion"
 
         echo "RELEASE_VERSION=$newVersion" >> $GITHUB_ENV
