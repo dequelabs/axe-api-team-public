@@ -28,6 +28,7 @@ export default async function run(core: Core, github: GitHub) {
       core.warning(
         `No issues found for ${owner}/${repo} v${version}. It may have already been closed...`
       )
+      return
     }
 
     if (issues.length > 1) {
