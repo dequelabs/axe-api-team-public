@@ -50,14 +50,7 @@ runs:
     - name: Generate PR Body and create PR
       shell: bash
       run: |
-        ReleaseNotes=$(
-          git show \
-            --no-color \
-            --no-prefix \
-            --output-indicator-new=! CHANGELOG.md | egrep '^!' | awk -F'^[!]' '{print $2}' | sed -e 's/\n/$0A/g'
-        )
-
-        echo "$ReleaseNotes" >> /tmp/release-notes.txt
+        echo "# <insert_release_notes_if_required>" >> /tmp/release-notes.txt
         echo "" >> /tmp/release-notes.txt
 
         if [ -z "${{ inputs.migrations-dir }}" ]; then
