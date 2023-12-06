@@ -5,8 +5,12 @@ inputs:
   version:
     description: 'The version of the release candidate'
     required: true
-  owner-and-repo:
-    description: 'The owner and repo where the release issue lives in the format: `owner/repo`'
+  owner:
+    description: 'The owner of the repository e.g. dequelabs/axe-core-npm, then supply "dequelabs"'
+    default: ${{ github.context.repo.owner }}
+  repo:
+    description: 'The repository e.g. dequelabs/axe-core-npm, then supply "axe-core-npm"'
+    default: ${{ github.context.repo.repo }}
 
 outputs:
   issue-url:

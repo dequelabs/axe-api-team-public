@@ -4,7 +4,7 @@ import type github from '@actions/github'
 export type GitHub = Pick<typeof github, 'context'>
 export type Core = Pick<
   typeof core,
-  'getInput' | 'setOutput' | 'info' | 'setFailed'
+  'getInput' | 'setOutput' | 'info' | 'setFailed' | 'warning'
 >
 
 type Issue = {

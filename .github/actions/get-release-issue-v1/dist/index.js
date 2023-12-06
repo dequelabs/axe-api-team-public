@@ -30965,27 +30965,22 @@ const exec_1 = __nccwpck_require__(1518);
 async function run(core, github) {
     try {
         const version = core.getInput('version', { required: true }).trim();
+        const ownerInput = core.getInput('owner').toLowerCase().trim();
+        const repoInput = core.getInput('repo').toLowerCase().trim();
         const { owner, repo } = github.context.repo;
-        let ownerAndRepo = core.getInput('owner-and-repo').toLowerCase().trim();
-        if (!ownerAndRepo) {
-            ownerAndRepo = `${owner}/${repo}`;
-        }
-        core.info(`Getting issues for ${ownerAndRepo} v${version}...`);
-        const isDocsRepo = ownerAndRepo.split('/')[1]?.startsWith('docs-');
-        const ghCommand = isDocsRepo
-            ? `gh issue list --repo ${ownerAndRepo} --label release --state open --json url,title --search "${owner}/${repo} v${version}"`
-            : `gh issue list --repo ${ownerAndRepo} --label release --state open --json url,title`;
-        const { stdout: issueList, stderr: issuesLIstError, exitCode: issuesListExitCode } = await (0, exec_1.getExecOutput)(ghCommand);
+        core.info(`Getting issues for ${ownerInput}/${repoInput}...`);
+        const { stdout: issueList, stderr: issueListError, exitCode: issuesListExitCode } = await (0, exec_1.getExecOutput)(`gh issue list --repo ${ownerInput}/${repoInput} --label release --state open --json url,title --search "${owner}/${repo} v${version}"`);
         if (issuesListExitCode) {
-            throw new Error(`Error getting issues: \n${issuesLIstError}`);
+            throw new Error(`Error getting issues: \n${issueListError}`);
         }
         const issues = JSON.parse(issueList);
-        const issue = issues.find(({ title }) => isDocsRepo
-            ? title === `${owner}/${repo} v${version}`
-            : title === `${ownerAndRepo} v${version}`);
-        if (!issue) {
-            throw new Error(`No issue found for ${ownerAndRepo} v${version}`);
+        if (!issues.length) {
+            core.warning(`No issues found for ${owner}/${repo} v${version}. It may have already been closed...`);
         }
+        if (issues.length > 1) {
+            throw new Error(`Found ${issues.length} issues for ${owner}/${repo} v${version}. Please manually verify...`);
+        }
+        const issue = issues[0];
         core.info(`Found issue: ${issue.url}. Setting "issue-url" output...`);
         core.setOutput('issue-url', issue.url);
     }

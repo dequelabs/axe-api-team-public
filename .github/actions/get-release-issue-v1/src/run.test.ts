@@ -3,308 +3,341 @@ import sinon from 'sinon'
 import { assert } from 'chai'
 import * as exec from '@actions/exec'
 import run from './run'
-import type { Core, GitHub, Issues } from './types'
+import type { Core, GitHub } from './types'
 
 describe('run', () => {
-  let getInput: sinon.SinonStub
-  let setFailed: sinon.SinonSpy
-  let setOutput: sinon.SinonSpy
-  let info: sinon.SinonSpy
-  let getExecOutputStub: sinon.SinonStub
+  let execStub: sinon.SinonStub
+  let inputStub: sinon.SinonStub
+  let setFailedSpy: sinon.SinonSpy
+  let setOutputSpy: sinon.SinonSpy
+  let infoSpy: sinon.SinonSpy
+  let warningSpy: sinon.SinonSpy
 
   beforeEach(() => {
-    getInput = sinon.stub()
-    setFailed = sinon.spy()
-    setOutput = sinon.spy()
-    info = sinon.spy()
-    getExecOutputStub = sinon.stub(exec, 'getExecOutput')
+    execStub = sinon.stub(exec, 'getExecOutput')
+    inputStub = sinon.stub()
+    setFailedSpy = sinon.spy()
+    setOutputSpy = sinon.spy()
+    infoSpy = sinon.spy()
+    warningSpy = sinon.spy()
   })
 
   afterEach(sinon.restore)
 
-  const getReleaseIssueRun = async (ownerAndRepo = '') => {
-    const issue = {
-      url: 'https://github.com/dequelabs/axe-api-team-public/issues/1',
-      title: `${ownerAndRepo || 'dequelabs/axe-api-team-public'} v1.0.0`
-    } as const
-
-    getInput.withArgs('version', { required: true }).returns('1.0.0')
-    getInput.withArgs('owner-and-repo').returns(ownerAndRepo)
-    getExecOutputStub.returns({
-      stdout: JSON.stringify([
-        {
-          url: 'https://github.com/dequelabs/axe-api-team-public/issues/1',
-          title: `${ownerAndRepo || 'dequelabs/axe-api-team-public'} v1.0.0`
-        }
-      ])
-    })
-
-    const core = {
-      getInput,
-      setFailed,
-      setOutput,
-      info
-    }
-
-    const github = {
-      context: {
-        repo: {
-          owner: 'dequelabs',
-          repo: 'axe-api-team-public'
-        }
-      }
-    }
-
-    await run(core as unknown as Core, github as unknown as GitHub)
-
-    return { core, issue }
-  }
-
-  describe('given `version` input is not provided', () => {
-    it('throws an error', async () => {
-      getInput.withArgs('version', { required: true }).throws({
-        message: 'Input required and not supplied: version'
-      })
-
-      const core = {
-        getInput,
-        setFailed
-      }
-
-      const github = {
-        context: {
-          repo: {
-            owner: 'dequelabs',
-            repo: 'axe-api-team-public'
-          }
-        }
-      }
-
-      await run(core as unknown as Core, github as unknown as GitHub)
-
-      assert.isTrue(core.setFailed.calledOnce)
-      assert.isTrue(
-        core.setFailed.calledWith('Input required and not supplied: version')
-      )
-    })
-  })
-
-  describe('given `owner-and-repo` input is not provided', () => {
-    it('uses the `owner` and `repo` from the github context and sets the output', async () => {
-      const { core, issue } = await getReleaseIssueRun()
-
-      assert.isTrue(
-        core.info.firstCall.calledWith(
-          'Getting issues for dequelabs/axe-api-team-public v1.0.0...'
-        )
-      )
-
-      assert.isTrue(getExecOutputStub.calledOnce)
-      assert.isTrue(
-        getExecOutputStub.calledWith(
-          'gh issue list --repo dequelabs/axe-api-team-public --label release --state open --json url,title'
-        )
-      )
-
-      assert.isTrue(core.info.calledTwice)
-      assert.isTrue(
-        core.info.secondCall.calledWith(
-          `Found issue: ${issue.url}. Setting "issue-url" output...`
-        )
-      )
-
-      assert.isTrue(setOutput.calledOnce)
-      assert.isTrue(setOutput.calledWith('issue-url', issue.url))
-    })
-  })
-
-  describe('given `owner-and-repo` input is provided', () => {
-    describe('and the `owner-and-repo` input is valid', () => {
-      describe('and the `owner-and-repo` has issues', () => {
-        it('sets the `issue-url` output', async () => {
-          const { core, issue } = await getReleaseIssueRun(
-            'dequelabs/moar-coffee'
-          )
-
-          assert.isTrue(
-            core.info.firstCall.calledWith(
-              'Getting issues for dequelabs/moar-coffee v1.0.0...'
-            )
-          )
-
-          assert.isTrue(getExecOutputStub.calledOnce)
-          assert.isTrue(
-            getExecOutputStub.calledWith(
-              'gh issue list --repo dequelabs/moar-coffee --label release --state open --json url,title'
-            )
-          )
-
-          assert.isTrue(core.info.calledTwice)
-          assert.isTrue(
-            core.info.secondCall.calledWith(
-              `Found issue: ${issue.url}. Setting "issue-url" output...`
-            )
-          )
-
-          assert.isTrue(setOutput.calledOnce)
-          assert.isTrue(setOutput.calledWith('issue-url', issue.url))
-        })
-      })
-
-      describe('and the `owner-and-repo` does not have issues', () => {
+  describe('inputs', () => {
+    describe('version', () => {
+      describe('when not provided', () => {
         it('throws an error', async () => {
-          getInput.withArgs('version', { required: true }).returns('1.0.0')
-          getInput.withArgs('owner-and-repo').returns('dequelabs/moar-coffee')
-          getExecOutputStub.returns({
-            stdout: JSON.stringify([])
+          inputStub.withArgs('version', { required: true }).throws({
+            message: 'Input required and not supplied: version'
           })
 
           const core = {
-            getInput,
-            setFailed,
-            setOutput,
-            info
-          }
+            getInput: inputStub,
+            setFailed: setFailedSpy
+          } as unknown as Core
+
+          const github = {} as GitHub
+
+          await run(core, github)
+
+          assert.isTrue(setFailedSpy.calledOnce)
+          assert.equal(
+            setFailedSpy.args[0][0],
+            'Input required and not supplied: version'
+          )
+        })
+      })
+    })
+
+    describe('owner', () => {
+      describe('when provided', () => {
+        it('uses the provided value', async () => {
+          inputStub.withArgs('version', { required: true }).returns('1.0.0')
+          inputStub.withArgs('owner').returns('new-owner')
+          inputStub.withArgs('repo').returns('repo')
+
+          const core = {
+            getInput: inputStub,
+            setFailed: setFailedSpy,
+            info: infoSpy
+          } as unknown as Core
 
           const github = {
             context: {
               repo: {
-                owner: 'dequelabs',
-                repo: 'axe-api-team-public'
+                owner: 'owner',
+                repo: 'repo'
               }
             }
-          }
+          } as GitHub
 
-          await run(core as unknown as Core, github as unknown as GitHub)
+          await run(core, github)
 
-          assert.isTrue(core.setFailed.calledOnce)
-          assert.isTrue(
-            core.setFailed.calledWith(
-              'No issue found for dequelabs/moar-coffee v1.0.0'
-            )
+          assert.isTrue(infoSpy.calledOnce)
+          assert.equal(
+            infoSpy.args[0][0],
+            'Getting issues for new-owner/repo...'
+          )
+        })
+      })
+    })
+
+    describe('repo', () => {
+      describe('when provided', () => {
+        it('uses the provided value', async () => {
+          inputStub.withArgs('version', { required: true }).returns('1.0.0')
+          inputStub.withArgs('owner').returns('owner')
+          inputStub.withArgs('repo').returns('new-repo')
+
+          const core = {
+            getInput: inputStub,
+            setFailed: setFailedSpy,
+            info: infoSpy
+          } as unknown as Core
+
+          const github = {
+            context: {
+              repo: {
+                owner: 'owner',
+                repo: 'repo'
+              }
+            }
+          } as GitHub
+
+          await run(core, github)
+
+          assert.isTrue(infoSpy.calledOnce)
+          assert.equal(
+            infoSpy.args[0][0],
+            'Getting issues for owner/new-repo...'
           )
         })
       })
     })
   })
 
-  describe('when the `gh issue list` returns multiple issues', () => {
-    it('finds the correct issue and sets the output', async () => {
-      const issueList: Issues = [
-        {
-          url: 'https://github.com/dequelabs/moar-coffee/issues/1',
-          title: 'dequelabs/moar-coffee v1.0.0'
-        },
-        {
-          url: 'https://github.com/dequelabs/moar-coffee/issues/2',
-          title: 'dequelabs/moar-coffee v1.1.0'
-        }
-      ]
+  describe('when listing issues', () => {
+    describe('throws a non-zero exit code', () => {
+      it('catches the error', async () => {
+        inputStub.withArgs('version', { required: true }).returns('1.0.0')
+        inputStub.withArgs('owner').returns('owner')
+        inputStub.withArgs('repo').returns('repo')
 
-      getInput.withArgs('version', { required: true }).returns('1.0.0')
-      getInput.withArgs('owner-and-repo').returns('dequelabs/moar-coffee')
-      getExecOutputStub.returns({
-        stdout: JSON.stringify(issueList)
-      })
+        execStub.returns({
+          stdout: '',
+          stderr: 'BOOM',
+          exitCode: 1
+        })
 
-      const core = {
-        getInput,
-        setOutput,
-        info
-      }
+        const core = {
+          getInput: inputStub,
+          info: infoSpy,
+          setFailed: setFailedSpy
+        } as unknown as Core
 
-      const github = {
-        context: {
-          repo: {
-            owner: 'dequelabs',
-            repo: 'axe-api-team-public'
+        const github = {
+          context: {
+            repo: {
+              owner: 'owner',
+              repo: 'repo'
+            }
           }
-        }
-      }
+        } as GitHub
 
-      await run(core as unknown as Core, github as unknown as GitHub)
+        await run(core, github)
 
-      assert.isTrue(
-        core.info.secondCall.calledWith(
-          `Found issue: ${issueList[0].url}. Setting "issue-url" output...`
-        )
-      )
+        assert.isTrue(setFailedSpy.calledOnce)
+        assert.equal(setFailedSpy.args[0][0], 'Error getting issues: \nBOOM')
+      })
     })
-  })
 
-  describe('when the `owner-and-repo` points to the docs repo', () => {
-    it('locates the correct issue', async () => {
-      const issueList: Issues = [
-        {
-          url: 'https://github.com/dequelabs/moar-coffee/issues/1',
-          title: 'dequelabs/moar-coffee v1.0.0'
-        }
-      ]
+    describe('succeeds', () => {
+      it('calls gh issue list with the correct arguments', async () => {
+        inputStub.withArgs('version', { required: true }).returns('1.0.0')
+        inputStub.withArgs('owner').returns('owner')
+        inputStub.withArgs('repo').returns('repo')
 
-      getInput.withArgs('version', { required: true }).returns('1.0.0')
-      getInput.withArgs('owner-and-repo').returns('dequelabs/docs-moar-coffee')
+        execStub.returns({
+          stdout: '',
+          stderr: '',
+          exitCode: 0
+        })
 
-      getExecOutputStub.returns({
-        stdout: JSON.stringify(issueList)
-      })
+        const core = {
+          getInput: inputStub,
+          info: infoSpy,
+          setFailed: setFailedSpy
+        } as unknown as Core
 
-      const core = {
-        getInput,
-        setOutput,
-        info
-      }
-
-      const github = {
-        context: {
-          repo: {
-            owner: 'dequelabs',
-            repo: 'moar-coffee'
+        const github = {
+          context: {
+            repo: {
+              owner: 'owner',
+              repo: 'repo'
+            }
           }
-        }
-      }
+        } as GitHub
 
-      await run(core as unknown as Core, github as unknown as GitHub)
+        await run(core, github)
 
-      assert.isTrue(
-        core.info.secondCall.calledWith(
-          `Found issue: ${issueList[0].url}. Setting "issue-url" output...`
+        assert.isTrue(execStub.calledOnce)
+        assert.equal(
+          execStub.args[0][0],
+          'gh issue list --repo owner/repo --label release --state open --json url,title --search "owner/repo v1.0.0"'
         )
-      )
-    })
-  })
-
-  describe('when the `gh issue list` command fails', () => {
-    it('throws an error', async () => {
-      getInput.withArgs('version', { required: true }).returns('1.0.0')
-      getInput.withArgs('owner-and-repo').returns('dequelabs/moar-coffee')
-      getExecOutputStub.returns({
-        stdout: '',
-        stderr: 'welp, we tried',
-        exitCode: 1
       })
+    })
 
-      const core = {
-        getInput,
-        setFailed,
-        setOutput,
-        info
-      }
+    describe('is for the docs repo', () => {
+      it('calls gh issue list with the correct arguments', async () => {
+        inputStub.withArgs('version', { required: true }).returns('1.0.0')
+        inputStub.withArgs('owner').returns('owner')
+        inputStub.withArgs('repo').returns('docs')
 
-      const github = {
-        context: {
-          repo: {
-            owner: 'dequelabs',
-            repo: 'axe-api-team-public'
+        execStub.returns({
+          stdout: '',
+          stderr: '',
+          exitCode: 0
+        })
+
+        const core = {
+          getInput: inputStub,
+          info: infoSpy,
+          setFailed: setFailedSpy
+        } as unknown as Core
+
+        const github = {
+          context: {
+            repo: {
+              owner: 'owner',
+              repo: 'actual-repo'
+            }
           }
-        }
-      }
+        } as GitHub
 
-      await run(core as unknown as Core, github as unknown as GitHub)
+        await run(core, github)
 
-      assert.isTrue(core.setFailed.calledOnce)
-      assert.isTrue(
-        core.setFailed.calledWith('Error getting issues: \nwelp, we tried')
-      )
+        assert.isTrue(execStub.calledOnce)
+        assert.equal(
+          execStub.args[0][0],
+          'gh issue list --repo owner/docs --label release --state open --json url,title --search "owner/actual-repo v1.0.0"'
+        )
+      })
+    })
+
+    describe('when no issues are found', () => {
+      it('warns the user', async () => {
+        inputStub.withArgs('version', { required: true }).returns('1.0.0')
+        inputStub.withArgs('owner').returns('owner')
+        inputStub.withArgs('repo').returns('repo')
+
+        execStub.returns({
+          stdout: '[]',
+          stderr: '',
+          exitCode: 0
+        })
+
+        const core = {
+          getInput: inputStub,
+          info: infoSpy,
+          setFailed: setFailedSpy,
+          warning: warningSpy
+        } as unknown as Core
+
+        const github = {
+          context: {
+            repo: {
+              owner: 'owner',
+              repo: 'repo'
+            }
+          }
+        } as GitHub
+
+        await run(core, github)
+
+        assert.isTrue(warningSpy.calledOnce)
+        assert.equal(
+          warningSpy.args[0][0],
+          'No issues found for owner/repo v1.0.0. It may have already been closed...'
+        )
+      })
+    })
+
+    describe('when more than one issue is found', () => {
+      it('throws an error', async () => {
+        inputStub.withArgs('version', { required: true }).returns('1.0.0')
+        inputStub.withArgs('owner').returns('owner')
+        inputStub.withArgs('repo').returns('repo')
+
+        execStub.returns({
+          stdout:
+            '[{"url":"url1","title":"title1"},{"url":"url2","title":"title2"}]',
+          stderr: '',
+          exitCode: 0
+        })
+
+        const core = {
+          getInput: inputStub,
+          info: infoSpy,
+          setFailed: setFailedSpy,
+          warning: warningSpy
+        } as unknown as Core
+
+        const github = {
+          context: {
+            repo: {
+              owner: 'owner',
+              repo: 'repo'
+            }
+          }
+        } as GitHub
+
+        await run(core, github)
+
+        assert.isTrue(setFailedSpy.calledOnce)
+        assert.equal(
+          setFailedSpy.args[0][0],
+          'Found 2 issues for owner/repo v1.0.0. Please manually verify...'
+        )
+      })
+    })
+
+    describe('when one issue is found', () => {
+      it('sets the issue-url output', async () => {
+        inputStub.withArgs('version', { required: true }).returns('1.0.0')
+        inputStub.withArgs('owner').returns('owner')
+        inputStub.withArgs('repo').returns('repo')
+
+        execStub.returns({
+          stdout: '[{"url":"url1","title":"title1"}]',
+          stderr: '',
+          exitCode: 0
+        })
+
+        const core = {
+          getInput: inputStub,
+          info: infoSpy,
+          setFailed: setFailedSpy,
+          warning: warningSpy,
+          setOutput: setOutputSpy
+        } as unknown as Core
+
+        const github = {
+          context: {
+            repo: {
+              owner: 'owner',
+              repo: 'repo'
+            }
+          }
+        } as GitHub
+
+        await run(core, github)
+
+        assert.isTrue(setOutputSpy.calledOnce)
+        assert.equal(setOutputSpy.args[0][0], 'issue-url')
+        assert.equal(setOutputSpy.args[0][1], 'url1')
+      })
     })
   })
 })

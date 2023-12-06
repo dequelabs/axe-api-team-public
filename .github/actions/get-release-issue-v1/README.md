@@ -4,10 +4,11 @@ A GitHub action for getting the release issue for a release candidate.
 
 ## Inputs
 
-| Name             | Required | Description                                                                  | Default               |
-| ---------------- | -------- | ---------------------------------------------------------------------------- | --------------------- |
-| `version`        | Yes      | The version of the release candidate                                         | NA                    |
-| `owner-and-repo` | No       | The owner and repo where the release issue lives in the format: `owner/repo` | `github.context.repo` |
+| Name      | Required | Description                                                                      | Default                     |
+| --------- | -------- | -------------------------------------------------------------------------------- | --------------------------- |
+| `version` | Yes      | The version of the release candidate                                             | NA                          |
+| `owner`   | No       | The owner of the repository e.g. dequelabs/axe-core-npm, then supply "dequelabs" | `github.context.repo.owner` |
+| `repo`    | No       | The repository e.g. dequelabs/axe-core-npm, then supply "axe-core-npm"           | `github.context.repo.repo`  |
 
 ## Outputs
 
@@ -29,7 +30,6 @@ jobs:
   get-release-issue:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
       - uses: dequelabs/axe-api-team-public/.github/actions/get-release-issue-v1@main
         id: get-release-issue
         with:
