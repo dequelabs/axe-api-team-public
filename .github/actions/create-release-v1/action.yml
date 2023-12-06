@@ -2,16 +2,13 @@ name: Create release
 description: A GitHub Action to create a production release
 
 inputs:
-  token:
-    description: A GitHub token used for octokit and GH CLI with the required permissions
-    required: true
   base:
     description: The base branch to merge into
     required: true
   migrations-dir:
     description: The directory where the SQL migration files live e.g. src/database/migrations
   env-file-path:
-    description: The path to the .env file
+    description: The path to the .env file e.g. src/service/sample.env
 
 runs:
   using: 'composite'
@@ -41,9 +38,14 @@ runs:
       run: |
         git checkout release
 
-        newVersion=$(node -p -e "require('./package.json').version")
-        echo "Setting RELEASE_VERSION GitHub output to $newVersion"
-        echo "RELEASE_VERSION=$newVersion" >> $GITHUB_ENV
+        # Get the version number from the prepare_release shell script and set it as an output
+        # Monorepos have a lerna.json file that contains the updated version number
+        # Non-monorepos, or non-npm repos, have a package.json file that contains the updated version number
+        if [ -f "lerna.json" ]; then
+          echo "RELEASE_VERSION=$(cat lerna.json | jq -r '.version')" >> $GITHUB_OUTPUT
+        else
+          echo "RELEASE_VERSION=$(cat package.json | jq -r '.version')" >> $GITHUB_OUTPUT
+        fi
 
     - name: Generate PR Body and create PR
       shell: bash
@@ -60,9 +62,9 @@ runs:
           new_migration_files=$(git diff --name-only --diff-filter=A  origin/${{ inputs.base }}...origin/release -- "${{ inputs.migrations-dir }}" | grep -E '\.sql$')
 
           if [ -z "$new_migration_files" ]; then
-            echo "No new migration files found" >> /tmp/release-notes.txt
+            echo "## No new migration files found" >> /tmp/release-notes.txt
           else
-            echo "New migration files found:" >> /tmp/release-notes.txt
+            echo "## New migration files found:" >> /tmp/release-notes.txt
             
             for file in $new_migration_files; do
               url="$repo_url/blob/$GITHUB_SHA/$file"
@@ -84,12 +86,11 @@ runs:
           new_env_vars=$(git diff origin/${{ inputs.base }}...origin/release -- "${{ inputs.env-file-path }}" | grep -E '^\+.*=' | sed -e 's/^\+//g' | sed -e 's/=.//g')
 
           if [ -z "$new_env_vars" ]; then
-            echo "No new environment variables found" >> /tmp/release-notes.txt
+            echo "## No new environment variables found" >> /tmp/release-notes.txt
           else
-            echo "New environment variables found:" >> /tmp/release-notes.txt
+            echo "## New environment variables found:" >> /tmp/release-notes.txt
             
             for var in $new_env_vars; do
-              echo "- $var"
               echo "- $var" >> /tmp/release-notes.txt
             done
 
