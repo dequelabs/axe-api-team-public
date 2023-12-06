@@ -4,9 +4,9 @@ import type { GitHub, Core, Issues } from './types'
 export default async function run(core: Core, github: GitHub) {
   try {
     const version = core.getInput('version', { required: true }).trim()
-    const ownerInput = core.getInput('owner').toLowerCase().trim()
-    const repoInput = core.getInput('repo').toLowerCase().trim()
     const { owner, repo } = github.context.repo
+    const ownerInput = (core.getInput('owner') || owner).toLowerCase().trim()
+    const repoInput = (core.getInput('repo') || repo).toLowerCase().trim()
 
     core.info(`Getting issues for ${ownerInput}/${repoInput}...`)
 

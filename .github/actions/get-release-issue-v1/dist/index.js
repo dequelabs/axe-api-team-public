@@ -30965,9 +30965,9 @@ const exec_1 = __nccwpck_require__(1518);
 async function run(core, github) {
     try {
         const version = core.getInput('version', { required: true }).trim();
-        const ownerInput = core.getInput('owner').toLowerCase().trim();
-        const repoInput = core.getInput('repo').toLowerCase().trim();
         const { owner, repo } = github.context.repo;
+        const ownerInput = (core.getInput('owner') || owner).toLowerCase().trim();
+        const repoInput = (core.getInput('repo') || repo).toLowerCase().trim();
         core.info(`Getting issues for ${ownerInput}/${repoInput}...`);
         const { stdout: issueList, stderr: issueListError, exitCode: issuesListExitCode } = await (0, exec_1.getExecOutput)(`gh issue list --repo ${ownerInput}/${repoInput} --label release --state open --json url,title --search "${owner}/${repo} v${version}"`);
         if (issuesListExitCode) {

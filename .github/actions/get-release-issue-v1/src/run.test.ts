@@ -81,6 +81,34 @@ describe('run', () => {
           )
         })
       })
+
+      describe('when not provided', () => {
+        it('uses the context value', async () => {
+          inputStub.withArgs('version', { required: true }).returns('1.0.0')
+          inputStub.withArgs('owner').returns('')
+          inputStub.withArgs('repo').returns('repo')
+
+          const core = {
+            getInput: inputStub,
+            setFailed: setFailedSpy,
+            info: infoSpy
+          } as unknown as Core
+
+          const github = {
+            context: {
+              repo: {
+                owner: 'owner',
+                repo: 'repo'
+              }
+            }
+          } as GitHub
+
+          await run(core, github)
+
+          assert.isTrue(infoSpy.calledOnce)
+          assert.equal(infoSpy.args[0][0], 'Getting issues for owner/repo...')
+        })
+      })
     })
 
     describe('repo', () => {
@@ -112,6 +140,34 @@ describe('run', () => {
             infoSpy.args[0][0],
             'Getting issues for owner/new-repo...'
           )
+        })
+      })
+
+      describe('when not provided', () => {
+        it('uses the context value', async () => {
+          inputStub.withArgs('version', { required: true }).returns('1.0.0')
+          inputStub.withArgs('owner').returns('owner')
+          inputStub.withArgs('repo').returns('')
+
+          const core = {
+            getInput: inputStub,
+            setFailed: setFailedSpy,
+            info: infoSpy
+          } as unknown as Core
+
+          const github = {
+            context: {
+              repo: {
+                owner: 'owner',
+                repo: 'repo'
+              }
+            }
+          } as GitHub
+
+          await run(core, github)
+
+          assert.isTrue(infoSpy.calledOnce)
+          assert.equal(infoSpy.args[0][0], 'Getting issues for owner/repo...')
         })
       })
     })
