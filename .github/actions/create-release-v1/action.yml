@@ -37,10 +37,9 @@ runs:
         gh run watch ${{ github.run_id }}
 
     - name: Get release version
+      id: get_release_version
       shell: bash
       run: |
-        git checkout release
-
         # Get the version number from the prepare_release shell script and set it as an output
         # Monorepos have a lerna.json file that contains the updated version number
         # Non-monorepos, or non-npm repos, have a package.json file that contains the updated version number
@@ -53,7 +52,7 @@ runs:
     - name: Generate PR Body and create PR
       shell: bash
       run: |
-        echo "# <insert_release_notes_if_required>" >> /tmp/release-notes.txt
+        echo "# Copy CHANGELOG Here (If Required)" >> /tmp/release-notes.txt
         echo "" >> /tmp/release-notes.txt
 
         if [ -z "${{ inputs.migrations-dir }}" ]; then
@@ -105,7 +104,7 @@ runs:
         fi
 
         gh pr create \
-          --title "chore: release v$RELEASE_VERSION" \
+          --title "chore: release v${{ steps.get_release_version.outputs.RELEASE_VERSION }}" \
           --body-file /tmp/release-notes.txt \
           --base ${{ inputs.base }} \
           --head release
