@@ -3,7 +3,7 @@ description: A GitHub Action to create a production release
 
 inputs:
   token:
-    description: The GitHub token to use. Defaults to ${{ github.token }}
+    description: The GitHub token to use. Defaults to GITHUB_TOKEN
     default: ${{ github.token }}
   base:
     description: The base branch to merge into
