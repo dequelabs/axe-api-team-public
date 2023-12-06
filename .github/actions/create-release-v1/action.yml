@@ -83,7 +83,7 @@ runs:
           # Get new environment variables added to release branch that are within the provided env file path
           # 1. Extract new ENV vars (exclude comments and empty lines) .e.g. +NEW_ENV_VAR=123
           # 2. use sed to remove the + at the start and assigned value e.g. final output: NEW_ENV_VAR
-          new_env_vars=$(git diff origin/${{ inputs.base }}...origin/release -- "${{ inputs.env-file-path }}" | grep -E '^\+.*=' | sed -e 's/^\+//g' | sed -e 's/=.//g')
+          new_env_vars=$(git diff origin/${{ inputs.base }}...origin/release -- "${{ inputs.env-file-path }}" | grep -E '^\+.*=' | sed -e 's/^\+//g' | sed -e 's/=.*//g')
 
           if [ -z "$new_env_vars" ]; then
             echo "## No new environment variables found" >> /tmp/release-notes.txt
