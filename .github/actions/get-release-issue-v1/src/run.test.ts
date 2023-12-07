@@ -397,7 +397,7 @@ describe('run', () => {
     })
   })
 
-  describe.only('when an unexpected error occurs', () => {
+  describe('when an unexpected error occurs', () => {
     it('catches the error', async () => {
       const core = {
         getInput() {
