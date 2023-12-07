@@ -211,8 +211,8 @@ describe('run', () => {
     describe('succeeds', () => {
       it('calls gh issue list with the correct arguments', async () => {
         inputStub.withArgs('version', { required: true }).returns('1.0.0')
-        inputStub.withArgs('owner').returns('owner')
-        inputStub.withArgs('repo').returns('repo')
+        inputStub.withArgs('owner').returns('')
+        inputStub.withArgs('repo').returns('')
 
         execStub.returns({
           stdout: '',
@@ -245,10 +245,10 @@ describe('run', () => {
       })
     })
 
-    describe('is for the docs repo', () => {
+    describe('when passed owner and', () => {
       it('calls gh issue list with the correct arguments', async () => {
         inputStub.withArgs('version', { required: true }).returns('1.0.0')
-        inputStub.withArgs('owner').returns('owner')
+        inputStub.withArgs('owner').returns('other-owner')
         inputStub.withArgs('repo').returns('docs')
 
         execStub.returns({
@@ -277,7 +277,7 @@ describe('run', () => {
         assert.isTrue(execStub.calledOnce)
         assert.equal(
           execStub.args[0][0],
-          'gh issue list --repo owner/docs --label release --state open --json url,title --search "owner/actual-repo v1.0.0"'
+          'gh issue list --repo other-owner/docs --label release --state open --json url,title --search "owner/actual-repo v1.0.0"'
         )
       })
     })
@@ -394,6 +394,31 @@ describe('run', () => {
         assert.equal(setOutputSpy.args[0][0], 'issue-url')
         assert.equal(setOutputSpy.args[0][1], 'url1')
       })
+    })
+  })
+
+  describe.only('when an unexpected error occurs', () => {
+    it('catches the error', async () => {
+      const core = {
+        getInput() {
+          throw new Error('BOOM!')
+        },
+        setFailed: setFailedSpy
+      } as unknown as Core
+
+      const github = {
+        context: {
+          repo: {
+            owner: 'owner',
+            repo: 'repo'
+          }
+        }
+      } as GitHub
+
+      await run(core, github)
+
+      assert.isTrue(setFailedSpy.calledOnce)
+      assert.equal(setFailedSpy.args[0][0], 'BOOM!')
     })
   })
 })
