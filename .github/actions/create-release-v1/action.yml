@@ -119,6 +119,8 @@ runs:
     - name: Create release pull request
       shell: bash
       run: |
+        echo "_This PR was automatically created by a :robot:_" >> /tmp/release-notes.txt
+
         gh pr create \
           --title "chore: release v${{ steps.get_release_version.outputs.RELEASE_VERSION }}" \
           --body-file /tmp/release-notes.txt \
