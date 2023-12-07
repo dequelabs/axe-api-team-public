@@ -40,6 +40,8 @@ runs:
       id: get_release_version
       shell: bash
       run: |
+        git checkout release
+
         # Get the version number from the prepare_release shell script and set it as an output
         # Monorepos have a lerna.json file that contains the updated version number
         # Non-monorepos, or non-npm repos, have a package.json file that contains the updated version number
@@ -49,12 +51,15 @@ runs:
           echo "RELEASE_VERSION=$(cat package.json | jq -r '.version')" >> $GITHUB_OUTPUT
         fi
 
-    - name: Generate PR Body and create PR
+    - name: Add CHANGELOG header
       shell: bash
       run: |
         echo "# Copy CHANGELOG Here (if needed)" >> /tmp/release-notes.txt
         echo "" >> /tmp/release-notes.txt
 
+    - name: Find new migration files
+      shell: bash
+      run: |
         if [ -z "${{ inputs.migrations-dir }}" ]; then
           echo "No migrations directory provided. Skipping migrations check"
         else
@@ -75,7 +80,7 @@ runs:
             for file in $new_migration_files; do
               # Create permalink to file
               url="$repo_url/blob/$GITHUB_SHA/$file"
-              
+
               echo "- [$file]($url)" >> /tmp/release-notes.txt
             done
 
@@ -83,6 +88,9 @@ runs:
           fi
         fi
 
+    - name: Find new env variables
+      shell: bash
+      run: |
         if [ -z "${{ inputs.env-file-path }}" ]; then
           echo "No .env file path provided. Skipping .env file changes check"
         else
@@ -108,6 +116,9 @@ runs:
           fi
         fi
 
+    - name: Create release pull request
+      shell: bash
+      run: |
         gh pr create \
           --title "chore: release v${{ steps.get_release_version.outputs.RELEASE_VERSION }}" \
           --body-file /tmp/release-notes.txt \
