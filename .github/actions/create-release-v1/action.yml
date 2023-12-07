@@ -9,9 +9,9 @@ inputs:
     description: The base branch to merge into
     required: true
   migrations-dir:
-    description: The directory where the SQL migration files live e.g. src/database/migrations
+    description: The directory containing the database migrations e.g. src/database/migrations
   env-file-path:
-    description: The path to the .env file e.g. src/service/sample.env
+    description: The path to the `.env` file e.g. src/service/sample.env
 
 runs:
   using: 'composite'
