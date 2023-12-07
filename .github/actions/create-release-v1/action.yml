@@ -54,7 +54,7 @@ runs:
     - name: Get CHANGELOG changes
       shell: bash
       run: |
-        echo "# Changelog" >> /tmp/release-notes.txt
+        echo "## Changelog Additions:" >> /tmp/release-notes.txt
         echo "" >> /tmp/release-notes.txt
 
         new_changelog_entries=$(git show origin/${{ inputs.base }}...origin/release --no-color --no-prefix --output-indicator-new=! CHANGELOG.md | egrep '^!' | awk -F'^[!]' '{print $2}' | sed -e 's/\n/$0A/g')
