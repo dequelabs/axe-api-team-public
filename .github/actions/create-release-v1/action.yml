@@ -52,7 +52,7 @@ runs:
     - name: Generate PR Body and create PR
       shell: bash
       run: |
-        echo "# Copy CHANGELOG Here (If Required)" >> /tmp/release-notes.txt
+        echo "# Copy CHANGELOG Here (if needed)" >> /tmp/release-notes.txt
         echo "" >> /tmp/release-notes.txt
 
         if [ -z "${{ inputs.migrations-dir }}" ]; then
@@ -64,6 +64,7 @@ runs:
           echo "Repo url: $repo_url"
 
           # Only get new files added to release branch that are within the provided migrations directory and end in .sql
+
           new_migration_files=$(git diff --name-only --diff-filter=A  origin/${{ inputs.base }}...origin/release -- "${{ inputs.migrations-dir }}" | grep -E '\.sql$')
 
           if [ -z "$new_migration_files" ]; then
@@ -72,7 +73,9 @@ runs:
             echo "## New migration files found:" >> /tmp/release-notes.txt
             
             for file in $new_migration_files; do
+              # Create permalink to file
               url="$repo_url/blob/$GITHUB_SHA/$file"
+              
               echo "- [$file]($url)" >> /tmp/release-notes.txt
             done
 
@@ -88,12 +91,14 @@ runs:
           # Get new environment variables added to release branch that are within the provided env file path
           # 1. Extract new ENV vars (exclude comments and empty lines) .e.g. +NEW_ENV_VAR=123
           # 2. use sed to remove the + at the start and assigned value e.g. final output: NEW_ENV_VAR
+
           new_env_vars=$(git diff origin/${{ inputs.base }}...origin/release -- "${{ inputs.env-file-path }}" | grep -E '^\+.*=' | sed -e 's/^\+//g' | sed -e 's/=.*//g')
 
           if [ -z "$new_env_vars" ]; then
             echo "## No new environment variables found" >> /tmp/release-notes.txt
           else
             echo "## New environment variables found:" >> /tmp/release-notes.txt
+            echo "_Note: values have redacted. Please check what values are required._" >> /tmp/release-notes.txt
             
             for var in $new_env_vars; do
               echo "- $var" >> /tmp/release-notes.txt
@@ -109,4 +114,5 @@ runs:
           --base ${{ inputs.base }} \
           --head release
       env:
+        # Required for GH CLI
         GH_TOKEN: ${{ inputs.token }}
