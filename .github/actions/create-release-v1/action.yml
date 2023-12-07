@@ -51,10 +51,12 @@ runs:
           echo "RELEASE_VERSION=$(cat package.json | jq -r '.version')" >> $GITHUB_OUTPUT
         fi
 
-    - name: Add CHANGELOG header
+    - name: Get CHANGELOG changes
       shell: bash
       run: |
-        echo "# Copy CHANGELOG Here (if needed)" >> /tmp/release-notes.txt
+        new_changelog_entries=$(git show origin/${{ inputs.base }}...origin/release --no-color --no-prefix --output-indicator-new=! CHANGELOG.md | egrep '^!' | awk -F'^[!]' '{print $2}' | sed -e 's/\n/$0A/g')
+
+        echo "$new_changelog_entries" >> /tmp/release-notes.txt
         echo "" >> /tmp/release-notes.txt
 
     - name: Find new migration files
@@ -97,8 +99,8 @@ runs:
           echo "Checking for new environment variables in $env_file_path"
 
           # Get new environment variables added to release branch that are within the provided env file path
-          # 1. Extract new ENV vars (exclude comments and empty lines) .e.g. +NEW_ENV_VAR=123
-          # 2. use sed to remove the + at the start and assigned value e.g. final output: NEW_ENV_VAR
+          # 1. Extract new ENV vars .e.g. +NEW_ENV_VAR=123
+          # 2. use sed to remove '+' prefix and value e.g. final output: NEW_ENV_VAR
 
           new_env_vars=$(git diff origin/${{ inputs.base }}...origin/release -- "${{ inputs.env-file-path }}" | grep -E '^\+.*=' | sed -e 's/^\+//g' | sed -e 's/=.*//g')
 
