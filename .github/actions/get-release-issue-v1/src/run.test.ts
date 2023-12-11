@@ -245,7 +245,7 @@ describe('run', () => {
       })
     })
 
-    describe('when passed owner and', () => {
+    describe('when passed owner and repo', () => {
       it('calls gh issue list with the correct arguments', async () => {
         inputStub.withArgs('version', { required: true }).returns('1.0.0')
         inputStub.withArgs('owner').returns('other-owner')
