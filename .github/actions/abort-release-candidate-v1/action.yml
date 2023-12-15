@@ -56,7 +56,8 @@ runs:
         issue-urls: ${{ steps.get-release-issue.outputs.issue-url }}
         column-name: 'Not Doing'
         project-number: '66'
-        github-token: ${{ inputs.token }}
+      env:
+        GH_TOKEN: ${{ inputs.token }}
 
     - name: Move release candidate issue to `Release Cancelled` column (Board 103)
       uses: dequelabs/axe-api-team-public/.github/actions/add-to-board-v1@main
@@ -64,7 +65,8 @@ runs:
         issue-urls: ${{ steps.get-release-issue.outputs.issue-url }}
         column-name: 'Release Cancelled'
         project-number: '103'
-        github-token: ${{ inputs.token }}
+      env:
+        GH_TOKEN: ${{ inputs.token }}
 
     - name: Get release candidate issue url from docs-repo
       if: ${{ inputs.docs-repo != 'null' }}
@@ -91,7 +93,8 @@ runs:
         issue-urls: ${{ steps.get-release-issue-from-docs-repo.outputs.issue-url }}
         column-name: 'Not Doing'
         project-number: '66'
-        github-token: ${{ inputs.token }}
+      env:
+        GH_TOKEN: ${{ inputs.token }}
 
     - name: Reset release branch to ${{ inputs.base }}
       shell: bash
