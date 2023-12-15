@@ -16,6 +16,9 @@ runs:
   steps:
     - name: Checkout repository
       uses: actions/checkout@v4
+      with:
+        # Fetch all history
+        fetch-depth: 0
 
     - name: Checking out release branch and get release candidate version
       shell: bash
@@ -37,11 +40,15 @@ runs:
       id: get-release-issue
       with:
         version: ${{ steps.get-release-candidate-version.outputs.release_candidate_version }}
+      env:
+        GH_TOKEN: ${{ inputs.token }}
 
     - name: Close release candidate issue as `Not Planned`
       shell: bash
       run: |
         gh issue close ${{ steps.get-release-issue.outputs.issue-url }} -r "not planned"
+      env:
+        GH_TOKEN: ${{ inputs.token }}
 
     - name: Move release candidate issue to `Not Planned` column (Board 66)
       uses: dequelabs/axe-api-team-public/.github/actions/add-to-board-v1@main
@@ -66,12 +73,16 @@ runs:
       with:
         version: ${{ steps.get-release-candidate-version.outputs.release_candidate_version }}
         owner-and-repo: 'dequelabs/${{ inputs.docs-repo }}'
+      env:
+        GH_TOKEN: ${{ inputs.token }}
 
     - name: Close release candidate issue as `Not Planned` in docs-repo
       if: ${{ inputs.docs-repo != 'null' }}
       shell: bash
       run: |
         gh issue close ${{ steps.get-release-issue-from-docs-repo.outputs.issue-url }} -r "not planned"
+      env:
+        GH_TOKEN: ${{ inputs.token }}
 
     - name: Move release candidate issue to `Not Planned` column (Board 66) in docs-repo
       if: ${{ inputs.docs-repo != 'null' }}
@@ -88,6 +99,3 @@ runs:
         git checkout release
         git reset --hard ${{ inputs.base }}
         git push --force origin ${{ inputs.base }}
-
-      env:
-        GH_TOKEN: ${{ inputs.token }}
