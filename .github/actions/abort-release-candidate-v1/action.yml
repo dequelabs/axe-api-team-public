@@ -88,3 +88,6 @@ runs:
         git checkout release
         git reset --hard ${{ inputs.base }}
         git push --force origin ${{ inputs.base }}
+
+      env:
+        GH_TOKEN: ${{ inputs.token }}
