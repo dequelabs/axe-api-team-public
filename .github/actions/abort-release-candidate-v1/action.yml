@@ -10,6 +10,8 @@ inputs:
     required: true
   docs-repo:
     description: 'The docs repository where the issue for the release candidate is located'
+    default: 'null'
+    required: false
 
 runs:
   using: 'composite'
