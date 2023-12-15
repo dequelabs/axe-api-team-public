@@ -23,11 +23,14 @@ runs:
       run: |
         git checkout release
 
-        # Get the release candidate version from package.json
-        release_candidate_version=$(node -p "require('./package.json').version")
-
-        # Set the output variable for the release candidate version
-        echo "$release_candidate_version" >> $GITHUB_ENV
+        # Get the version number from the prepare_release shell script and set it as an output
+        # Monorepos have a lerna.json file that contains the updated version number
+        # Non-monorepos, or non-npm repos, have a package.json file that contains the updated version number
+        if [ -f "lerna.json" ]; then
+          echo "release_candidate_version=$(cat lerna.json | jq -r '.version')" >> $GITHUB_OUTPUT
+        else
+          echo "release_candidate_version=$(cat package.json | jq -r '.version')" >> $GITHUB_OUTPUT
+        fi
 
     - name: Get release candidate issue url
       uses: dequelabs/axe-api-team-public/.github/actions/get-release-issue-v1@main
