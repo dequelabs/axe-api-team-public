@@ -101,6 +101,6 @@ runs:
     - name: Reset release branch to ${{ inputs.base }}
       shell: bash
       run: |
-        git checkout release
-        git reset --hard ${{ inputs.base }}
-        git push --force origin ${{ inputs.base }}
+        git checkout release && 
+        git reset --hard ${{ inputs.base }} && 
+        git push --force origin release
