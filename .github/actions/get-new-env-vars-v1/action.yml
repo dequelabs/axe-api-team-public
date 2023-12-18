@@ -1,0 +1,23 @@
+name: Get new env vars
+description: 'A GitHub action for getting new env vars for a release'
+
+inputs:
+  env-file-path:
+    description: 'The path to the env file e.g. "src/service/.env"'
+    required: true
+  head:
+    description: 'The branch that contains the changes e.g. "release"'
+    required: false
+    default: 'release'
+  base:
+    description: 'The branch to compare against e.g. "master"'
+    required: false
+    default: 'master'
+
+outputs:
+  new-env-vars:
+    description: 'Comma separated list of new env vars'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
