@@ -26860,7 +26860,7 @@ async function run(core) {
         const head = (core.getInput('head') || 'release').toLowerCase().trim();
         const base = (core.getInput('base') || 'main').toLowerCase().trim();
         core.info(`Finding new env vars from ${head} to ${base}...`);
-        const { stdout: envVars, stderr: envVarsError, exitCode: envVarsExitCode } = await (0, exec_1.getExecOutput)(`git diff origin/${base}...origin/${head} -- ${envFilePath} | grep -E '^\\+.*='`);
+        const { stdout: envVars, stderr: envVarsError, exitCode: envVarsExitCode } = await (0, exec_1.getExecOutput)(`git diff origin/${base}...origin/${head} -- ${envFilePath}`, ['grep', '-E', '^\\+.*=']);
         if (envVarsExitCode) {
             throw new Error(`Error getting env vars: \n${envVarsError}`);
         }
