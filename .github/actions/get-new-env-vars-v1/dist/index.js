@@ -26864,7 +26864,7 @@ async function run(core) {
         if (envVarsExitCode) {
             throw new Error(`Error getting env vars: \n${envVarsError}`);
         }
-        const regex = /^\+\s[^#\s].*/;
+        const regex = /^\+[^+]\s*[^#].*/;
         const newEnvVars = envVars
             .split('\n')
             .filter(e => e.match(regex))
