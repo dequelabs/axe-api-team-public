@@ -16,7 +16,7 @@ export default async function run(core: Core) {
       stderr: envVarsError,
       exitCode: envVarsExitCode
     } = await getExecOutput(
-      `git diff origin/${base}...origin/${head} -- ${envFilePath} | grep -E '^\+.*=`
+      `git diff origin/${base}...origin/${head} -- ${envFilePath} | grep -E '^\+.*='`
     )
 
     if (envVarsExitCode) {
