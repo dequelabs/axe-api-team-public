@@ -10,7 +10,7 @@ inputs:
     required: true
   docs-repo:
     description: 'The docs repository where the issue for the release candidate is located'
-    default: 'null'
+    default: ''
     required: false
 
 runs:
@@ -73,7 +73,7 @@ runs:
         GH_TOKEN: ${{ inputs.token }}
 
     - name: Get release candidate issue url from docs-repo
-      if: ${{ inputs.docs-repo != 'null' }}
+      if: ${{ inputs.docs-repo != '' }}
       uses: dequelabs/axe-api-team-public/.github/actions/get-release-issue-v1@main
       id: get-release-issue-from-docs-repo
       with:
@@ -84,7 +84,7 @@ runs:
 
     - name: Close release candidate issue as `Not Planned` in docs-repo
       # Guard against empty issue url if the issue was not found in the previous step
-      if: ${{ inputs.docs-repo != 'null' }} && ${{ steps.get-release-issue-from-docs-repo.outputs.issue-url != '' }}
+      if: ${{ inputs.docs-repo != '' }} && ${{ steps.get-release-issue-from-docs-repo.outputs.issue-url != '' }}
       shell: bash
       run: |
         gh issue close ${{ steps.get-release-issue-from-docs-repo.outputs.issue-url }} -r "not planned"
@@ -92,7 +92,7 @@ runs:
         GH_TOKEN: ${{ inputs.token }}
 
     - name: Move release candidate issue to `Not Planned` column (Board 66) in docs-repo
-      if: ${{ inputs.docs-repo != 'null' }} && ${{ steps.get-release-issue-from-docs-repo.outputs.issue-url != '' }}
+      if: ${{ inputs.docs-repo != '' }} && ${{ steps.get-release-issue-from-docs-repo.outputs.issue-url != '' }}
       uses: dequelabs/axe-api-team-public/.github/actions/add-to-board-v1@main
       with:
         issue-urls: ${{ steps.get-release-issue-from-docs-repo.outputs.issue-url }}
