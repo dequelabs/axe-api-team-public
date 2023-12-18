@@ -35,5 +35,5 @@ jobs:
         with:
           token: ${{ secrets.PAT }}
           base: 'main'
-          docs-repo: 'owner/repo'
+          docs-repo: 'my-docs-repo'
 ```
