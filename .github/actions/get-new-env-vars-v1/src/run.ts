@@ -16,15 +16,14 @@ export default async function run(core: Core) {
       stderr: envVarsError,
       exitCode: envVarsExitCode
     } = await getExecOutput(
-      `git diff origin/${base}...origin/${head} -- ${envFilePath}`,
-      ['grep', '-E', '^\\+.*=']
+      `git diff origin/${base}...origin/${head} -- ${envFilePath}`
     )
 
     if (envVarsExitCode) {
       throw new Error(`Error getting env vars: \n${envVarsError}`)
     }
 
-    const regex = /^\+\s*[^#\s].*/
+    const regex = /^\+\s[^#\s].*/
     // Only grab lines that start with a `+` and ignore any lines that
     // are commented out with a `#` at the beginning.
     const newEnvVars = envVars
