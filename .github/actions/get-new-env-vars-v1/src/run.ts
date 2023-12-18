@@ -23,9 +23,9 @@ export default async function run(core: Core) {
       throw new Error(`Error getting env vars: \n${envVarsError}`)
     }
 
+    // Only get env vars that are added (i.e. prefixed with `+`)
+    // and not commented out (i.e. prefixed with `+#`)
     const regex = /^\+[^+#].*/
-    // Only grab lines that start with a `+` and ignore any lines that
-    // are commented out with a `#` at the beginning.
     const newEnvVars = envVars
       .split('\n')
       .filter(e => e.match(regex))
