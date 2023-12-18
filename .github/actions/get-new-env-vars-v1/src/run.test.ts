@@ -200,7 +200,7 @@ describe('run', () => {
               .returns('.env')
 
             execStub.returns({
-              stdout: `+ #FOO=bar \n+ #BAR=baz \n # I AM A COMMENT!`,
+              stdout: `+#FOO=bar \n+#BAR=baz \n # I AM A COMMENT!`,
               stderr: '',
               exitCode: 0
             })
