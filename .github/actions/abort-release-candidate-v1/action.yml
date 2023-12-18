@@ -19,15 +19,13 @@ runs:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
-        # Fetch all history
-        fetch-depth: 0
+        # Checkout the release branch so we can get the release candidate version and reset it to the base branch later
+        ref: 'release'
 
     - name: Checking out release branch and get release candidate version
       shell: bash
       id: get-release-candidate-version
       run: |
-        git checkout release
-
         # Get the version number from the prepare_release shell script and set it as an output
         # Monorepos have a lerna.json file that contains the updated version number
         # Non-monorepos, or non-npm repos, have a package.json file that contains the updated version number
@@ -46,6 +44,8 @@ runs:
         GH_TOKEN: ${{ inputs.token }}
 
     - name: Close release candidate issue as `Not Planned`
+      # Guard against empty issue url if the issue was not found in the previous step
+      if: ${{ steps.get-release-issue.outputs.issue-url != '' }}
       shell: bash
       run: |
         gh issue close ${{ steps.get-release-issue.outputs.issue-url }} -r "not planned"
@@ -53,6 +53,7 @@ runs:
         GH_TOKEN: ${{ inputs.token }}
 
     - name: Move release candidate issue to `Not Planned` column (Board 66)
+      if: ${{ steps.get-release-issue.outputs.issue-url != '' }}
       uses: dequelabs/axe-api-team-public/.github/actions/add-to-board-v1@main
       with:
         issue-urls: ${{ steps.get-release-issue.outputs.issue-url }}
@@ -62,6 +63,7 @@ runs:
         GH_TOKEN: ${{ inputs.token }}
 
     - name: Move release candidate issue to `Release Cancelled` column (Board 103)
+      if: ${{ steps.get-release-issue.outputs.issue-url != '' }}
       uses: dequelabs/axe-api-team-public/.github/actions/add-to-board-v1@main
       with:
         issue-urls: ${{ steps.get-release-issue.outputs.issue-url }}
@@ -76,12 +78,13 @@ runs:
       id: get-release-issue-from-docs-repo
       with:
         version: ${{ steps.get-release-candidate-version.outputs.release_candidate_version }}
-        owner-and-repo: 'dequelabs/${{ inputs.docs-repo }}'
+        repo: ${{ inputs.docs-repo }}
       env:
         GH_TOKEN: ${{ inputs.token }}
 
     - name: Close release candidate issue as `Not Planned` in docs-repo
-      if: ${{ inputs.docs-repo != 'null' }}
+      # Guard against empty issue url if the issue was not found in the previous step
+      if: ${{ inputs.docs-repo != 'null' }} && ${{ steps.get-release-issue-from-docs-repo.outputs.issue-url != '' }}
       shell: bash
       run: |
         gh issue close ${{ steps.get-release-issue-from-docs-repo.outputs.issue-url }} -r "not planned"
@@ -89,7 +92,7 @@ runs:
         GH_TOKEN: ${{ inputs.token }}
 
     - name: Move release candidate issue to `Not Planned` column (Board 66) in docs-repo
-      if: ${{ inputs.docs-repo != 'null' }}
+      if: ${{ inputs.docs-repo != 'null' }} && ${{ steps.get-release-issue-from-docs-repo.outputs.issue-url != '' }}
       uses: dequelabs/axe-api-team-public/.github/actions/add-to-board-v1@main
       with:
         issue-urls: ${{ steps.get-release-issue-from-docs-repo.outputs.issue-url }}
@@ -101,6 +104,5 @@ runs:
     - name: Reset release branch to ${{ inputs.base }}
       shell: bash
       run: |
-        git checkout release 
         git reset --hard "origin/${{ inputs.base }}"
         git push --force origin release
