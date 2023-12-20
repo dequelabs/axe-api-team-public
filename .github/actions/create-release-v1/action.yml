@@ -109,8 +109,9 @@ runs:
         echo "## New environment variables:" >> /tmp/release-notes.txt
         echo "" >> /tmp/release-notes.txt
 
-        // split by comma and loop through each variable
-        for var in $(echo "${{ steps.get_new_env_vars.outputs.new-env-vars }}" | sed "s/,/ /g") ; do
+        // Convert comma separated list to array so we can loop over it
+        IFS=',' read -ra new_env_vars <<< "${{ steps.get_new_env_vars.outputs.new-env-vars }}"
+        for var in "${new_env_vars[@]}"; do
           echo "- $var" >> /tmp/release-notes.txt
         done
 
