@@ -109,7 +109,8 @@ runs:
         echo "## New environment variables:" >> /tmp/release-notes.txt
         echo "" >> /tmp/release-notes.txt
 
-        for var in ${{ steps.get_new_env_vars.outputs.new-env-vars }}; do
+        // split by comma and loop through each variable
+        for var in $(echo "${{ steps.get_new_env_vars.outputs.new-env-vars }}" | sed "s/,/ /g") ; do
           echo "- $var" >> /tmp/release-notes.txt
         done
 
