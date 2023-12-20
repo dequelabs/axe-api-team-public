@@ -31421,27 +31421,24 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 568:
+/***/ 636:
 /***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const exec_1 = __nccwpck_require__(1518);
-async function doesBranchExist(branchName) {
+async function doesExist({ branchName, tag }) {
     try {
-        await (0, exec_1.getExecOutput)('git', [
-            'rev-parse',
-            '--verify',
-            `origin/${branchName}`
-        ]);
+        const subCommand = tag ? tag : `origin/${branchName}`;
+        await (0, exec_1.getExecOutput)(`git rev-parse --verify ${subCommand}`);
         return true;
     }
     catch (error) {
         return false;
     }
 }
-exports["default"] = doesBranchExist;
+exports["default"] = doesExist;
 
 
 /***/ }),
@@ -31567,14 +31564,10 @@ exports["default"] = getParsedCommitList;
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const exec_1 = __nccwpck_require__(1518);
-async function getRawCommitList({ base, head }) {
+async function getRawCommitList({ base, head, tag }) {
     try {
-        const { stdout: rawCommitList } = await (0, exec_1.getExecOutput)('git log', [
-            `origin/${base}..origin/${head}`,
-            '--oneline',
-            '--no-merges',
-            '--abbrev-commit'
-        ]);
+        const subCommand = tag ? `${tag}..HEAD` : `origin/${base}..origin/${head}`;
+        const { stdout: rawCommitList } = await (0, exec_1.getExecOutput)(`git log ${subCommand} --oneline --no-merges --abbrev-commit`);
         return rawCommitList.trimEnd().split('\n');
     }
     catch (error) {
@@ -31637,28 +31630,50 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const getRawCommitList_1 = __importDefault(__nccwpck_require__(2637));
 const getParsedCommitList_1 = __importDefault(__nccwpck_require__(3368));
-const doesBranchExist_1 = __importDefault(__nccwpck_require__(568));
+const doesBranchOrTagExist_1 = __importDefault(__nccwpck_require__(636));
 async function run(core, github) {
     try {
-        const base = core.getInput('base', { required: true });
-        const head = core.getInput('head', { required: true });
-        const [doesBaseExist, doesHeadExist] = await Promise.all([
-            (0, doesBranchExist_1.default)(base),
-            (0, doesBranchExist_1.default)(head)
-        ]);
-        core.info(`Checking if ${base} exists...`);
-        if (!doesBaseExist) {
-            core.setFailed(`The base branch ${base} does not exist.`);
+        const base = core.getInput('base');
+        const head = core.getInput('head');
+        const tag = core.getInput('tag');
+        if (!tag && (!base || !head)) {
+            core.setFailed('You must provide either a tag or both a base and head branch.');
             return;
         }
-        core.info(`Checking if ${head} exists...`);
-        if (!doesHeadExist) {
-            core.setFailed(`The head branch ${head} does not exist.`);
+        if (tag && (base || head)) {
+            core.setFailed('You cannot provide both a tag and both a base and head branch.');
             return;
         }
-        core.info(`${base} and ${head} exist.`);
-        core.info(`Getting raw commits between ${base} and ${head}...`);
-        const rawCommitList = await (0, getRawCommitList_1.default)({ base, head });
+        let rawCommitList;
+        if (tag) {
+            core.info(`Checking if ${tag} exists...`);
+            const doesTagExist = await (0, doesBranchOrTagExist_1.default)({ tag });
+            if (!doesTagExist) {
+                core.setFailed(`The tag ${tag} does not exist.`);
+                return;
+            }
+            core.info(`Getting raw commits for tag ${tag}...`);
+            rawCommitList = await (0, getRawCommitList_1.default)({ tag });
+        }
+        else {
+            const [doesBaseExist, doesHeadExist] = await Promise.all([
+                (0, doesBranchOrTagExist_1.default)({ branchName: base }),
+                (0, doesBranchOrTagExist_1.default)({ branchName: head })
+            ]);
+            core.info(`Checking if ${base} exists...`);
+            if (!doesBaseExist) {
+                core.setFailed(`The base branch ${base} does not exist.`);
+                return;
+            }
+            core.info(`Checking if ${head} exists...`);
+            if (!doesHeadExist) {
+                core.setFailed(`The head branch ${head} does not exist.`);
+                return;
+            }
+            core.info(`${base} and ${head} exist.`);
+            core.info(`Getting raw commits between ${base} and ${head}...`);
+            rawCommitList = await (0, getRawCommitList_1.default)({ base, head });
+        }
         const parsedCommitList = await (0, getParsedCommitList_1.default)({
             rawCommitList,
             repository: `${github.context.repo.owner}/${github.context.repo.repo}`
