@@ -1,0 +1,21 @@
+name: Generate commit list
+
+on: workflow_dispatch
+
+jobs:
+  generate-commit-list:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Fetch all history
+          fetch-depth: 0
+      - uses: dequelabs/axe-api-team-public/.github/actions/generate-commit-list-v1@feat-add-tags-commmit-list
+        id: generate-commit-list
+        with:
+          base: release
+          head: develop
+      - name: Output commit list
+        shell: bash
+        run: |
+          echo "${{ steps.generate-commit-list.outputs.commit-list }}"

@@ -23,8 +23,7 @@ _Note: `base` and `head` are mutually exclusive with `tag`. Either `base` and `h
 ```yaml
 name: Generate commit list
 
-on:
-  workflow-dispatch:
+on: workflow_dispatch
 
 jobs:
   generate-commit-list:
@@ -35,6 +34,7 @@ jobs:
           # Fetch all history
           fetch-depth: 0
       - uses: dequelabs/axe-api-team-public/.github/actions/generate-commit-list-v1@main
+        id: generate-commit-list
         with:
           base: release
           head: develop
@@ -45,8 +45,7 @@ jobs:
 ```yaml
 name: Generate commit list
 
-on:
-  workflow-dispatch:
+on: workflow_dispatch
 
 jobs:
   generate-commit-list:
@@ -54,9 +53,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: main
           # Fetch all history
           fetch-depth: 0
       - uses: dequelabs/axe-api-team-public/.github/actions/generate-commit-list-v1@main
+        id: generate-commit-list
         with:
           tag: v1.0.0
 ```
