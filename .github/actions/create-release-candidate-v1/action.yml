@@ -166,7 +166,7 @@ runs:
       with:
         token: ${{ inputs.token }}
         labels: 'PRIORITY: high,release'
-        column_name: 'Ready for QA'
+        column_name: 'Backlog'
         title: '${{ github.repository }} v${{ steps.get_bumped_version_number.outputs.version }}'
         body: |
           # Below is everything related to this release 
@@ -216,4 +216,4 @@ runs:
       with:
         issue-urls: ${{ steps.create_release_issue.outputs.issue_url }}
         project-number: '103'
-        column-name: 'RC Created'
+        column-name: 'Upcoming'

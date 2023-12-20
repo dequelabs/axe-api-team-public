@@ -122,3 +122,29 @@ jobs:
           cache: 'npm'
       - run: npm ci
       - run: npm run coverage --workspace=update-axe-core-v1
+
+  get-release-issue-v1:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run coverage --workspace=get-release-issue-v1
+
+  get-new-env-vars-v1:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run coverage --workspace=get-new-env-vars-v1

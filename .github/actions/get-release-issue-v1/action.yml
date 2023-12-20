@@ -1,0 +1,21 @@
+name: 'Get release issue'
+description: 'A GitHub action for getting the release issue for a release candidate'
+
+inputs:
+  version:
+    description: 'The version of the release candidate'
+    required: true
+  owner:
+    description: 'The owner of the repository e.g. dequelabs/axe-core-npm, then supply "dequelabs"'
+    required: false
+  repo:
+    description: 'The repository e.g. dequelabs/axe-core-npm, then supply "axe-core-npm"'
+    required: false
+
+outputs:
+  issue-url:
+    description: 'The URL of the issue created for the release candidate'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
