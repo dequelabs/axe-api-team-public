@@ -109,12 +109,10 @@ runs:
         echo "## New environment variables:" >> /tmp/release-notes.txt
         echo "" >> /tmp/release-notes.txt
 
-        // Convert comma separated list to markdown bullet list
-        new_env_vars=$(echo "${{ steps.get_new_env_vars.outputs.new-env-vars }}" | sed -e 's/,/\\n- /g')
-
+        // Convert comma separated list from github action output to a markdown list
+        new_env_vars=$(echo "${{ steps.get_new_env_vars.outputs.new-env-vars }}" | sed -e 's/,/\\n-/g')
+        echo "$new_env_vars"
         echo "$new_env_vars" >> /tmp/release-notes.txt
-
-
 
         echo "" >> /tmp/release-notes.txt
 
