@@ -1,6 +1,6 @@
 import { getExecOutput } from '@actions/exec'
 
-interface DoesExistParams {
+interface DoesBranchOrTagExistParams {
   branchName?: string
   tag?: string
 }
@@ -12,10 +12,10 @@ interface DoesExistParams {
  * @returns A promise that resolves to a boolean indicating whether the branch or tag exists.
  */
 
-export default async function doesExist({
+export default async function doesBranchOrTagExist({
   branchName,
   tag
-}: DoesExistParams): Promise<boolean> {
+}: DoesBranchOrTagExistParams): Promise<boolean> {
   try {
     const subCommand = tag ? tag : `origin/${branchName}`
     await getExecOutput(`git rev-parse --verify ${subCommand}`)

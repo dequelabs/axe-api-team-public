@@ -1,6 +1,6 @@
-interface DoesExistParams {
+interface DoesBranchOrTagExistParams {
     branchName?: string;
     tag?: string;
 }
-export default function doesExist({ branchName, tag }: DoesExistParams): Promise<boolean>;
+export default function doesBranchOrTagExist({ branchName, tag }: DoesBranchOrTagExistParams): Promise<boolean>;
 export {};

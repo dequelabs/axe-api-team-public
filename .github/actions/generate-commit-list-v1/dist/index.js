@@ -31428,7 +31428,7 @@ function wrappy (fn, cb) {
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const exec_1 = __nccwpck_require__(1518);
-async function doesExist({ branchName, tag }) {
+async function doesBranchOrTagExist({ branchName, tag }) {
     try {
         const subCommand = tag ? tag : `origin/${branchName}`;
         await (0, exec_1.getExecOutput)(`git rev-parse --verify ${subCommand}`);
@@ -31438,7 +31438,7 @@ async function doesExist({ branchName, tag }) {
         return false;
     }
 }
-exports["default"] = doesExist;
+exports["default"] = doesBranchOrTagExist;
 
 
 /***/ }),
