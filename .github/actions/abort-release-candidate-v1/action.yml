@@ -45,7 +45,7 @@ runs:
 
     - name: Close release candidate issue as `Not Planned`
       # Guard against empty issue url if the issue was not found in the previous step
-      if: ${{ steps.get-release-issue.outputs.issue-url != '' }}
+      if: ${{ steps.get-release-issue.outputs.issue-url }}
       shell: bash
       run: |
         gh issue close ${{ steps.get-release-issue.outputs.issue-url }} -r "not planned"
@@ -59,7 +59,7 @@ runs:
         echo "release_issue_url=${{ steps.get-release-issue.outputs.issue-url }}"
 
     - name: Move release candidate issue to `Not Planned` column (Board 66)
-      if: ${{ steps.get-release-issue.outputs.issue-url != '' }}
+      if: ${{ steps.get-release-issue.outputs.issue-url }}
       uses: dequelabs/axe-api-team-public/.github/actions/add-to-board-v1@main
       with:
         issue-urls: ${{ steps.get-release-issue.outputs.issue-url }}
@@ -69,7 +69,7 @@ runs:
         GH_TOKEN: ${{ inputs.token }}
 
     - name: Move release candidate issue to `Release Cancelled` column (Board 103)
-      if: ${{ steps.get-release-issue.outputs.issue-url != '' }}
+      if: ${{ steps.get-release-issue.outputs.issue-url }}
       uses: dequelabs/axe-api-team-public/.github/actions/add-to-board-v1@main
       with:
         issue-urls: ${{ steps.get-release-issue.outputs.issue-url }}
@@ -90,7 +90,7 @@ runs:
 
     - name: Close release candidate issue as `Not Planned` in docs-repo
       # Guard against empty issue url if the issue was not found in the previous step
-      if: ${{ inputs.docs-repo != 'null' }} && ${{ steps.get-release-issue-from-docs-repo.outputs.issue-url != '' }}
+      if: ${{ inputs.docs-repo != 'null' }} && ${{ steps.get-release-issue-from-docs-repo.outputs.issue-url }}
       shell: bash
       run: |
         gh issue close ${{ steps.get-release-issue-from-docs-repo.outputs.issue-url }} -r "not planned"
@@ -98,7 +98,7 @@ runs:
         GH_TOKEN: ${{ inputs.token }}
 
     - name: Move release candidate doc issue to `Not Planned` column (Board 66)
-      if: ${{ inputs.docs-repo != 'null' }} && ${{ steps.get-release-issue-from-docs-repo.outputs.issue-url != '' }}
+      if: ${{ inputs.docs-repo != 'null' }} && ${{ steps.get-release-issue-from-docs-repo.outputs.issue-url }}
       uses: dequelabs/axe-api-team-public/.github/actions/add-to-board-v1@main
       with:
         issue-urls: ${{ steps.get-release-issue-from-docs-repo.outputs.issue-url }}
