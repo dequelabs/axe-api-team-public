@@ -22,7 +22,7 @@ runs:
         # Checkout the release branch so we can get the release candidate version and reset it to the base branch later
         ref: 'release'
 
-    - name: Checking out release branch and get release candidate version
+    - name: Get release candidate version
       shell: bash
       id: get-release-candidate-version
       run: |
@@ -91,7 +91,7 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.token }}
 
-    - name: Move release candidate issue to `Not Planned` column (Board 66) in docs-repo
+    - name: Move release candidate doc issue to `Not Planned` column (Board 66)
       if: ${{ inputs.docs-repo != '' }} && ${{ steps.get-release-issue-from-docs-repo.outputs.issue-url != '' }}
       uses: dequelabs/axe-api-team-public/.github/actions/add-to-board-v1@main
       with:
