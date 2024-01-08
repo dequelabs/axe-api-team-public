@@ -47,7 +47,8 @@ runs:
       shell: bash
       run: |
         echo "release_candidate_version=${{ steps.get-release-candidate-version.outputs.release_candidate_version }}"
-        echo "release_issue_url=${{ steps.get-release-issue.outputs.issue-url }}"
+        echo "release_issue_url_raw=${{ steps.get-release-issue.outputs.issue-url }}"
+        echo "release_issue_url=start--${{ steps.get-release-issue.outputs.issue-url }}--end"
         echo "doesExist=${{ steps.get-release-issue.outputs.issue-url == '' }}"
         echo "doesExistNull=${{ steps.get-release-issue.outputs.issue-url == null }}"
         echo "doesDocsRepoExist=${{ inputs.docs-repo != 'null' }}"
