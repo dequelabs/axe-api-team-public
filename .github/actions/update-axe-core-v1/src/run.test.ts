@@ -361,7 +361,8 @@ describe('run', () => {
 async function makeTempFiles(): Promise<{ cwd: string; files: string[] }> {
   const cwd = await fs.mkdtemp(path.join(os.tmpdir(), 'update-axe-core'))
 
-  const files = []
+  // type string[] is required since `[]` is `never[]`
+  const files: string[] = []
   files.push(
     await createFile(cwd, 'package.json', {
       dependencies: {

@@ -1,14 +1,14 @@
 import 'mocha'
 import { assert } from 'chai'
 import sinon from 'sinon'
-import * as fs from 'fs'
+import * as glob from 'glob'
 import getPackageManager from './getPackageManager'
 
 describe('getPackageManager', () => {
   let statStub: sinon.SinonStub
 
   beforeEach(() => {
-    statStub = sinon.stub(fs.promises, 'stat')
+    statStub = sinon.stub(glob, 'glob')
   })
 
   afterEach(() => {
@@ -23,7 +23,6 @@ describe('getPackageManager', () => {
   })
 
   it('returns "yarn" if yarn.lock exists', async () => {
-    statStub.withArgs(sinon.match('package-lock.json')).throws()
     statStub.withArgs(sinon.match('yarn.lock')).returns({})
     const result = await getPackageManager('path/to/file')
 
@@ -31,16 +30,14 @@ describe('getPackageManager', () => {
   })
 
   it('returns undefined if neither exists', async () => {
-    statStub.withArgs(sinon.match('package-lock.json')).throws()
-    statStub.withArgs(sinon.match('yarn.lock')).throws()
     const result = await getPackageManager('path/to/file')
 
     assert.isUndefined(result)
   })
 
   it('uses the passed in path', async () => {
-    statStub.withArgs(sinon.match('package-lock.json')).throws()
-    statStub.withArgs(sinon.match('yarn.lock')).throws()
+    statStub.withArgs(sinon.match('package-lock.json'))
+    statStub.withArgs(sinon.match('yarn.lock'))
     await getPackageManager('path/to/file')
 
     assert.isTrue(statStub.calledWith('path/to/file/package-lock.json'))

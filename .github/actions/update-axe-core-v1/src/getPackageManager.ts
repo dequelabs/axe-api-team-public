@@ -1,26 +1,26 @@
-import { promises as fs } from 'fs'
-import path from 'path'
+import { glob } from 'glob'
 import type { PackageManager } from './types'
 
 export default async function getPackageManager(
   dirPath: string
 ): PackageManager {
-  if (await exists(path.join(dirPath, 'package-lock.json'))) {
+  if (
+    await glob('**/package-lock.json', {
+      cwd: dirPath,
+      ignore: '**/node_modules/**/package-lock.json'
+    })
+  ) {
     return 'npm'
   }
 
-  if (await exists(path.join(dirPath, 'yarn.lock'))) {
+  if (
+    await glob('**/yarn.lock', {
+      cwd: dirPath,
+      ignore: '**/node_modules/**/yarn.lock'
+    })
+  ) {
     return 'yarn'
   }
 
   return undefined
-}
-
-async function exists(filePath: string): Promise<boolean> {
-  try {
-    await fs.stat(filePath)
-    return true
-  } catch {
-    return false
-  }
 }

@@ -27087,35 +27087,28 @@ exports["default"] = _default;
 /***/ }),
 
 /***/ 7167:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
 
 "use strict";
 
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-const fs_1 = __nccwpck_require__(7147);
-const path_1 = __importDefault(__nccwpck_require__(1017));
+const glob_1 = __nccwpck_require__(1253);
 async function getPackageManager(dirPath) {
-    if (await exists(path_1.default.join(dirPath, 'package-lock.json'))) {
+    if (await (0, glob_1.glob)('**/package-lock.json', {
+        cwd: dirPath,
+        ignore: '**/node_modules/**/package-lock.json'
+    })) {
         return 'npm';
     }
-    if (await exists(path_1.default.join(dirPath, 'yarn.lock'))) {
+    if (await (0, glob_1.glob)('**/yarn.lock', {
+        cwd: dirPath,
+        ignore: '**/node_modules/**/yarn.lock'
+    })) {
         return 'yarn';
     }
     return undefined;
 }
 exports["default"] = getPackageManager;
-async function exists(filePath) {
-    try {
-        await fs_1.promises.stat(filePath);
-        return true;
-    }
-    catch {
-        return false;
-    }
-}
 
 
 /***/ }),
