@@ -1,0 +1,126 @@
+name: Create release
+description: A GitHub Action to create a production release
+
+inputs:
+  token:
+    description: The GitHub token to use. Defaults to GITHUB_TOKEN
+    default: ${{ github.token }}
+  base:
+    description: The base branch to merge into
+    required: true
+  migrations-dir:
+    description: The directory containing the database migrations e.g. src/database/migrations
+  env-file-path:
+    description: The path to the `.env` file e.g. src/service/sample.env
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        # Fetch all history
+        fetch-depth: 0
+        # Checkout the release branch
+        ref: 'release'
+
+    - name: Is release in progress
+      uses: dequelabs/axe-api-team-public/.github/actions/is-release-in-progress-v1@main
+      id: is_release_in_progress
+      with:
+        github-token: ${{ inputs.token }}
+
+    - name: Cancel release if a release is already in progress
+      shell: bash
+      if: ${{ steps.is_release_in_progress.outputs.in_progress == 'true' }}
+      run: |
+        echo "A release is already in progress. Cancelling this release."
+        gh run cancel ${{ github.run_id }}
+        gh run watch ${{ github.run_id }}
+
+    - name: Get release version
+      id: get_release_version
+      shell: bash
+      run: |
+        # Monorepos have a lerna.json file that contains the updated version number
+        # Non-monorepos, or non-npm repos, have a package.json file that contains the updated version number
+        if [ -f "lerna.json" ]; then
+          echo "RELEASE_VERSION=$(cat lerna.json | jq -r '.version')" >> $GITHUB_OUTPUT
+        else
+          echo "RELEASE_VERSION=$(cat package.json | jq -r '.version')" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Get CHANGELOG changes
+      shell: bash
+      run: |
+        echo "## Changelog Additions:" >> /tmp/release-notes.txt
+        echo "" >> /tmp/release-notes.txt
+
+        new_changelog_entries=$(git show origin/${{ inputs.base }}...origin/release --no-color --no-prefix --output-indicator-new=! CHANGELOG.md | egrep '^!' | awk -F'^[!]' '{print $2}' | sed -e 's/\n/$0A/g')
+
+        echo "$new_changelog_entries" >> /tmp/release-notes.txt
+        echo "" >> /tmp/release-notes.txt
+
+    - name: Find new migration files
+      if: ${{ inputs.migrations-dir != '' }}
+      shell: bash
+      run: |
+        repo_url="https://github.com/$GITHUB_REPOSITORY"
+
+        echo "Checking for new migration files in ${{ inputs.migrations-dir }}"
+        echo "Repo url: $repo_url"
+
+        # Only get new files added to release branch that are within the provided migrations directory and end in .sql
+
+        new_migration_files=$(git diff --name-only --diff-filter=A  origin/${{ inputs.base }}...origin/release -- "${{ inputs.migrations-dir }}" | grep -E '\.sql$')
+
+        if [ -n "$new_migration_files" ]; then
+          echo "## New migration files found:" >> /tmp/release-notes.txt
+          
+          for file in $new_migration_files; do
+            # Create permalink to file
+            url="$repo_url/blob/$GITHUB_SHA/$file"
+
+            echo "- [$file]($url)" >> /tmp/release-notes.txt
+          done
+
+          echo "" >> /tmp/release-notes.txt
+        fi
+
+    - name: Find new env variables
+      if: ${{ inputs.env-file-path != '' }}
+      uses: dequelabs/axe-api-team-public/.github/actions/get-new-env-vars-v1@main
+      id: get_new_env_vars
+      with:
+        env-file-path: ${{ inputs.env-file-path }}
+        base: ${{ inputs.base }}
+        head: release
+
+    - name: Add new env vars to release notes
+      if: ${{ steps.get_new_env_vars.outputs.new-env-vars != '' }}
+      shell: bash
+      run: |
+        echo "## New environment variables:" >> /tmp/release-notes.txt
+        echo "" >> /tmp/release-notes.txt
+
+        new_vars=$(echo "${{ steps.get_new_env_vars.outputs.new-env-vars }}" | tr ',' '\n')
+
+        for var in $new_vars; do
+          echo "- $var" >> /tmp/release-notes.txt
+        done
+
+        echo "" >> /tmp/release-notes.txt
+
+    - name: Create release pull request
+      shell: bash
+      run: |
+        echo "_This PR was automatically created by a :robot:_" >> /tmp/release-notes.txt
+
+        gh pr create \
+          --title "chore: release v${{ steps.get_release_version.outputs.RELEASE_VERSION }}" \
+          --body-file /tmp/release-notes.txt \
+          --base ${{ inputs.base }} \
+          --head release
+      env:
+        # Required for GH CLI
+        GH_TOKEN: ${{ inputs.token }}
