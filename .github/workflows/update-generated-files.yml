@@ -52,7 +52,7 @@ jobs:
           git checkout -b $BRANCH_NAME
           git commit -m "chore: sync generated files"
           git push origin $BRANCH_NAME
-          gh pr create --base develop --head $BRANCH_NAME --title "chore: sync generated files" --body ""
+          gh pr create --base main --head $BRANCH_NAME --title "chore: sync generated files" --body ""
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
