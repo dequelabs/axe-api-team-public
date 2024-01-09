@@ -21,6 +21,8 @@ runs:
       with:
         # Fetch all history
         fetch-depth: 0
+        # Checkout the release branch
+        ref: 'release'
 
     - name: Is release in progress
       uses: dequelabs/axe-api-team-public/.github/actions/is-release-in-progress-v1@main
@@ -40,9 +42,6 @@ runs:
       id: get_release_version
       shell: bash
       run: |
-        git checkout release
-
-        # Get the version number from the prepare_release shell script and set it as an output
         # Monorepos have a lerna.json file that contains the updated version number
         # Non-monorepos, or non-npm repos, have a package.json file that contains the updated version number
         if [ -f "lerna.json" ]; then
@@ -63,34 +62,29 @@ runs:
         echo "" >> /tmp/release-notes.txt
 
     - name: Find new migration files
+      if: ${{ inputs.migrations-dir != '' }}
       shell: bash
       run: |
-        if [ -z "${{ inputs.migrations-dir }}" ]; then
-          echo "No migrations directory provided. Skipping migrations check"
-        else
-          repo_url="https://github.com/$GITHUB_REPOSITORY"
+        repo_url="https://github.com/$GITHUB_REPOSITORY"
 
-          echo "Checking for new migration files in ${{ inputs.migrations-dir }}"
-          echo "Repo url: $repo_url"
+        echo "Checking for new migration files in ${{ inputs.migrations-dir }}"
+        echo "Repo url: $repo_url"
 
-          # Only get new files added to release branch that are within the provided migrations directory and end in .sql
+        # Only get new files added to release branch that are within the provided migrations directory and end in .sql
 
-          new_migration_files=$(git diff --name-only --diff-filter=A  origin/${{ inputs.base }}...origin/release -- "${{ inputs.migrations-dir }}" | grep -E '\.sql$')
+        new_migration_files=$(git diff --name-only --diff-filter=A  origin/${{ inputs.base }}...origin/release -- "${{ inputs.migrations-dir }}" | grep -E '\.sql$')
 
-          if [ -z "$new_migration_files" ]; then
-            echo "## No new migration files found" >> /tmp/release-notes.txt
-          else
-            echo "## New migration files found:" >> /tmp/release-notes.txt
-            
-            for file in $new_migration_files; do
-              # Create permalink to file
-              url="$repo_url/blob/$GITHUB_SHA/$file"
+        if [ -n "$new_migration_files" ]; then
+          echo "## New migration files found:" >> /tmp/release-notes.txt
+          
+          for file in $new_migration_files; do
+            # Create permalink to file
+            url="$repo_url/blob/$GITHUB_SHA/$file"
 
-              echo "- [$file]($url)" >> /tmp/release-notes.txt
-            done
+            echo "- [$file]($url)" >> /tmp/release-notes.txt
+          done
 
-            echo "" >> /tmp/release-notes.txt
-          fi
+          echo "" >> /tmp/release-notes.txt
         fi
 
     - name: Find new env variables
