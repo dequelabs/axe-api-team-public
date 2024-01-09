@@ -136,6 +136,28 @@ describe('run', () => {
     assert.isTrue(core.info.calledWith('Footer matches team policy'))
   })
 
+  it('ignores empty newlines as last line', () => {
+    const core = {
+      info: sinon.spy(),
+      getInput: sinon.stub().returns('')
+    }
+    const github = {
+      context: {
+        payload: {
+          pull_request: {
+            number: 1,
+            body: `closes: #1
+
+            `
+          }
+        }
+      }
+    }
+    run(core as unknown as Core, github as unknown as GitHub)
+
+    assert.isTrue(core.info.calledWith('Footer matches team policy'))
+  })
+
   it('fails if pr footer is not valid', () => {
     const core = {
       setFailed: sinon.spy(),
