@@ -34,7 +34,7 @@ export default function run(core: Core, github: GitHub) {
       return
     }
 
-    const bodyLines = body.split(/[\r\n]+/)
+    const bodyLines = body.trim().split(/[\r\n]+/)
     const footer = bodyLines[bodyLines.length - 1]
 
     core.info(`Validating PR footer: "${footer}"`)

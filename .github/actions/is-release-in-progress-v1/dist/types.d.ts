@@ -1,8 +1,8 @@
 import core from '@actions/core';
 import github from '@actions/github';
-export type Core = typeof core;
-export type Github = typeof github;
-export type PullRequest = {
+export declare type Core = typeof core;
+export declare type Github = typeof github;
+export declare type PullRequest = {
     id: number;
     state: string;
     labels: [{

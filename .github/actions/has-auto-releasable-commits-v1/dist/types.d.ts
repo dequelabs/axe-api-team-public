@@ -1,6 +1,6 @@
 import type core from '@actions/core';
-export type Core = Pick<typeof core, 'getInput' | 'setOutput' | 'info' | 'setFailed'>;
-export type CommitList = {
+export declare type Core = Pick<typeof core, 'getInput' | 'setOutput' | 'info' | 'setFailed'>;
+export declare type CommitList = {
     commit: string;
     title: string;
     sha: string;
@@ -8,7 +8,7 @@ export type CommitList = {
     id: string | null;
     link: string | null;
 };
-export type ShouldAutoReleaseParams = {
+export declare type ShouldAutoReleaseParams = {
     commitList: CommitList[];
     isVersionLocked: boolean;
 };
