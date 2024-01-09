@@ -19,6 +19,8 @@ runs:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
+        # Fetch all history
+        fetch-depth: 0
         # Checkout the release branch so we can get the release candidate version and reset it to the base branch later
         ref: 'release'
 
@@ -42,17 +44,6 @@ runs:
         version: ${{ steps.get-release-candidate-version.outputs.release_candidate_version }}
       env:
         GH_TOKEN: ${{ inputs.token }}
-
-    - name: debug
-      shell: bash
-      run: |
-        echo "release_candidate_version=${{ steps.get-release-candidate-version.outputs.release_candidate_version }}"
-        echo "release_issue_url_raw=${{ steps.get-release-issue.outputs.issue-url }}"
-        echo "release_issue_url=start--${{ steps.get-release-issue.outputs.issue-url }}--end"
-        echo "doesExist=${{ steps.get-release-issue.outputs.issue-url == '' }}"
-        echo "doesExistNull=${{ steps.get-release-issue.outputs.issue-url == null }}"
-        echo "doesDocsRepoExist=${{ inputs.docs-repo != 'null' }}"
-        echo "doesDocsRepoExist2=${{ inputs.docs-repo != null }}"
 
     - name: Close release candidate issue as `Not Planned`
       if: steps.get-release-issue.outputs.issue-url != null
