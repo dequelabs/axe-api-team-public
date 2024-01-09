@@ -17,7 +17,6 @@ runs:
     - uses: actions/setup-node@v3
       with:
         node-version: 18
-        cache: 'npm'
     - id: update-axe-core
       uses: dequelabs/axe-api-team-public/.github/actions/update-axe-core-v1@main
     - name: Open PR
