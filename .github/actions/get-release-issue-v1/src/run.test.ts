@@ -318,6 +318,41 @@ describe('run', () => {
           'No issues found for owner/repo v1.0.0. It may have already been closed...'
         )
       })
+
+      it('sets the issue-url output to null', async () => {
+        inputStub.withArgs('version', { required: true }).returns('1.0.0')
+        inputStub.withArgs('owner').returns('owner')
+        inputStub.withArgs('repo').returns('repo')
+
+        execStub.returns({
+          stdout: '[]',
+          stderr: '',
+          exitCode: 0
+        })
+
+        const core = {
+          getInput: inputStub,
+          info: infoSpy,
+          setFailed: setFailedSpy,
+          warning: warningSpy,
+          setOutput: setOutputSpy
+        } as unknown as Core
+
+        const github = {
+          context: {
+            repo: {
+              owner: 'owner',
+              repo: 'repo'
+            }
+          }
+        } as GitHub
+
+        await run(core, github)
+
+        assert.isTrue(setOutputSpy.calledOnce)
+        assert.equal(setOutputSpy.args[0][0], 'issue-url')
+        assert.equal(setOutputSpy.args[0][1], null)
+      })
     })
 
     describe('when more than one issue is found', () => {

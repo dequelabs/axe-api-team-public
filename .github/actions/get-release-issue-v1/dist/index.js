@@ -30976,6 +30976,7 @@ async function run(core, github) {
         const issues = JSON.parse(issueList);
         if (!issues.length) {
             core.warning(`No issues found for ${owner}/${repo} v${version}. It may have already been closed...`);
+            core.setOutput('issue-url', null);
             return;
         }
         if (issues.length > 1) {
