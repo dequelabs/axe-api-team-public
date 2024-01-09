@@ -28,6 +28,9 @@ export default async function run(core: Core, github: GitHub) {
       core.warning(
         `No issues found for ${owner}/${repo} v${version}. It may have already been closed...`
       )
+
+      // Set the `issue-url` output to `null` so that it can be checked in subsequent steps in other workflows
+      core.setOutput('issue-url', null)
       return
     }
 
