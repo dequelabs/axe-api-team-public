@@ -10,6 +10,9 @@ env:
 jobs:
   update_genereated_files:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
     steps:
       - name: Checkout
         uses: actions/checkout@v4
