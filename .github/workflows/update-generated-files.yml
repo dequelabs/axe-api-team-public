@@ -3,8 +3,6 @@ name: Update generated files
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
 
 env:
   BRANCH_NAME: sync-generated-files
