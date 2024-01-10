@@ -2,6 +2,8 @@ name: Update generated files
 
 on:
   push:
+    branches:
+      - main
 
 env:
   BRANCH_NAME: sync-generated-files
