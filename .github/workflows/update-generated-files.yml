@@ -15,10 +15,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Setup upterm session
-        uses: lhotari/action-upterm@d23c2722bdab893785c9fbeae314cbf080645bd7
-        with:
-          limit-access-to-actor: true
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -29,6 +25,10 @@ jobs:
           npm ci
           npm run build -ws
 
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@d23c2722bdab893785c9fbeae314cbf080645bd7
+        with:
+          limit-access-to-actor: true
       - name: Check for changes
         id: changes
         run: |
