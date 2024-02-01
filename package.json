@@ -32,7 +32,7 @@
     "@typescript-eslint/eslint-plugin": "^6.20.0",
     "@typescript-eslint/parser": "^6.20.0",
     "@vercel/ncc": "^0.38.1",
-    "chai": "^4.3.10",
+    "chai": "^5.0.3",
     "conventional-commit-types": "^3.0.0",
     "conventional-commits-parser": "^5.0.0",
     "dedent": "^1.5.1",
