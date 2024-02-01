@@ -22,6 +22,10 @@ updates:
     open-pull-requests-limit: 10
     commit-message:
       prefix: 'chore'
+    ignore:
+      # Prevent updates to ESM-only versions
+      - dependency-name: 'chai'
+        versions: ['>=5']
     groups:
       # Any updates not caught by the group config will get individual PRs
       npm-low-risk:
