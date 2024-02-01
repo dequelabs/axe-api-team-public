@@ -22,6 +22,10 @@ updates:
     open-pull-requests-limit: 10
     commit-message:
       prefix: 'chore'
+    ignore:
+      # Chai >=5 transitioned to ESM only: https://github.com/chaijs/chai/releases/tag/v5.0.0
+      - dependency-name: 'chai'
+        versions: ['>=5']
     groups:
       # Any updates not caught by the group config will get individual PRs
       npm-low-risk:
