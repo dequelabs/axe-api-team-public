@@ -23,7 +23,7 @@ updates:
     commit-message:
       prefix: 'chore'
     ignore:
-      # Chai >=5 transitioned to ESM only: https://github.com/chaijs/chai/releases/tag/v5.0.0
+      # Prevent updates to ESM-only versions
       - dependency-name: 'chai'
         versions: ['>=5']
     groups:
