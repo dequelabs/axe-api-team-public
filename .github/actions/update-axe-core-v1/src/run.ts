@@ -102,8 +102,8 @@ export default async function run(
           packageManager,
           [
             packageManager === 'npm' ? 'i' : 'add',
-            dependencyType,
-            `axe-core@${pinStrategy}${latestAxeCoreVersion}`
+            `axe-core@${pinStrategy}${latestAxeCoreVersion}`,
+            dependencyType
           ],
           {
             cwd: dirPath
