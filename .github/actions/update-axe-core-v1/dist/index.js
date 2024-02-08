@@ -27249,8 +27249,7 @@ async function run(core, getPackageManager, cwd) {
             }
             const { stderr: installError, exitCode: installExitCode } = await (0, exec_1.getExecOutput)(packageManager, [
                 packageManager === 'npm' ? 'i' : 'add',
-                `axe-core@${pinStrategy}${latestAxeCoreVersion}`,
-                dependencyType
+                `axe-core@${pinStrategy}${latestAxeCoreVersion}`
             ], {
                 cwd: dirPath
             });
