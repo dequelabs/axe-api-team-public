@@ -100,10 +100,7 @@ export default async function run(
       const { stderr: installError, exitCode: installExitCode } =
         await getExecOutput(
           packageManager,
-          [
-            packageManager === 'npm' ? 'i' : 'add',
-            `axe-core@${pinStrategy}${latestAxeCoreVersion}`
-          ],
+          ['i', `axe-core@${pinStrategy}${latestAxeCoreVersion}`],
           {
             cwd: dirPath
           }

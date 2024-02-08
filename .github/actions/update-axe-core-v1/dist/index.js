@@ -27247,10 +27247,7 @@ async function run(core, getPackageManager, cwd) {
                 core.setOutput('commit-type', null);
                 return;
             }
-            const { stderr: installError, exitCode: installExitCode } = await (0, exec_1.getExecOutput)(packageManager, [
-                packageManager === 'npm' ? 'i' : 'add',
-                `axe-core@${pinStrategy}${latestAxeCoreVersion}`
-            ], {
+            const { stderr: installError, exitCode: installExitCode } = await (0, exec_1.getExecOutput)(packageManager, ['i', `axe-core@${pinStrategy}${latestAxeCoreVersion}`], {
                 cwd: dirPath
             });
             if (installExitCode) {
