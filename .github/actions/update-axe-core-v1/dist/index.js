@@ -27247,11 +27247,12 @@ async function run(core, getPackageManager, cwd) {
                 core.setOutput('commit-type', null);
                 return;
             }
-            const { stderr: installError, exitCode: installExitCode } = await (0, exec_1.getExecOutput)(packageManager, [
-                packageManager === 'npm' ? 'i' : 'add',
-                `axe-core@${pinStrategy}${latestAxeCoreVersion}`,
+            const { stderr: installError, exitCode: installExitCode } = await (0, exec_1.getExecOutput)(packageManager, installScript({
+                packageManager,
+                pinStrategy,
+                latestAxeCoreVersion,
                 dependencyType
-            ], {
+            }), {
                 cwd: dirPath
             });
             if (installExitCode) {
@@ -27278,6 +27279,19 @@ async function run(core, getPackageManager, cwd) {
     }
 }
 exports["default"] = run;
+const installScript = ({ packageManager, pinStrategy, latestAxeCoreVersion, dependencyType }) => {
+    if (packageManager !== 'yarn') {
+        return [
+            packageManager === 'npm' ? 'i' : 'add',
+            `axe-core@${pinStrategy}${latestAxeCoreVersion}`,
+            dependencyType
+        ];
+    }
+    if (dependencyType !== '-D') {
+        return ['add', `axe-core@${pinStrategy}${latestAxeCoreVersion}`];
+    }
+    return ['add', `axe-core@${pinStrategy}${latestAxeCoreVersion}`, '-D'];
+};
 
 
 /***/ }),

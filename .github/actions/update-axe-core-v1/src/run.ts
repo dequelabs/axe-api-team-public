@@ -100,11 +100,12 @@ export default async function run(
       const { stderr: installError, exitCode: installExitCode } =
         await getExecOutput(
           packageManager,
-          [
-            packageManager === 'npm' ? 'i' : 'add',
-            `axe-core@${pinStrategy}${latestAxeCoreVersion}`,
+          installScript({
+            packageManager,
+            pinStrategy,
+            latestAxeCoreVersion,
             dependencyType
-          ],
+          }),
           {
             cwd: dirPath
           }
@@ -133,4 +134,25 @@ export default async function run(
   } catch (error) {
     core.setFailed((error as Error).message)
   }
+}
+
+const installScript = ({
+  packageManager,
+  pinStrategy,
+  latestAxeCoreVersion,
+  dependencyType
+}: any) => {
+  if (packageManager !== 'yarn') {
+    return [
+      packageManager === 'npm' ? 'i' : 'add',
+      `axe-core@${pinStrategy}${latestAxeCoreVersion}`,
+      dependencyType
+    ]
+  }
+
+  if (dependencyType !== '-D') {
+    return ['add', `axe-core@${pinStrategy}${latestAxeCoreVersion}`]
+  }
+
+  return ['add', `axe-core@${pinStrategy}${latestAxeCoreVersion}`, '-D']
 }
