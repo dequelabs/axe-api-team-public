@@ -27167,17 +27167,13 @@ const getPackageManager_1 = __importDefault(__nccwpck_require__(7167));
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 function default_1({ packageManager, pinStrategy, latestAxeCoreVersion, dependencyType }) {
+    const newAxeVersion = `axe-core@${pinStrategy}${latestAxeCoreVersion}`;
     if (packageManager !== 'yarn') {
-        return [
-            'i',
-            `axe-core@${pinStrategy}${latestAxeCoreVersion}`,
-            dependencyType
-        ];
+        return ['i', newAxeVersion, dependencyType];
     }
-    if (dependencyType !== '-D') {
-        return ['add', `axe-core@${pinStrategy}${latestAxeCoreVersion}`];
-    }
-    return ['add', `axe-core@${pinStrategy}${latestAxeCoreVersion}`, '-D'];
+    return dependencyType === '-D'
+        ? ['add', newAxeVersion, '-D']
+        : ['add', newAxeVersion];
 }
 exports["default"] = default_1;
 
