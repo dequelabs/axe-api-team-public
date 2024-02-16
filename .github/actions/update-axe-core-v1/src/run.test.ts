@@ -203,7 +203,7 @@ describe('run', () => {
       await run(core as unknown as Core, getPackageManagerStub, dirPath)
 
       assert.isTrue(
-        getExecOutputStub.calledWith('yarn', ['add', sinon.match.any, ''], {
+        getExecOutputStub.calledWith('yarn', ['add', sinon.match.any], {
           cwd: dirPath
         })
       )
@@ -217,7 +217,7 @@ describe('run', () => {
       await run(core as unknown as Core, getPackageManagerStub, dirPath)
 
       assert.isTrue(
-        getExecOutputStub.calledWith('yarn', ['add', sinon.match.any, ''], {
+        getExecOutputStub.calledWith('yarn', ['add', sinon.match.any], {
           cwd: dirPath
         })
       )
