@@ -5,6 +5,7 @@ interface InstallScriptParams {
   dependencyType: string
 }
 
+// https://github.com/yarnpkg/yarn/issues/5228
 export default function ({
   packageManager,
   pinStrategy,
