@@ -5,7 +5,6 @@ interface InstallScriptParams {
   dependencyType: string
 }
 
-// https://github.com/yarnpkg/yarn/issues/5228
 export default function ({
   packageManager,
   pinStrategy,
@@ -18,7 +17,8 @@ const newAxeVersion = `axe-core@${pinStrategy}${latestAxeCoreVersion}`
     return ['i', newAxeVersion, dependencyType]
   }
 
-  // <comment about weird Yarn behavior>
+  // When running using a child process it considers 
+  // an empty string a value and returns an error
   // @see https://github.com/yarnpkg/yarn/issues/5228
   return dependencyType === '-D'
     ? ['add', newAxeVersion, '-D']
