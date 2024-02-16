@@ -4,6 +4,13 @@ import { getExecOutput } from '@actions/exec'
 import path from 'path'
 import type { PackageManager } from './types'
 
+interface InstallScriptParams {
+  packageManager: string
+  pinStrategy: string
+  latestAxeCoreVersion: string
+  dependencyType: string
+}
+
 export default async function run(
   core: Core,
   getPackageManager: (dirPath: string) => PackageManager,
@@ -141,7 +148,7 @@ const installScript = ({
   pinStrategy,
   latestAxeCoreVersion,
   dependencyType
-}: any) => {
+}: InstallScriptParams) => {
   if (packageManager !== 'yarn') {
     return [
       packageManager === 'npm' ? 'i' : 'add',
