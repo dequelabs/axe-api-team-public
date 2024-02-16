@@ -12,17 +12,15 @@ export default function ({
   latestAxeCoreVersion,
   dependencyType
 }: InstallScriptParams) {
+const newAxeVersion = `axe-core@${pinStrategy}${latestAxeCoreVersion}`
+
   if (packageManager !== 'yarn') {
-    return [
-      'i',
-      `axe-core@${pinStrategy}${latestAxeCoreVersion}`,
-      dependencyType
-    ]
+    return ['i', newAxeVersion, dependencyType]
   }
 
-  if (dependencyType !== '-D') {
-    return ['add', `axe-core@${pinStrategy}${latestAxeCoreVersion}`]
-  }
-
-  return ['add', `axe-core@${pinStrategy}${latestAxeCoreVersion}`, '-D']
+  // <comment about weird Yarn behavior>
+  // @see https://github.com/yarnpkg/yarn/issues/5228
+  return dependencyType === '-D'
+    ? ['add', newAxeVersion, '-D']
+    : ['add', newAxeVersion]
 }
