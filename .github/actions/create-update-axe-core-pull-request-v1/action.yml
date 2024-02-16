@@ -8,21 +8,17 @@ inputs:
   base:
     description: 'The branch the pull request will be merged into'
     default: 'develop'
-  should-checkout:
-    description: 'Whether or not the action should checkout the repository'
-    default: 'true'
 
 runs:
   using: 'composite'
   steps:
     - name: Checkout repository
-      if: ${{ inputs.should-checkout == 'true' }}
       uses: actions/checkout@v4
     - uses: actions/setup-node@v3
       with:
         node-version: 18
     - id: update-axe-core
-      uses: dequelabs/axe-api-team-public/.github/actions/update-axe-core-v1@yarn
+      uses: dequelabs/axe-api-team-public/.github/actions/update-axe-core-v1@main
     - name: Open PR
       if: ${{ steps.update-axe-core.outputs.commit-type != null }}
       uses: peter-evans/create-pull-request@153407881ec5c347639a548ade7d8ad1d6740e38 # tag=v5
