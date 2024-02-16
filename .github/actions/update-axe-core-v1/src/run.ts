@@ -3,13 +3,7 @@ import { glob } from 'glob'
 import { getExecOutput } from '@actions/exec'
 import path from 'path'
 import type { PackageManager } from './types'
-
-interface InstallScriptParams {
-  packageManager: string
-  pinStrategy: string
-  latestAxeCoreVersion: string
-  dependencyType: string
-}
+import installScript from './installScript'
 
 export default async function run(
   core: Core,
@@ -141,25 +135,4 @@ export default async function run(
   } catch (error) {
     core.setFailed((error as Error).message)
   }
-}
-
-const installScript = ({
-  packageManager,
-  pinStrategy,
-  latestAxeCoreVersion,
-  dependencyType
-}: InstallScriptParams) => {
-  if (packageManager !== 'yarn') {
-    return [
-      packageManager === 'npm' ? 'i' : 'add',
-      `axe-core@${pinStrategy}${latestAxeCoreVersion}`,
-      dependencyType
-    ]
-  }
-
-  if (dependencyType !== '-D') {
-    return ['add', `axe-core@${pinStrategy}${latestAxeCoreVersion}`]
-  }
-
-  return ['add', `axe-core@${pinStrategy}${latestAxeCoreVersion}`, '-D']
 }

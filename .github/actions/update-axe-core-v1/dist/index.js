@@ -27160,6 +27160,30 @@ const getPackageManager_1 = __importDefault(__nccwpck_require__(7167));
 
 /***/ }),
 
+/***/ 1314:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+function default_1({ packageManager, pinStrategy, latestAxeCoreVersion, dependencyType }) {
+    if (packageManager !== 'yarn') {
+        return [
+            'i',
+            `axe-core@${pinStrategy}${latestAxeCoreVersion}`,
+            dependencyType
+        ];
+    }
+    if (dependencyType !== '-D') {
+        return ['add', `axe-core@${pinStrategy}${latestAxeCoreVersion}`];
+    }
+    return ['add', `axe-core@${pinStrategy}${latestAxeCoreVersion}`, '-D'];
+}
+exports["default"] = default_1;
+
+
+/***/ }),
+
 /***/ 1738:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -27195,6 +27219,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const glob_1 = __nccwpck_require__(1253);
 const exec_1 = __nccwpck_require__(1518);
 const path_1 = __importDefault(__nccwpck_require__(1017));
+const installScript_1 = __importDefault(__nccwpck_require__(1314));
 async function run(core, getPackageManager, cwd) {
     try {
         const { stdout: npmInfoOut, stderr: npmInfoError, exitCode: npmExitCode } = await (0, exec_1.getExecOutput)('npm', ['info', 'axe-core', 'version']);
@@ -27247,7 +27272,7 @@ async function run(core, getPackageManager, cwd) {
                 core.setOutput('commit-type', null);
                 return;
             }
-            const { stderr: installError, exitCode: installExitCode } = await (0, exec_1.getExecOutput)(packageManager, installScript({
+            const { stderr: installError, exitCode: installExitCode } = await (0, exec_1.getExecOutput)(packageManager, (0, installScript_1.default)({
                 packageManager,
                 pinStrategy,
                 latestAxeCoreVersion,
@@ -27279,19 +27304,6 @@ async function run(core, getPackageManager, cwd) {
     }
 }
 exports["default"] = run;
-const installScript = ({ packageManager, pinStrategy, latestAxeCoreVersion, dependencyType }) => {
-    if (packageManager !== 'yarn') {
-        return [
-            packageManager === 'npm' ? 'i' : 'add',
-            `axe-core@${pinStrategy}${latestAxeCoreVersion}`,
-            dependencyType
-        ];
-    }
-    if (dependencyType !== '-D') {
-        return ['add', `axe-core@${pinStrategy}${latestAxeCoreVersion}`];
-    }
-    return ['add', `axe-core@${pinStrategy}${latestAxeCoreVersion}`, '-D'];
-};
 
 
 /***/ }),
