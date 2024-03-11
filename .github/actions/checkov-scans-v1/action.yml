@@ -1,0 +1,40 @@
+name: checkov-scans
+description: Checkov scans cloud infrastructure configurations to find misconfigurations before they're deployed and sends a result to Prisma Cloud.
+
+inputs:
+  output-file-path:
+    description: Output file path of Checkov scans
+    required: true
+  prisma-access-key:
+    description: Prisma Cloud access key
+    required: true
+  prisma-secret-key:
+    description: Prisma Cloud secret key
+    required: true
+  prisma-api-url:
+    description: Prisma Cloud API URL
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE, so follow-up steps can access it
+    - uses: actions/checkout@v4
+    # Used to name the file from Checkov
+    - name: Extract package version
+      id: extract-version
+      shell: bash
+      run: echo "::set-output name=version::$(jq -r .version package.json)"
+    # The checkov scan
+    - name: Run Prisma Cloud
+      id: prisma-cloud
+      uses: bridgecrewio/checkov-action@v12
+      with:
+        api-key: ${{ inputs.prisma-access-key }}::${{ inputs.prisma-secret-key }}
+        # CLI output to the console and md file
+        output_format: cli
+        framework: sca_package,github_actions,dockerfile,secrets
+        soft_fail_on: LOW
+        output_file_path: ${{ inputs.output-file-path }}
+      env:
+        PRISMA_API_URL: ${{ inputs.prisma-api-url }}
