@@ -20,11 +20,6 @@ runs:
   steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so follow-up steps can access it
     - uses: actions/checkout@v4
-    # Used to name the file from Checkov
-    - name: Extract package version
-      id: extract-version
-      shell: bash
-      run: echo "::set-output name=version::$(jq -r .version package.json)"
     # The checkov scan
     - name: Run Prisma Cloud
       id: prisma-cloud
