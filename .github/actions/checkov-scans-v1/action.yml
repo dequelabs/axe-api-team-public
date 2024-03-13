@@ -2,9 +2,6 @@ name: checkov-scans
 description: Checkov scans cloud infrastructure configurations to find misconfigurations before they're deployed and sends a result to Prisma Cloud.
 
 inputs:
-  output-file-path:
-    description: Output file path of Checkov scans
-    required: true
   prisma-access-key:
     description: Prisma Cloud access key
     required: true
@@ -30,6 +27,5 @@ runs:
         output_format: cli
         framework: sca_package,github_actions,dockerfile,secrets
         soft_fail_on: LOW
-        output_file_path: ${{ inputs.output-file-path }}
       env:
         PRISMA_API_URL: ${{ inputs.prisma-api-url }}
