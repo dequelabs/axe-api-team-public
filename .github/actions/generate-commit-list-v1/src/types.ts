@@ -10,9 +10,11 @@ export type Github = Pick<typeof github, 'context'>
 
 export type GetRawCommitListParams = {
   /* The branch that the PR will merge into */
-  base: string
+  base?: string
   /* The branch that contains the changes the PR is trying to merge */
-  head: string
+  head?: string
+  /* The tag to get the raw commit list for */
+  tag?: string
 }
 
 export type GetParsedCommitListParams = {

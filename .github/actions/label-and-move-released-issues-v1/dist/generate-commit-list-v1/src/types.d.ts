@@ -3,8 +3,9 @@ import type github from '@actions/github';
 export type Core = Pick<typeof core, 'getInput' | 'setOutput' | 'info' | 'setFailed'>;
 export type Github = Pick<typeof github, 'context'>;
 export type GetRawCommitListParams = {
-    base: string;
-    head: string;
+    base?: string;
+    head?: string;
+    tag?: string;
 };
 export type GetParsedCommitListParams = {
     rawCommitList: string[];
