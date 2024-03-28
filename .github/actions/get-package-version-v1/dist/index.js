@@ -25610,35 +25610,54 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2481));
 const fs_1 = __nccwpck_require__(7147);
 const run_1 = __importDefault(__nccwpck_require__(1738));
-(0, run_1.default)(core, fs_1.existsSync, fs_1.readFileSync);
+(0, run_1.default)(core, fs_1.readFileSync);
 
 
 /***/ }),
 
-/***/ 1738:
+/***/ 8274:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-function run(core, existsSync, readFileSync) {
+exports.readOptionalFileSync = void 0;
+function readOptionalFileSync(path, encoding, readFileSync) {
     try {
-        let fileData;
+        return readFileSync(path, encoding);
+    }
+    catch (err) {
+        if (err.code === 'ENOENT') {
+            return null;
+        }
+        throw err;
+    }
+}
+exports.readOptionalFileSync = readOptionalFileSync;
+
+
+/***/ }),
+
+/***/ 1738:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const readFile_1 = __nccwpck_require__(8274);
+function run(core, readFileSync) {
+    try {
         const lernaFilePath = 'lerna.json';
         const packageFilePath = 'package.json';
         core.info(`Getting package version...`);
-        if (existsSync(lernaFilePath)) {
-            fileData = JSON.parse(readFileSync(lernaFilePath, 'utf-8'));
-        }
-        else if (existsSync(packageFilePath)) {
-            fileData = JSON.parse(readFileSync(packageFilePath, 'utf-8'));
-        }
-        else {
+        const fileDataJson = (0, readFile_1.readOptionalFileSync)(lernaFilePath, 'utf-8', readFileSync)
+            ?? (0, readFile_1.readOptionalFileSync)(packageFilePath, 'utf-8', readFileSync);
+        if (!fileDataJson) {
             throw new Error('The file with the package version is not found');
         }
-        const version = fileData.version;
-        core.info(`Found version: ${version}. Setting "version" output...`);
-        core.setOutput('version', version);
+        const fileData = JSON.parse(fileDataJson);
+        core.info(`Found version: ${fileData.version}. Setting "version" output...`);
+        core.setOutput('version', fileData.version);
     }
     catch (error) {
         core.setFailed(error.message);

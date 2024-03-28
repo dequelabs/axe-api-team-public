@@ -1,34 +1,53 @@
 import 'mocha'
 import sinon from 'sinon'
 import { assert } from 'chai'
-import run from './run'
 import type { Core } from './types'
+import run from './run'
+import * as readFile from './readFile'
 
 describe('run', () => {
-  const infoSpy: sinon.SinonSpy = sinon.spy()
-  const setFailedSpy: sinon.SinonSpy = sinon.spy()
-  const setOutputSpy: sinon.SinonSpy = sinon.spy()
-  const existsSyncStub: sinon.SinonStub = sinon.stub()
-  const readFileSyncStub: sinon.SinonStub = sinon.stub()
+  let core: Core
+  let infoSpy: sinon.SinonSpy
+  let setFailedSpy: sinon.SinonSpy
+  let setOutputSpy: sinon.SinonSpy
+  let readFileSyncSpy: sinon.SinonSpy
+  let readOptionalFileSyncStub: sinon.SinonStub
 
-  const core = {
-    info: infoSpy,
-    setFailed: setFailedSpy,
-    setOutput: setOutputSpy
-  } as unknown as Core
+  beforeEach(() => {
+    infoSpy = sinon.spy()
+    setFailedSpy = sinon.spy()
+    setOutputSpy = sinon.spy()
+    readFileSyncSpy = sinon.spy()
+    readOptionalFileSyncStub = sinon.stub(readFile, 'readOptionalFileSync')
 
-  afterEach(sinon.resetHistory)
+    core = {
+      info: infoSpy,
+      setFailed: setFailedSpy,
+      setOutput: setOutputSpy
+    } as unknown as Core
+  })
+
+  afterEach(() => {
+    sinon.resetHistory()
+    sinon.restore()
+  })
 
   it('should get a version from lerna.json', () => {
     const packageVersionMock: string = '1.0.0'
 
-    existsSyncStub.onCall(0).returns(true).onCall(1).returns(false)
-    readFileSyncStub.returns(JSON.stringify({ version: packageVersionMock }))
+    readOptionalFileSyncStub
+      .onCall(0)
+      .returns(JSON.stringify({ version: packageVersionMock }))
 
-    run(core, existsSyncStub, readFileSyncStub)
+    run(core, readFileSyncSpy)
 
-    assert.isTrue(existsSyncStub.calledOnce)
-    assert.isTrue(readFileSyncStub.calledOnceWithExactly('lerna.json', 'utf-8'))
+    assert.isTrue(
+      readOptionalFileSyncStub.calledOnceWithExactly(
+        'lerna.json',
+        'utf-8',
+        readFileSyncSpy
+      )
+    )
     assert.isTrue(
       setOutputSpy.calledOnceWithExactly('version', packageVersionMock)
     )
@@ -38,14 +57,19 @@ describe('run', () => {
   it('should get a version from package.json', () => {
     const packageVersionMock: string = '2.0.0'
 
-    existsSyncStub.onCall(0).returns(false).onCall(1).returns(true)
-    readFileSyncStub.returns(JSON.stringify({ version: packageVersionMock }))
+    readOptionalFileSyncStub
+      .onCall(0)
+      .returns(null)
+      .onCall(1)
+      .returns(JSON.stringify({ version: packageVersionMock }))
 
-    run(core, existsSyncStub, readFileSyncStub)
+    run(core, readFileSyncSpy)
 
-    assert.isTrue(existsSyncStub.calledTwice)
+    assert.isTrue(readOptionalFileSyncStub.calledTwice)
     assert.isTrue(
-      readFileSyncStub.calledOnceWithExactly('package.json', 'utf-8')
+      readOptionalFileSyncStub
+        .getCall(1)
+        .calledWithExactly('package.json', 'utf-8', readFileSyncSpy)
     )
     assert.isTrue(
       setOutputSpy.calledOnceWithExactly('version', packageVersionMock)
@@ -54,14 +78,28 @@ describe('run', () => {
   })
 
   it('should throw an error if a file is not found', () => {
-    existsSyncStub.onCall(0).returns(false).onCall(1).returns(false)
-    readFileSyncStub.returns(null)
+    readOptionalFileSyncStub.onCall(0).returns(null).onCall(1).returns(null)
 
-    run(core, existsSyncStub, readFileSyncStub)
+    run(core, readFileSyncSpy)
 
-    assert.isTrue(existsSyncStub.calledTwice)
-    assert.isTrue(readFileSyncStub.notCalled)
+    assert.isTrue(readOptionalFileSyncStub.calledTwice)
     assert.isTrue(setOutputSpy.notCalled)
-    assert.isTrue(setFailedSpy.calledOnce)
+    assert.isTrue(
+      setFailedSpy.calledOnceWithExactly(
+        'The file with the package version is not found'
+      )
+    )
+  })
+
+  it('should throw an error if something failed', () => {
+    const errorMessage: string = 'some error'
+
+    readOptionalFileSyncStub.onCall(0).throws({ message: errorMessage })
+
+    run(core, readFileSyncSpy)
+
+    assert.isTrue(readOptionalFileSyncStub.calledOnce)
+    assert.isTrue(setOutputSpy.notCalled)
+    assert.isTrue(setFailedSpy.calledOnceWithExactly(errorMessage))
   })
 })

@@ -1,7 +1,8 @@
 import * as core from '@actions/core'
-import { existsSync, readFileSync } from 'fs'
+// We don't have to use "createReadStream" because files "package.json" and "lerna.json" are less than 64 Kb
+import { readFileSync } from 'fs'
 import run from './run'
 
-// The functions "existsSync, readFileSync" are used as arguments to stub them in unit-tests
-// In the FS library these functions are non-configurable and non-writable
-run(core, existsSync, readFileSync)
+// The function "readFileSync" is used as an argument to stub it in unit-tests
+// In the FS library this function is non-configurable and non-writable
+run(core, readFileSync)

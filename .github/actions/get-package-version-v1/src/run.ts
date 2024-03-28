@@ -1,29 +1,25 @@
-import { Core, ExistsFS, FileData, readFileFS } from './types'
+import { Core, FileData, readFileFS } from './types'
+import { readOptionalFileSync } from './readFile'
 
-export default function run(
-  core: Core,
-  existsSync: ExistsFS,
-  readFileSync: readFileFS
-) {
+export default function run(core: Core, readFileSync: readFileFS) {
   try {
-    let fileData: FileData
     const lernaFilePath = 'lerna.json'
     const packageFilePath = 'package.json'
 
     core.info(`Getting package version...`)
 
-    if (existsSync(lernaFilePath)) {
-      fileData = JSON.parse(readFileSync(lernaFilePath, 'utf-8'))
-    } else if (existsSync(packageFilePath)) {
-      fileData = JSON.parse(readFileSync(packageFilePath, 'utf-8'))
-    } else {
+    const fileDataJson: string | null =
+      readOptionalFileSync(lernaFilePath, 'utf-8', readFileSync) ??
+      readOptionalFileSync(packageFilePath, 'utf-8', readFileSync)
+
+    if (!fileDataJson) {
       throw new Error('The file with the package version is not found')
     }
 
-    const version: string = fileData.version
+    const fileData: FileData = JSON.parse(fileDataJson)
 
-    core.info(`Found version: ${version}. Setting "version" output...`)
-    core.setOutput('version', version)
+    core.info(`Found version: ${fileData.version}. Setting "version" output...`)
+    core.setOutput('version', fileData.version)
   } catch (error) {
     core.setFailed((error as Error).message)
   }

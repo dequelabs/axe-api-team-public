@@ -1,2 +1,2 @@
-import { Core, ExistsFS, readFileFS } from './types';
-export default function run(core: Core, existsSync: ExistsFS, readFileSync: readFileFS): void;
+import { Core, readFileFS } from './types';
+export default function run(core: Core, readFileSync: readFileFS): void;
