@@ -20,6 +20,8 @@ jobs:
   release-candidate:
     runs-on: ubuntu-latest
     timeout-minutes: 2
+    permissions:
+      issues: write
     steps:
       - uses: actions/checkout@v4
       - uses: dequelabs/axe-api-team-public/.github/actions/release-candidate-ready-for-qa-v1-v1@main
@@ -28,5 +30,5 @@ jobs:
           slack-webhook: ${{ secrets.SLACK_WEBHOOK }}
         env:
           # Required for the GH CLI
-          GH_TOKEN: ${{ secrets.PAT }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
