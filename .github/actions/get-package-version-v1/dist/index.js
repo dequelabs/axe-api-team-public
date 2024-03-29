@@ -25650,8 +25650,8 @@ function run(core, readFileSync) {
         const lernaFilePath = 'lerna.json';
         const packageFilePath = 'package.json';
         core.info(`Getting package version...`);
-        const fileDataJson = (0, readFile_1.readOptionalFileSync)(lernaFilePath, 'utf-8', readFileSync)
-            ?? (0, readFile_1.readOptionalFileSync)(packageFilePath, 'utf-8', readFileSync);
+        const fileDataJson = (0, readFile_1.readOptionalFileSync)(lernaFilePath, 'utf-8', readFileSync) ??
+            (0, readFile_1.readOptionalFileSync)(packageFilePath, 'utf-8', readFileSync);
         if (!fileDataJson) {
             throw new Error('The file with the package version is not found');
         }

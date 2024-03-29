@@ -1,6 +1,6 @@
 # get-package-version-v1
 
-A GitHub action for getting the package version from lerna.js or package.json.
+A GitHub action for getting the package version from lerna.json or package.json.
 
 ## Outputs
 

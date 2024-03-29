@@ -1,5 +1,5 @@
 name: 'Get package version'
-description: 'A GitHub action for getting the package version from lerna.js or package.json'
+description: 'A GitHub action for getting the package version from lerna.json or package.json'
 
 outputs:
   version:
