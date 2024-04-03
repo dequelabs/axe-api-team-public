@@ -3,6 +3,7 @@ import { glob } from 'glob'
 import { getExecOutput } from '@actions/exec'
 import path from 'path'
 import type { PackageManager } from './types'
+import installScript from './installScript'
 
 export default async function run(
   core: Core,
@@ -100,11 +101,12 @@ export default async function run(
       const { stderr: installError, exitCode: installExitCode } =
         await getExecOutput(
           packageManager,
-          [
-            packageManager === 'npm' ? 'i' : 'add',
-            dependencyType,
-            `axe-core@${pinStrategy}${latestAxeCoreVersion}`
-          ],
+          installScript({
+            packageManager,
+            pinStrategy,
+            latestAxeCoreVersion,
+            dependencyType
+          }),
           {
             cwd: dirPath
           }

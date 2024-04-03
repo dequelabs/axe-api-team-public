@@ -29730,14 +29730,25 @@ const run_1 = __importDefault(__nccwpck_require__(1738));
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+const validFooters = [
+    'close: ',
+    'closes: ',
+    'closed: ',
+    'fix: ',
+    'fixes: ',
+    'fixed: ',
+    'resolve: ',
+    'resolves: ',
+    'resolved: ',
+    'ref: ',
+    'refs: ',
+    'qa notes: ',
+    'no qa required',
+    'no qa needed'
+];
 function isValidFooter(footer) {
     footer = footer.toLowerCase();
-    return (footer.startsWith('closes: ') ||
-        footer.startsWith('ref: ') ||
-        footer.startsWith('refs: ') ||
-        footer.startsWith('qa notes: ') ||
-        footer.startsWith('no qa required') ||
-        footer.startsWith('no qa needed'));
+    return validFooters.some(term => footer.startsWith(term));
 }
 exports["default"] = isValidFooter;
 
@@ -29780,7 +29791,7 @@ function run(core, github) {
             core.setFailed('PR does not have a body');
             return;
         }
-        const bodyLines = body.split(/[\r\n]+/);
+        const bodyLines = body.trim().split(/[\r\n]+/);
         const footer = bodyLines[bodyLines.length - 1];
         core.info(`Validating PR footer: "${footer}"`);
         if (!(0, isValidFooter_1.default)(footer)) {

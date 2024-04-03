@@ -22,11 +22,15 @@ inputs:
     description: 'The name of the repo where the release notes live'
     default: 'null'
     required: false
+  should-checkout:
+    description: 'Whether or not the action should checkout the repository'
+    default: 'true'
 
 runs:
   using: 'composite'
   steps:
     - name: Checkout repository
+      if: ${{ inputs.should-checkout == 'true' }}
       uses: actions/checkout@v4
       with:
         # Fetch all history

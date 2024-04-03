@@ -1,0 +1,10 @@
+name: 'Get package version'
+description: 'A GitHub action for getting the package version from lerna.json or package.json'
+
+outputs:
+  version:
+    description: 'The package version'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
