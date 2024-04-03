@@ -4,7 +4,7 @@ description: Preparing a release candidate issue for QA
 inputs:
   sha-rc:
     description: SHA of the release commit from the release branch
-    required: true
+    required: false
   slack-webhook:
     description: A Slack channel webhook URL where the message will be sent
     required: true
@@ -51,11 +51,22 @@ runs:
           echo "::error::No release issue has been found"
           exit 1
         fi
+    - name: Get SHA of the release commit
+      id: get-sha-rc
+      shell: bash
+      run: |
+        SHA_RC="${{ inputs.sha-rc }}"
+        
+        if [ -z "$SHA_RC" ]; then
+          SHA_RC=$(git rev-parse --short=8 HEAD)
+        fi
+        
+        echo "sha-release-commit=$SHA_RC" >> $GITHUB_OUTPUT
     - name: Set a build name
       id: set-build-name
       shell: bash
       # build-name = dequelabs/axe-core-npm-4.8.5-rc-1540d5ae (this is just example)
-      run: echo "build-name=$(cat package.json | jq -r '.name')-${{ steps.get-package-version.outputs.version }}-rc-${{ inputs.sha-rc }}" >> $GITHUB_OUTPUT
+      run: echo "build-name=$(cat package.json | jq -r '.name')-${{ steps.get-package-version.outputs.version }}-rc-${{ steps.get-sha-rc.outputs.sha-release-commit }}" >> $GITHUB_OUTPUT
     - name: Add a comment to the issue
       shell: bash
       run: gh issue comment ${{ steps.get-release-issue.outputs.issue-url }} --body "$BODY"
