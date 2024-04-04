@@ -13,22 +13,47 @@ describe('getRawCommitList', () => {
   })
 
   afterEach(() => {
-    getExecOutputStub.restore()
+    sinon.resetHistory()
+    sinon.restore()
   })
 
   describe('when the raw commit list is successfully retrieved', () => {
-    it('returns the raw commit list', async () => {
+    it('returns the raw commit list from base and head branches', async () => {
+      const base: string = 'base-branch'
+      const head: string = 'head-branch'
+
       getExecOutputStub.resolves({
         exitCode: 0,
         stdout: rawCommitList,
         stderr: ''
       })
 
-      const rawCommitListParsed = await getRawCommitList({
-        base: 'base-branch',
-        head: 'head-branch'
+      const rawCommitListParsed = await getRawCommitList({ base, head })
+
+      assert.isTrue(
+        getExecOutputStub.calledOnceWithExactly(
+          `git log origin/${base}..origin/${head} --oneline --no-merges --abbrev-commit`
+        )
+      )
+      assert.deepEqual(rawCommitListParsed, expectedRawCommitList)
+    })
+
+    it('returns the raw commit list from a tag', async () => {
+      const tag: string = 'v1.0.0'
+
+      getExecOutputStub.resolves({
+        exitCode: 0,
+        stdout: rawCommitList,
+        stderr: ''
       })
 
+      const rawCommitListParsed = await getRawCommitList({ tag })
+
+      assert.isTrue(
+        getExecOutputStub.calledOnceWithExactly(
+          `git log ${tag}..HEAD --oneline --no-merges --abbrev-commit`
+        )
+      )
       assert.deepEqual(rawCommitListParsed, expectedRawCommitList)
     })
   })
@@ -36,9 +61,7 @@ describe('getRawCommitList', () => {
   describe('when the raw commit list cannot be retrieved', () => {
     it('throws an error', async () => {
       getExecOutputStub.throws({
-        exitCode: 1,
-        stdout: '',
-        stderr: 'welp, guess something went wrong'
+        stdout: ''
       })
 
       let error: Error | null = null

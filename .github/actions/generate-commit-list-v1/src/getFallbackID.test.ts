@@ -30,9 +30,7 @@ describe('getFallbackID', () => {
   describe('when the fallback method fails to get a PR ID', () => {
     it('returns null', async () => {
       getExecOutputStub.throws({
-        exitCode: 0,
-        stdout: '',
-        stderr: ''
+        stdout: ''
       })
 
       const fallbackID = await getFallbackID('abc')
@@ -44,9 +42,7 @@ describe('getFallbackID', () => {
   describe('when the fallback method throws an error', () => {
     it('returns null', async () => {
       getExecOutputStub.throws({
-        exitCode: 1,
-        stdout: '',
-        stderr: 'welp, we tried'
+        stdout: ''
       })
 
       const fallbackID = await getFallbackID('abc')

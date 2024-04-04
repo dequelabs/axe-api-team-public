@@ -18,7 +18,9 @@ export default async function doesBranchOrTagExist({
 }: DoesBranchOrTagExistParams): Promise<boolean> {
   try {
     const subCommand = tag ? tag : `origin/${branchName}`
+
     await getExecOutput(`git rev-parse --verify ${subCommand}`)
+
     return true
   } catch (error) {
     /**

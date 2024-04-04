@@ -18,6 +18,7 @@ export default async function getFallbackID(
     ])
 
     const trimmedFallbackID = fallbackID.trim()
+
     return trimmedFallbackID ? trimmedFallbackID : null
   } catch (error) {
     /**

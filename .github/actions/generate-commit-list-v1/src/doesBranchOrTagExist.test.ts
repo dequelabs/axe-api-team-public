@@ -12,33 +12,44 @@ describe('doesBranchOrTagExist', () => {
   })
 
   afterEach(() => {
-    getExecOutputStub.restore()
+    sinon.resetHistory()
+    sinon.restore()
   })
 
   describe('when the branch exists', () => {
     it('returns true', async () => {
+      const branchName: string = 'my-branch-name'
+
       getExecOutputStub.resolves({
         exitCode: 0,
         stdout: 'refs/heads/my-branch-name'
       })
 
-      const branchExists = await doesBranchOrTagExist({
-        branchName: 'my-branch-name'
-      })
+      const branchExists = await doesBranchOrTagExist({ branchName })
 
+      assert.isTrue(
+        getExecOutputStub.calledOnceWithExactly(
+          `git rev-parse --verify origin/${branchName}`
+        )
+      )
       assert.isTrue(branchExists)
     })
   })
 
   describe('when the tag exists', () => {
     it('returns true', async () => {
+      const tag: string = 'my-tag-name'
+
       getExecOutputStub.resolves({
         exitCode: 0,
         stdout: 'refs/tags/my-tag-name'
       })
 
-      const tagExists = await doesBranchOrTagExist({ tag: 'my-tag-name' })
+      const tagExists = await doesBranchOrTagExist({ tag })
 
+      assert.isTrue(
+        getExecOutputStub.calledOnceWithExactly(`git rev-parse --verify ${tag}`)
+      )
       assert.isTrue(tagExists)
     })
   })
@@ -46,9 +57,7 @@ describe('doesBranchOrTagExist', () => {
   describe('when the branch does not exist', () => {
     it('returns false', async () => {
       getExecOutputStub.throws({
-        exitCode: 1,
-        stdout: '',
-        stderr: 'welp, we tried'
+        stdout: ''
       })
 
       const branchExists = await doesBranchOrTagExist({
@@ -62,9 +71,7 @@ describe('doesBranchOrTagExist', () => {
   describe('when the tag does not exist', () => {
     it('returns false', async () => {
       getExecOutputStub.throws({
-        exitCode: 1,
-        stdout: '',
-        stderr: 'welp, we tried'
+        stdout: ''
       })
 
       const tagExists = await doesBranchOrTagExist({ tag: 'my-tag-name' })

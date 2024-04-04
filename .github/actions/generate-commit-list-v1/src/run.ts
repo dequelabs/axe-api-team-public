@@ -9,7 +9,7 @@ export default async function run(core: Core, github: Github) {
     const head = core.getInput('head')
     const tag = core.getInput('tag')
 
-    if (!tag && (!base || !head)) {
+    if (!((base && head) || tag)) {
       core.setFailed(
         'You must provide either a tag or both a base and head branch.'
       )

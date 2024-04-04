@@ -126,9 +126,7 @@ describe('run', () => {
       getInput.withArgs('base').returns('main')
       getInput.withArgs('head').returns('release')
       getExecOutputStub.throws({
-        exitCode: 1,
-        stdout: '',
-        stderr: 'welp, we tried'
+        stdout: ''
       })
 
       const core = {
@@ -160,9 +158,7 @@ describe('run', () => {
         })
         .onSecondCall()
         .throws({
-          exitCode: 1,
-          stdout: '',
-          stderr: 'welp, we tried'
+          stdout: ''
         })
 
       const core = {
@@ -245,9 +241,7 @@ describe('run', () => {
     it('should throw an error', async () => {
       getInput.withArgs('tag').returns('v1.0.0')
       getExecOutputStub.throws({
-        exitCode: 1,
-        stdout: '',
-        stderr: 'welp, we tried'
+        stdout: ''
       })
 
       const core = {
