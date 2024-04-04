@@ -1,49 +1,23 @@
 name: release-candidate-ready-for-qa-v1
-description: Preparing a release candidate issue for QA
+description: Lets the QA team know a release candidate is ready for QA
 
 inputs:
   sha-rc:
-    description: SHA of the release commit from the release branch
+    description: 8 characters SHA of the release commit from the release branch
     required: false
   slack-webhook:
     description: A Slack channel webhook URL where the message will be sent
     required: true
-  owner:
-    description: 'The owner of the repository e.g. dequelabs/axe-core-npm, then supply "dequelabs"'
-    required: false
-  repo:
-    description: 'The repository e.g. dequelabs/axe-core-npm, then supply "axe-core-npm"'
-    required: false
 
 runs:
   using: 'composite'
   steps:
-    - name: Get owner and repository name
-      id: get-owner-repo-name
-      shell: bash
-      run: |
-        if [[ -n "${{ inputs.owner }}" ]]; then
-          ORGANIZATION="${{ inputs.owner }}"
-        else
-          IFS='/' read -r ORGANIZATION _ <<< "$GITHUB_REPOSITORY"
-        fi
-
-        if [[ -n "${{ inputs.repo }}" ]]; then
-          REPOSITORY="${{ inputs.repo }}"
-        else
-          IFS='/' read -r _ REPOSITORY <<< "$GITHUB_REPOSITORY"
-        fi
-
-        echo "owner=$ORGANIZATION" >> $GITHUB_OUTPUT
-        echo "repo=$REPOSITORY" >> $GITHUB_OUTPUT
     - uses: dequelabs/axe-api-team-public/.github/actions/get-package-version-v1@develop
       id: get-package-version
     - uses: dequelabs/axe-api-team-public/.github/actions/get-release-issue-v1@main
       id: get-release-issue
       with:
         version: ${{ steps.get-package-version.outputs.version }}
-        owner: ${{ steps.get-owner-repo-name.outputs.owner }}
-        repo: ${{ steps.get-owner-repo-name.outputs.repo }}
     - name: Check a release issue is found
       shell: bash
       run: |
@@ -71,7 +45,6 @@ runs:
       shell: bash
       run: gh issue comment ${{ steps.get-release-issue.outputs.issue-url }} --body "$BODY"
       env:
-        GH_REPO: ${{ steps.get-owner-repo-name.outputs.repo }}
         BODY: "Please use release candidate build: ${{ steps.set-build-name.outputs.build-name }}"
       # Move an issue to the "Ready for QA" column on the project #66
     - uses: dequelabs/axe-api-team-public/.github/actions/add-to-board-v1@main

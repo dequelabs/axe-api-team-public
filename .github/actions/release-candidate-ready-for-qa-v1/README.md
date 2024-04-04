@@ -1,15 +1,13 @@
 # release-candidate-ready-for-qa-v1
 
-A GitHub Action to prepare already created a release candidate for QA.
+A GitHub Action that lets the QA team know a release candidate is ready for QA
 
 ## Inputs
 
-| Name            | Required | Description                                                | Default                      |
-| --------------- | -------- | ---------------------------------------------------------- | ---------------------------- |
-| `sha-rc`        | No       | SHA of the release commit from the release branch          | git rev-parse --short=8 HEAD |
-| `slack-webhook` | Yes      | A Slack channel webhook URL where the message will be sent | NA                           |
-| `owner`         | No       | An owner of the repository                                 | $GITHUB_REPOSITORY           |
-| `repo`          | No       | A repository name                                          | $GITHUB_REPOSITORY           |
+| Name            | Required | Description                                                    | Default                      |
+| --------------- | -------- | -------------------------------------------------------------- | ---------------------------- |
+| `sha-rc`        | No       | 8 characters SHA of the release commit from the release branch | git rev-parse --short=8 HEAD |
+| `slack-webhook` | Yes      | A Slack channel webhook URL where the message will be sent     | NA                           |
 
 ## Example usage
 
@@ -31,3 +29,9 @@ jobs:
           # Required for the GH CLI
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
+
+## Permissions
+
+This action requires the following permission scopes:
+
+- `issues: write` - To add a comment into an issue
