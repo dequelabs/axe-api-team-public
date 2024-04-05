@@ -12,7 +12,7 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - uses: dequelabs/axe-api-team-public/.github/actions/get-package-version-v1@develop
+    - uses: dequelabs/axe-api-team-public/.github/actions/get-package-version-v1@main
       id: get-package-version
     - uses: dequelabs/axe-api-team-public/.github/actions/get-release-issue-v1@main
       id: get-release-issue
