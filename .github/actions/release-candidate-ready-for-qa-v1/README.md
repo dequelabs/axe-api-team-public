@@ -20,6 +20,7 @@ jobs:
     timeout-minutes: 2
     permissions:
       issues: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - uses: dequelabs/axe-api-team-public/.github/actions/release-candidate-ready-for-qa-v1-v1@main
@@ -35,3 +36,4 @@ jobs:
 This action requires the following permission scopes:
 
 - `issues: write` - To add a comment into an issue
+- `contents: read` - To work with the contents of the repository
