@@ -31636,7 +31636,7 @@ async function run(core, github) {
         const base = core.getInput('base');
         const head = core.getInput('head');
         const tag = core.getInput('tag');
-        if (!(base && head || tag)) {
+        if (!((base && head) || tag)) {
             core.setFailed('You must provide either a tag or both a base and head branch.');
             return;
         }

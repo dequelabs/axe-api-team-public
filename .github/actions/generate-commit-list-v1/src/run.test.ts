@@ -31,12 +31,15 @@ describe('run', () => {
   })
 
   afterEach(() => {
+    sinon.resetHistory()
     sinon.restore()
   })
 
-  describe('when the base input is not provided', () => {
+  describe('when nothing in input is provided', () => {
     it('should throw an error', async () => {
       getInput.withArgs('base').returns('')
+      getInput.withArgs('head').returns('')
+      getInput.withArgs('tag').returns('')
 
       const core = {
         getInput,
@@ -45,19 +48,19 @@ describe('run', () => {
 
       await run(core as unknown as Core, github as unknown as Github)
 
-      assert.isTrue(setFailed.calledOnce)
       assert.isTrue(
-        setFailed.calledWith(
+        setFailed.calledOnceWithExactly(
           'You must provide either a tag or both a base and head branch.'
         )
       )
     })
   })
 
-  describe('when the head input is not provided', () => {
+  describe('when only base input is provided', () => {
     it('should throw an error', async () => {
-      getInput.withArgs('base', { required: true }).returns('main')
-      getInput.withArgs('head', { required: true }).returns('')
+      getInput.withArgs('base').returns('main')
+      getInput.withArgs('head').returns('')
+      getInput.withArgs('tag').returns('')
 
       const core = {
         getInput,
@@ -66,62 +69,99 @@ describe('run', () => {
 
       await run(core as unknown as Core, github as unknown as Github)
 
-      assert.isTrue(setFailed.calledOnce)
       assert.isTrue(
-        setFailed.calledWith(
+        setFailed.calledOnceWithExactly(
           'You must provide either a tag or both a base and head branch.'
         )
       )
     })
   })
 
-  describe('when the tag input is provided', () => {
-    describe('and the base input is provided', () => {
-      it('should throw an error', async () => {
-        getInput.withArgs('base').returns('main')
-        getInput.withArgs('head').returns('')
-        getInput.withArgs('tag').returns('v1.0.0')
+  describe('when only head input is provided', () => {
+    it('should throw an error', async () => {
+      getInput.withArgs('base').returns('')
+      getInput.withArgs('head').returns('main')
+      getInput.withArgs('tag').returns('')
 
-        const core = {
-          getInput,
-          setFailed
-        }
+      const core = {
+        getInput,
+        setFailed
+      }
 
-        await run(core as unknown as Core, github as unknown as Github)
+      await run(core as unknown as Core, github as unknown as Github)
 
-        assert.isTrue(setFailed.calledOnce)
-        assert.isTrue(
-          setFailed.calledWith(
-            'You cannot provide both a tag and both a base and head branch.'
-          )
+      assert.isTrue(
+        setFailed.calledOnceWithExactly(
+          'You must provide either a tag or both a base and head branch.'
         )
-      })
-    })
-
-    describe('and the head input is provided', () => {
-      it('should throw an error', async () => {
-        getInput.withArgs('base').returns('')
-        getInput.withArgs('head').returns('my-branch-name')
-        getInput.withArgs('tag').returns('v1.0.0')
-
-        const core = {
-          getInput,
-          setFailed
-        }
-
-        await run(core as unknown as Core, github as unknown as Github)
-
-        assert.isTrue(setFailed.calledOnce)
-        assert.isTrue(
-          setFailed.calledWith(
-            'You cannot provide both a tag and both a base and head branch.'
-          )
-        )
-      })
+      )
     })
   })
 
-  describe('when the base branch does not exist', () => {
+  describe('when tag and base inputs are provided', () => {
+    it('should throw an error', async () => {
+      getInput.withArgs('base').returns('main')
+      getInput.withArgs('head').returns('')
+      getInput.withArgs('tag').returns('v1.0.0')
+
+      const core = {
+        getInput,
+        setFailed
+      }
+
+      await run(core as unknown as Core, github as unknown as Github)
+
+      assert.isTrue(
+        setFailed.calledOnceWithExactly(
+          'You cannot provide both a tag and both a base and head branch.'
+        )
+      )
+    })
+  })
+
+  describe('when tag and head inputs are provided', () => {
+    it('should throw an error', async () => {
+      getInput.withArgs('base').returns('')
+      getInput.withArgs('head').returns('main')
+      getInput.withArgs('tag').returns('v1.0.0')
+
+      const core = {
+        getInput,
+        setFailed
+      }
+
+      await run(core as unknown as Core, github as unknown as Github)
+
+      assert.isTrue(
+        setFailed.calledOnceWithExactly(
+          'You cannot provide both a tag and both a base and head branch.'
+        )
+      )
+    })
+  })
+
+  describe('when tag, base, and head inputs are provided', () => {
+    it('should throw an error', async () => {
+      getInput.withArgs('base').returns('release')
+      getInput.withArgs('head').returns('main')
+      getInput.withArgs('tag').returns('v1.0.0')
+
+      const core = {
+        getInput,
+        setFailed
+      }
+
+      await run(core as unknown as Core, github as unknown as Github)
+
+      assert.isTrue(
+        setFailed.calledOnceWithExactly(
+          'You cannot provide both a tag and both a base and head branch.'
+        )
+      )
+    })
+  })
+
+  describe('when a base branch does not exist', () => {
     it('should throw an error', async () => {
       getInput.withArgs('base').returns('main')
       getInput.withArgs('head').returns('release')
@@ -146,7 +186,7 @@ describe('run', () => {
     })
   })
 
-  describe('when the head branch does not exist', () => {
+  describe('when a head branch does not exist', () => {
     it('should throw an error', async () => {
       getInput.withArgs('base').returns('main')
       getInput.withArgs('head').returns('my-branch-name')
@@ -179,6 +219,26 @@ describe('run', () => {
           'The head branch my-branch-name does not exist.'
         )
       )
+    })
+  })
+
+  describe('when a tag does not exist', () => {
+    it('should throw an error', async () => {
+      getInput.withArgs('tag').returns('v1.0.0')
+      getExecOutputStub.throws({
+        stdout: ''
+      })
+
+      const core = {
+        getInput,
+        setFailed,
+        info
+      }
+
+      await run(core as unknown as Core, github as unknown as Github)
+
+      assert.isTrue(setFailed.calledOnce)
+      assert.isTrue(setFailed.calledWith('The tag v1.0.0 does not exist.'))
     })
   })
 
@@ -234,26 +294,6 @@ describe('run', () => {
 
       const output = setOutput.args[0][1]
       assert.deepEqual(JSON.parse(output), expectedParsedCommitList)
-    })
-  })
-
-  describe('when the tag does not exist', () => {
-    it('should throw an error', async () => {
-      getInput.withArgs('tag').returns('v1.0.0')
-      getExecOutputStub.throws({
-        stdout: ''
-      })
-
-      const core = {
-        getInput,
-        setFailed,
-        info
-      }
-
-      await run(core as unknown as Core, github as unknown as Github)
-
-      assert.isTrue(setFailed.calledOnce)
-      assert.isTrue(setFailed.calledWith('The tag v1.0.0 does not exist.'))
     })
   })
 
