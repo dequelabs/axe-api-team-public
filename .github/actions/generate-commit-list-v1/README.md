@@ -6,22 +6,24 @@ A GitHub Action to generate a list of commits between two branches.
 
 | Name   | Required | Description                                                              |
 | ------ | -------- | ------------------------------------------------------------------------ |
-| `base` | yes      | The branch that the pull request will merge into                         |
-| `head` | yes      | The branch that contains the changes the pull request is trying to merge |
+| `base` | no       | The branch that the pull request will merge into                         |
+| `head` | no       | The branch that contains the changes the pull request is trying to merge |
+| `tag`  | no       | The tag that contains the changes the pull request is trying to merge    |
+
+_Note: `base` and `head` are mutually exclusive with `tag`. Either `base` and `head` must be provided, or `tag` must be provided._
 
 ## Outputs
 
-| Name          | Description                                |
-| ------------- | ------------------------------------------ |
-| `commit-list` | A list of commits between the two branches |
+| Name          | Description                                       |
+| ------------- | ------------------------------------------------- |
+| `commit-list` | A list of commits between the two branches or tag |
 
-## Example usage
+## Example usage with `base` and `head`
 
 ```yaml
 name: Generate commit list
 
-on:
-  workflow-dispatch:
+on: workflow_dispatch
 
 jobs:
   generate-commit-list:
@@ -32,9 +34,32 @@ jobs:
           # Fetch all history
           fetch-depth: 0
       - uses: dequelabs/axe-api-team-public/.github/actions/generate-commit-list-v1@main
+        id: generate-commit-list
         with:
           base: release
           head: develop
+```
+
+## Example usage with `tag`
+
+```yaml
+name: Generate commit list
+
+on: workflow_dispatch
+
+jobs:
+  generate-commit-list:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          # Fetch all history
+          fetch-depth: 0
+      - uses: dequelabs/axe-api-team-public/.github/actions/generate-commit-list-v1@main
+        id: generate-commit-list
+        with:
+          tag: v1.0.0
 ```
 
 ## Example output

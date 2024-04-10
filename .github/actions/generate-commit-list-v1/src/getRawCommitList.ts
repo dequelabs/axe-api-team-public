@@ -10,15 +10,14 @@ import { GetRawCommitListParams } from './types'
 
 export default async function getRawCommitList({
   base,
-  head
+  head,
+  tag
 }: GetRawCommitListParams): Promise<string[]> {
   try {
-    const { stdout: rawCommitList } = await getExecOutput('git log', [
-      `origin/${base}..origin/${head}`,
-      '--oneline',
-      '--no-merges',
-      '--abbrev-commit'
-    ])
+    const subCommand = tag ? `${tag}..HEAD` : `origin/${base}..origin/${head}`
+    const { stdout: rawCommitList } = await getExecOutput(
+      `git log ${subCommand} --oneline --no-merges --abbrev-commit`
+    )
 
     return rawCommitList.trimEnd().split('\n')
   } catch (error) {

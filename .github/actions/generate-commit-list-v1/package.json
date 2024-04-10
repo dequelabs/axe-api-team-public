@@ -17,7 +17,7 @@
     "test": "mocha src/*.test.ts",
     "coverage": "nyc npm run test",
     "fmt": "prettier --write \"src/**/*.{js,ts,tsx,json,md,css,html}\"",
-    "lint": "eslint \"src/**/*.{js,ts,tsx}\""
+    "lint": "eslint \"src/**/*.{ts,tsx}\""
   },
   "nyc": {
     "checkCoverage": true,
