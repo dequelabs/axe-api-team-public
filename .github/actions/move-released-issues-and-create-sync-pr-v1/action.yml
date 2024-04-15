@@ -1,4 +1,4 @@
-name: deploy-release-v1
+name: move-released-issues-and-create-sync-pr-v1
 description: Label all related issues with the package version and create a PR to sync branches
 
 inputs:
@@ -20,10 +20,12 @@ inputs:
   pr-team-reviewers:
     description: 'Reviewers to tag on the created pull request'
     required: false
+    default: axe-api-team
 
 runs:
   using: 'composite'
   steps:
+    # This step is required for the next steps
     - uses: actions/checkout@v4
       with:
         # Fetch all history
