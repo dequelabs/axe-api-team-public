@@ -30,16 +30,25 @@ runs:
       with:
         # Fetch all history
         fetch-depth: 0
-    - uses: dequelabs/axe-api-team-public/.github/actions/get-package-version-v1@main
-      id: get-package-version
-    - uses: dequelabs/axe-api-team-public/.github/actions/generate-commit-list-v1@main
+    - name: Get the previous tag prior to the latest
+      id: get-previous-tag
+      shell: bash
+      run: |
+        TAG=$(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1))
+        
+        # Remove "v" prefix
+        TAG_VERSION=${TAG#v}
+        
+        echo "tag=$TAG" >> $GITHUB_OUTPUT
+        echo "tag-version=$TAG_VERSION" >> $GITHUB_OUTPUT
+    - uses: dequelabs/maksym-testing/.github/actions/generate-commit-list-v1@develop
       id: get-commit-list
       with:
-        tag: v${{ steps.get-package-version.outputs.version }}
+        tag: ${{ steps.get-previous-tag.outputs.tag }}
     - uses: dequelabs/axe-api-team-public/.github/actions/label-and-move-released-issues-v1@main
       with:
         commit-list: ${{ steps.get-commit-list.outputs.commit-list }}
-        version: ${{ steps.get-package-version.outputs.version }}
+        version: ${{ steps.get-previous-tag.outputs.tag-version }}
         token: ${{ inputs.token }}
         project-number: ${{ inputs.project-number }}
     - uses: dequelabs/action-sync-branches@master
