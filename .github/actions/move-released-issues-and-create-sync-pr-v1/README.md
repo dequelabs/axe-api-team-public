@@ -22,6 +22,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 7
     steps:
+      - uses: actions/checkout@v4
+        with:
+          # Fetch all history
+          fetch-depth: 0
       - uses: dequelabs/axe-api-team-public/.github/actions/move-released-issues-and-create-sync-pr-v1@main
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
