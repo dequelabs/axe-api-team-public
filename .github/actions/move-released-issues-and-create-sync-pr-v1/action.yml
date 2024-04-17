@@ -1,0 +1,56 @@
+name: move-released-issues-and-create-sync-pr-v1
+description: Label all related issues with the package version and create a PR to sync branches
+
+inputs:
+  token:
+    description: 'A GitHub token with the required permissions'
+    required: true
+  project-number:
+    description: 'A project number of the project board'
+    required: false
+    default: '66'
+  head:
+    description: 'A head branch to sync from'
+    required: false
+    default: main
+  base:
+    description: 'A target branch for the created pull request'
+    required: false
+    default: develop
+  pr-team-reviewers:
+    description: 'Reviewers to tag on the created pull request'
+    required: false
+    default: axe-api-team
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Get the previous tag prior to the latest
+      id: get-previous-tag
+      shell: bash
+      run: |
+        TAG=$(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1))
+        
+        # Remove "v" prefix
+        TAG_VERSION=${TAG#v}
+        
+        echo "tag=$TAG" >> $GITHUB_OUTPUT
+        echo "tag-version=$TAG_VERSION" >> $GITHUB_OUTPUT
+    - uses: dequelabs/maksym-testing/.github/actions/generate-commit-list-v1@develop
+      id: get-commit-list
+      with:
+        tag: ${{ steps.get-previous-tag.outputs.tag }}
+    - uses: dequelabs/axe-api-team-public/.github/actions/label-and-move-released-issues-v1@main
+      with:
+        commit-list: ${{ steps.get-commit-list.outputs.commit-list }}
+        version: ${{ steps.get-previous-tag.outputs.tag-version }}
+        token: ${{ inputs.token }}
+        project-number: ${{ inputs.project-number }}
+    - uses: dequelabs/action-sync-branches@master
+      with:
+        github-token: ${{ inputs.token }}
+        pr-title: 'chore: merge ${{ inputs.head }} into ${{ inputs.base }}'
+        pr-body: 'Remember to _merge_ (rather than squash) this PR! Also, auto-merge does not work because many of the required checks do not run on the `${{ inputs.head }}` branch.'
+        pr-team-reviewers: ${{ inputs.pr-team-reviewers }}
+        head: ${{ inputs.head }}
+        base: ${{ inputs.base }}
