@@ -36,7 +36,7 @@ runs:
         
         echo "tag=$TAG" >> $GITHUB_OUTPUT
         echo "tag-version=$TAG_VERSION" >> $GITHUB_OUTPUT
-    - uses: dequelabs/maksym-testing/.github/actions/generate-commit-list-v1@develop
+    - uses: dequelabs/axe-api-team-public/.github/actions/generate-commit-list-v1@develop
       id: get-commit-list
       with:
         tag: ${{ steps.get-previous-tag.outputs.tag }}
