@@ -117,6 +117,7 @@ describe('run', () => {
     version?: string
     token?: string
     projectNumber?: string
+    releaseColumn?: string
   }
 
   const generateInputs = (inputs?: Partial<GenerateInputsArgs>) => {
@@ -132,12 +133,16 @@ describe('run', () => {
     const projectNumber = getInput
       .withArgs('project-number')
       .returns(inputs?.projectNumber ?? '66')
+    const releaseColumn = getInput
+      .withArgs('column-name')
+      .returns(inputs?.releaseColumn ?? 'released')
 
     return {
       commitList,
       version,
       token,
-      projectNumber
+      projectNumber,
+      releaseColumn
     }
   }
 

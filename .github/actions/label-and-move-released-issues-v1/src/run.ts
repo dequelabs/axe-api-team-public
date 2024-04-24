@@ -13,6 +13,7 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     const version = core.getInput('version', { required: true })
     const token = core.getInput('token', { required: true })
     const projectNumber = parseInt(core.getInput('project-number'))
+    const releaseColumn = core.getInput('column-name')
 
     if (isNaN(projectNumber)) {
       core.setFailed('`project-number` must be a number')
@@ -22,7 +23,6 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     const octokit = github.getOctokit(token)
     const { repo, owner } = github.context.repo
 
-    const releaseColumn = 'released'
     const [{ id: projectBoardID }, { fields }] = await Promise.all([
       getProjectBoardID({ projectNumber, owner }),
       getProjectBoardFieldList({ projectNumber, owner })

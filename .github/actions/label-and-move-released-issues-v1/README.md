@@ -1,15 +1,16 @@
 # label-and-move-released-issues-v1
 
-This action labels and moves issues that have been released to the `released` column of a project board.
+This action labels and moves issues that have been released.
 
 ## Inputs
 
-| Name             | Required | Description                                                          | Default |
-| ---------------- | -------- | -------------------------------------------------------------------- | ------- |
-| `commit-list`    | Yes      | The list of commits generated from the "Generate commit list" action | NA      |
-| `version`        | Yes      | The version number of the release                                    | NA      |
-| `token`          | Yes      | The GitHub token with the required permissions (see below)           | NA      |
-| `project-number` | No       | The project number of the project board                              | `66`    |
+| Name             | Required | Description                                                          | Default  |
+| ---------------- | -------- | -------------------------------------------------------------------- | -------- |
+| `commit-list`    | Yes      | The list of commits generated from the "Generate commit list" action | NA       |
+| `version`        | Yes      | The version number of the release                                    | NA       |
+| `token`          | Yes      | The GitHub token with the required permissions (see below)           | NA       |
+| `project-number` | No       | The project number of the project board                              | 66       |
+| `column-name`    | No       | Name of column to move to                                            | released |
 
 ## Example
 
@@ -33,9 +34,11 @@ jobs:
           head: 'develop'
       - uses: dequelabs/axe-api-team-public/.github/actions/label-and-move-released-issues-v1@main
         with:
+          token: ${{ secrets.PAT }}
           commit-list: '${{ steps.commits.outputs.commit-list }}'
           version: 1.1.0
-          token: ${{ secrets.PAT }}
+          project-number: '66'
+          column-name: 'released'
         env:
           # Requires for GH CLI
           GH_TOKEN: ${{ secrets.PAT }}
