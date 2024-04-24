@@ -16,14 +16,18 @@ inputs:
     required: true
   version-locked:
     description: 'Whether or not the version should be locked to axe-core'
-    default: 'false'
     required: false
+    default: 'false'
   docs-repo:
     description: 'The name of the repo where the release notes live'
+    required: false
     default: 'null'
+  docs-labels:
+    description: 'Labels for release notes issue. Comma-delimited list of labels (e.x. "release,PRIORITY: high")'
     required: false
   should-checkout:
     description: 'Whether or not the action should checkout the repository'
+    required: false
     default: 'true'
 
 runs:
@@ -155,8 +159,9 @@ runs:
       with:
         token: ${{ inputs.token }}
         repo: ${{ inputs.docs-repo }}
-        labels: 'PRIORITY: high,release'
+        labels: ${{ inputs.docs-labels }}
         assignees: 'enlarsen'
+        project_number: '171'
         column_name: 'To Do'
         title: '${{ github.repository }} v${{ steps.get_bumped_version_number.outputs.version }} - Release Notes Needed'
         body: |
@@ -170,7 +175,8 @@ runs:
       with:
         token: ${{ inputs.token }}
         labels: 'PRIORITY: high,release'
-        column_name: 'Backlog'
+        project_number: '103'
+        column_name: 'Release Candidate'
         title: '${{ github.repository }} v${{ steps.get_bumped_version_number.outputs.version }}'
         body: |
           # Below is everything related to this release 
@@ -187,37 +193,32 @@ runs:
           ### Links
           - [X] Release candidate PR: ${{ steps.create_pull_request.outputs.pull-request-url }}
           - [ ] Release PR:
-          - [ ] Release audit:
-          ``` 
-          ## Release Steps
-          - [ ] Requested QA
-          - [ ] QA signoff on RC
-          - [ ] Release created
-          - [ ] Release audit done
-          - [ ] Release audit posted
-          - [ ] Release merged
-          - [ ] Deployed
-          - [ ] Posted in product-channel
+          - [ ] Docs Issue:
+          - [ ] Change Management Form:
+          - [ ] Notes:
+          ```
 
-          ## Additional Steps For AWS Deploys
+          ```[tasklist]
+          ### Common Tasks
+          - [ ] QA Started
+          - [ ] QA Signoff
+          - [ ] Release Created
+          - [ ] Release CI Success
+          - [ ] Release Audit
+          - [ ] Release Merged
+          - [ ] Release Merged CI Success
+          - [ ] Verify Deployments of Packages
+          - [ ] Done
+          ```
+          
+          ```[tasklist]
+          ### AWS Deployments
           - [ ] AWS NOT NEEDED
-          - [ ] Emailed IHD
-          - [ ] Set up meeting for deployment
-          - [ ] Data migrations:
-          - [ ] Environment variables:
-          - [ ] Docker image:
-          - [ ] Smoke test passed
-
-          ## Additional Steps Release Notes
-          - [ ] RELEASE NOTES NOT NEEDED
-          - [ ] Ticket created for release notes: ${{ steps.create_release_notes_issue.outputs.issue_url }}
-          - [ ] Release notes reviewed
-          - [ ] Release notes published 
-          - [ ] Release notes: (public URL)
-
-    - name: Add release issue to release project board
-      uses: dequelabs/axe-api-team-public/.github/actions/add-to-board-v1@main
-      with:
-        issue-urls: ${{ steps.create_release_issue.outputs.issue_url }}
-        project-number: '103'
-        column-name: 'Upcoming'
+          - [ ] Submitted Change Management Form
+          - [ ] Approvals on Change Management Form
+          - [ ] Set Up Deployment Meeting
+          - [ ] Added Data Migrations into CMF
+          - [ ] Added Environment Variables into CMF
+          - [ ] Added Docker Image into CMF
+          - [ ] Smoke Test Passed
+          ```
