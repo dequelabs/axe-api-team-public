@@ -12,6 +12,7 @@ A GitHub Action to create a release candidate.
 | `release-script-path` | Yes      | The path to the [release script](#release-script-requirements) that creates the changelogs and bumps the version of the package(s)                                                                                              | NA      |
 | `version-locked`      | No       | Whether or not the version bump should treat major/minor as "locked". Repos which version-lock to axe-core should default this to `true`, overriding it to `false` only for releases that update `axe-core`.                    | `false` |
 | `docs-repo`           | No       | The name of the repo where the release notes live                                                                                                                                                                               | `null`  |
+| `docs-labels`         | No       | Labels for release notes issue. Comma-delimited list of labels (e.x. "release,PRIORITY: high")                                                                                                                                  | NA      |
 | `should-checkout`     | No       | Whether or not the action should checkout the repository.                                                                                                                                                                       | `true`  |
 
 ## Example usage
@@ -33,6 +34,7 @@ jobs:
           version-locked: 'false'
           release-script-path: './prepare_release.sh'
           docs-repo: 'my-docs-repo'
+          docs-labels: 'release,PRIORITY: high'
         env:
           GH_TOKEN: ${{ secrets.PAT }}
 ```
