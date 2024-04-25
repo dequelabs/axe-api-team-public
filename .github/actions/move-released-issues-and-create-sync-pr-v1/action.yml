@@ -9,6 +9,10 @@ inputs:
     description: 'A project number of the project board'
     required: false
     default: '66'
+  column-name:
+    description: 'Name of column to move to'
+    required: false
+    default: 'released'
   head:
     description: 'A head branch to sync from'
     required: false
@@ -46,6 +50,7 @@ runs:
         version: ${{ steps.get-previous-tag.outputs.tag-version }}
         token: ${{ inputs.token }}
         project-number: ${{ inputs.project-number }}
+        column-name: ${{ inputs.column-name }}
     - uses: dequelabs/action-sync-branches@master
       with:
         github-token: ${{ inputs.token }}

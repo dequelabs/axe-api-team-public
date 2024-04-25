@@ -8,6 +8,7 @@ A GitHub Action to label all related issues with the package version and create 
 | ------------------- | -------- | -------------------------------------------- | ------------ |
 | `token`             | Yes      | A GitHub token with the required permissions | NA           |
 | `project-number`    | No       | A project number of the project board        | 66           |
+| `column-name`       | No       | Name of column to move to                    | released     |
 | `head`              | No       | A head branch to sync from                   | main         |
 | `base`              | No       | A target branch for the created pull request | develop      |
 | `pr-team-reviewers` | No       | Reviewers to tag on the created pull request | axe-api-team |
@@ -30,6 +31,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           project-number: '66'
+          column-name: 'released'
           head: main
           base: develop
           pr-team-reviewers: axe-api-team

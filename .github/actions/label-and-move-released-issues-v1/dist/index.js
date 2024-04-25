@@ -31146,13 +31146,13 @@ async function run(core, github) {
         const version = core.getInput('version', { required: true });
         const token = core.getInput('token', { required: true });
         const projectNumber = parseInt(core.getInput('project-number'));
+        const releaseColumn = core.getInput('column-name');
         if (isNaN(projectNumber)) {
             core.setFailed('`project-number` must be a number');
             return;
         }
         const octokit = github.getOctokit(token);
         const { repo, owner } = github.context.repo;
-        const releaseColumn = 'released';
         const [{ id: projectBoardID }, { fields }] = await Promise.all([
             (0, getProjectBoardID_1.default)({ projectNumber, owner }),
             (0, getProjectBoardFieldList_1.default)({ projectNumber, owner })

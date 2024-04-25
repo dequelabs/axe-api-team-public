@@ -1,5 +1,5 @@
 name: 'Label and move released issues'
-description: 'Label and move issues that have been released to the "Released" column'
+description: 'Label and move issues that have been released'
 inputs:
   commit-list:
     description: 'The list of commits generated from the "Generate Commit List" action'
@@ -12,7 +12,12 @@ inputs:
     required: true
   project-number:
     description: 'The project number of the project board'
+    required: false
     default: '66'
+  column-name:
+    description: 'Name of column to move to'
+    required: false
+    default: 'released'
 runs:
   using: 'node20'
   main: 'dist/index.js'
