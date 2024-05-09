@@ -27166,14 +27166,17 @@ const getPackageManager_1 = __importDefault(__nccwpck_require__(7167));
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-function default_1({ packageManager, pinStrategy, latestAxeCoreVersion, dependencyType }) {
+function default_1({ packageManager, pinStrategy, latestAxeCoreVersion, dependencyGroup }) {
     const newAxeVersion = `axe-core@${pinStrategy}${latestAxeCoreVersion}`;
-    if (packageManager !== 'yarn') {
-        return ['i', newAxeVersion, dependencyType];
+    if (packageManager === 'npm') {
+        const dependencyTypeArgs = dependencyGroup === 'dependencies' ? [] : ['-D'];
+        return ['i', ...dependencyTypeArgs, newAxeVersion];
     }
-    return dependencyType === '-D'
-        ? ['add', newAxeVersion, '-D']
-        : ['add', newAxeVersion];
+    else if (packageManager === 'yarn') {
+        const dependencyTypeArgs = dependencyGroup === 'dependencies' ? [] : ['-D'];
+        return ['add', ...dependencyTypeArgs, newAxeVersion];
+    }
+    throw new Error(`unsupported packageManager: ${packageManager}`);
 }
 exports["default"] = default_1;
 
@@ -27250,11 +27253,10 @@ async function run(core, getPackageManager, cwd) {
                 continue;
             }
             core.info(`package specific package manager detected as ${packageManager}`);
-            const dependency = pkg.dependencies?.['axe-core']
+            const dependencyGroup = pkg.dependencies?.['axe-core']
                 ? 'dependencies'
                 : 'devDependencies';
-            const dependencyType = dependency === 'dependencies' ? '' : '-D';
-            const axeCoreVersion = pkg[dependency]['axe-core'];
+            const axeCoreVersion = pkg[dependencyGroup]['axe-core'];
             let pinStrategy = axeCoreVersion.charAt(0);
             if (pinStrategy.match(/\d/)) {
                 pinStrategy = '=';
@@ -27272,7 +27274,7 @@ async function run(core, getPackageManager, cwd) {
                 packageManager,
                 pinStrategy,
                 latestAxeCoreVersion,
-                dependencyType
+                dependencyGroup
             }), {
                 cwd: dirPath
             });

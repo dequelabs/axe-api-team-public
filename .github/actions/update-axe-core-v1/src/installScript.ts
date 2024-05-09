@@ -1,26 +1,25 @@
 interface InstallScriptParams {
-  packageManager: string
+  packageManager: 'npm' | 'yarn'
   pinStrategy: string
   latestAxeCoreVersion: string
-  dependencyType: string
+  dependencyGroup: 'dependencies' | 'devDependencies'
 }
 
 export default function ({
   packageManager,
   pinStrategy,
   latestAxeCoreVersion,
-  dependencyType
+  dependencyGroup
 }: InstallScriptParams) {
-const newAxeVersion = `axe-core@${pinStrategy}${latestAxeCoreVersion}`
+  const newAxeVersion = `axe-core@${pinStrategy}${latestAxeCoreVersion}`
 
-  if (packageManager !== 'yarn') {
-    return ['i', newAxeVersion, dependencyType]
+  if (packageManager === 'npm') {
+    const dependencyTypeArgs = dependencyGroup === 'dependencies' ? [] : ['-D']
+    return ['i', ...dependencyTypeArgs, newAxeVersion]
+  } else if (packageManager === 'yarn') {
+    const dependencyTypeArgs = dependencyGroup === 'dependencies' ? [] : ['-D']
+    return ['add', ...dependencyTypeArgs, newAxeVersion]
   }
 
-  // When running using a child process it considers 
-  // an empty string a value and returns an error
-  // @see https://github.com/yarnpkg/yarn/issues/5228
-  return dependencyType === '-D'
-    ? ['add', newAxeVersion, '-D']
-    : ['add', newAxeVersion]
+  throw new Error(`unsupported packageManager: ${packageManager}`)
 }
