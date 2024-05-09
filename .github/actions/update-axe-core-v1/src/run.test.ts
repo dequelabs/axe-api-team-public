@@ -190,7 +190,7 @@ describe('run', () => {
       await run(core as unknown as Core, getPackageManagerStub, dirPath)
 
       assert.isTrue(
-        getExecOutputStub.calledWith('npm', ['i', sinon.match.any, ''], {
+        getExecOutputStub.calledWith('npm', ['i', sinon.match.any], {
           cwd: dirPath
         })
       )
@@ -349,7 +349,7 @@ describe('run', () => {
         await run(core as unknown as Core, getPackageManagerStub, dirPath)
 
         assert.isTrue(
-          getExecOutputStub.calledWith('npm', ['i', `axe-core@${pin}`, ''], {
+          getExecOutputStub.calledWith('npm', ['i', `axe-core@${pin}`], {
             cwd: dirPath
           })
         )

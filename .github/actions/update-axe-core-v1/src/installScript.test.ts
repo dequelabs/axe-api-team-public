@@ -66,4 +66,24 @@ describe('installScript', () => {
       assert.deepEqual(actual, expected)
     })
   })
+
+  describe('when the package manager is unsupported', () => {
+    it('throws', () => {
+      const packageManager = 'unknown'
+      const pinStrategy = '='
+      const latestAxeCoreVersion = '4.2.1'
+      const dependencyGroup = 'dependencies'
+      assert.throws(
+        () =>
+          installScript({
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            packageManager: packageManager as any,
+            pinStrategy,
+            latestAxeCoreVersion,
+            dependencyGroup
+          }),
+        `unsupported packageManager: ${packageManager}`
+      )
+    })
+  })
 })
