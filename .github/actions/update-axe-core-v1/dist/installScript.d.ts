@@ -1,8 +1,8 @@
 interface InstallScriptParams {
-    packageManager: string;
+    packageManager: 'npm' | 'yarn';
     pinStrategy: string;
     latestAxeCoreVersion: string;
-    dependencyType: string;
+    dependencyGroup: 'dependencies' | 'devDependencies';
 }
-export default function ({ packageManager, pinStrategy, latestAxeCoreVersion, dependencyType }: InstallScriptParams): string[];
+export default function ({ packageManager, pinStrategy, latestAxeCoreVersion, dependencyGroup }: InstallScriptParams): string[];
 export {};

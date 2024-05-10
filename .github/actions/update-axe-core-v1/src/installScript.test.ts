@@ -4,51 +4,86 @@ import installScript from './installScript'
 
 describe('installScript', () => {
   describe('when the package manager is npm', () => {
-    it('should return the correct install script', () => {
+    it('should return the correct install script for runtime deps', () => {
       const packageManager = 'npm'
       const pinStrategy = '='
       const latestAxeCoreVersion = '4.2.1'
-      const dependencyType = ''
-      const expected = ['i', 'axe-core@=4.2.1', '']
+      const dependencyGroup = 'dependencies'
+      const expected = ['i', 'axe-core@=4.2.1']
       const actual = installScript({
         packageManager,
         pinStrategy,
         latestAxeCoreVersion,
-        dependencyType
+        dependencyGroup
+      })
+      assert.deepEqual(actual, expected)
+    })
+
+    it('should return the correct install script for dev deps', () => {
+      const packageManager = 'npm'
+      const pinStrategy = '='
+      const latestAxeCoreVersion = '4.2.1'
+      const dependencyGroup = 'devDependencies'
+      const expected = ['i', '-D', 'axe-core@=4.2.1']
+      const actual = installScript({
+        packageManager,
+        pinStrategy,
+        latestAxeCoreVersion,
+        dependencyGroup
       })
       assert.deepEqual(actual, expected)
     })
   })
 
   describe('when the package manager is yarn', () => {
-    it('should return the correct install script', () => {
+    it('should return the correct install script for runtime deps', () => {
       const packageManager = 'yarn'
       const pinStrategy = '='
       const latestAxeCoreVersion = '4.2.1'
-      const dependencyType = ''
+      const dependencyGroup = 'dependencies'
       const expected = ['add', 'axe-core@=4.2.1']
       const actual = installScript({
         packageManager,
         pinStrategy,
         latestAxeCoreVersion,
-        dependencyType
+        dependencyGroup
       })
       assert.deepEqual(actual, expected)
     })
 
-    it('should return the correct install script when the dependency type is dev', () => {
+    it('should return the correct install script for dev deps', () => {
       const packageManager = 'yarn'
       const pinStrategy = '='
       const latestAxeCoreVersion = '4.2.1'
-      const dependencyType = '-D'
-      const expected = ['add', 'axe-core@=4.2.1', '-D']
+      const dependencyGroup = 'devDependencies'
+      const expected = ['add', '-D', 'axe-core@=4.2.1']
       const actual = installScript({
         packageManager,
         pinStrategy,
         latestAxeCoreVersion,
-        dependencyType
+        dependencyGroup
       })
       assert.deepEqual(actual, expected)
+    })
+  })
+
+  describe('when the package manager is unsupported', () => {
+    it('throws', () => {
+      const packageManager = 'unknown'
+      const pinStrategy = '='
+      const latestAxeCoreVersion = '4.2.1'
+      const dependencyGroup = 'dependencies'
+      assert.throws(
+        () =>
+          installScript({
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            packageManager: packageManager as any,
+            pinStrategy,
+            latestAxeCoreVersion,
+            dependencyGroup
+          }),
+        `unsupported packageManager: ${packageManager}`
+      )
     })
   })
 })

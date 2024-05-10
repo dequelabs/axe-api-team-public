@@ -71,12 +71,11 @@ export default async function run(
         `package specific package manager detected as ${packageManager}`
       )
 
-      const dependency = pkg.dependencies?.['axe-core']
+      const dependencyGroup = pkg.dependencies?.['axe-core']
         ? 'dependencies'
         : 'devDependencies'
 
-      const dependencyType = dependency === 'dependencies' ? '' : '-D'
-      const axeCoreVersion = pkg[dependency]['axe-core']
+      const axeCoreVersion = pkg[dependencyGroup]['axe-core']
       let pinStrategy = axeCoreVersion.charAt(0)
 
       // axe-core version was exactly pinned but not using "="
@@ -105,7 +104,7 @@ export default async function run(
             packageManager,
             pinStrategy,
             latestAxeCoreVersion,
-            dependencyType
+            dependencyGroup
           }),
           {
             cwd: dirPath
