@@ -20,7 +20,7 @@ export default async function getFallbackID(
     const trimmedFallbackID = fallbackID.trim()
 
     return trimmedFallbackID ? trimmedFallbackID : null
-  } catch (error) {
+  } catch {
     /**
      * If the fallback method fails, we don't want to fail the action.
      * Instead, we'll just return null.
