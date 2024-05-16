@@ -22,7 +22,7 @@ export default async function doesBranchOrTagExist({
     await getExecOutput(`git rev-parse --verify ${subCommand}`)
 
     return true
-  } catch (error) {
+  } catch {
     /**
      * If the branch does not exist, git will return a non-zero exit code.
      * We can catch that error and return false to indicate that the branch
