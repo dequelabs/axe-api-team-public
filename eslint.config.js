@@ -1,5 +1,3 @@
-const typescriptParser = require('@typescript-eslint/parser')
-const typescriptPlugin = require('@typescript-eslint/eslint-plugin')
 const globals = require('globals')
 const eslint = require('@eslint/js')
 const tseslint = require('typescript-eslint')
@@ -9,14 +7,14 @@ module.exports = [
   ...tseslint.configs.recommended,
   {
     languageOptions: {
-      parser: typescriptParser,
+      parser: tseslint.parser,
       globals: {
         ...globals.node,
         ...globals.es2015
       }
     },
     plugins: {
-      '@typescript-eslint': typescriptPlugin
+      '@typescript-eslint': tseslint.plugin
     }
   },
   {
