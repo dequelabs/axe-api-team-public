@@ -71,6 +71,7 @@ runs:
         echo "Repo url: $repo_url"
 
         # Only get new files added to release branch that are within the provided migrations directory and end in .sql
+        # If the directory is provided but there are no new migration files, return an empty string
         new_migration_files=$(git diff --name-only --diff-filter=A  origin/${{ inputs.base }}...origin/release -- "${{ inputs.migrations-dir }}" | grep -E '\.sql$' || echo "") 
 
         if [ -n "$new_migration_files" ]; then
