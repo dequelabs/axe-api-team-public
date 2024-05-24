@@ -9,6 +9,7 @@ A GitHub Action to abort a release candidate.
 | `token`     | Yes      | A GitHub token used for octokit and GH CLI with the [required permissions](#permissions) | NA      |
 | `base`      | Yes      | The base branch the release candidate was going to be merged into                        | NA      |
 | `docs-repo` | No       | The docs repo where the release notes issue is located                                   | NA      |
+| `version`   | No       | The release candidate version number that will be aborted (e.g 1.0.0)                    | NA      |
 
 ## Permissions
 
@@ -36,4 +37,5 @@ jobs:
           token: ${{ secrets.PAT }}
           base: 'main'
           docs-repo: 'my-docs-repo'
+          version: '1.0.0'
 ```

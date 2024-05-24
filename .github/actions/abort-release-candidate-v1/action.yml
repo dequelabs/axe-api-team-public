@@ -12,6 +12,9 @@ inputs:
     description: 'The docs repository where the issue for the release candidate is located'
     default: ''
     required: false
+  version:
+    description: 'The release candidate version number that will be aborted (e.g 1.0.0)'
+    required: false
 
 runs:
   using: 'composite'
@@ -28,14 +31,20 @@ runs:
       shell: bash
       id: get-release-candidate-version
       run: |
-        # Get the version number from the prepare_release shell script and set it as an output
-        # Monorepos have a lerna.json file that contains the updated version number
-        # Non-monorepos, or non-npm repos, have a package.json file that contains the updated version number
-        if [ -f "lerna.json" ]; then
-          echo "release_candidate_version=$(cat lerna.json | jq -r '.version')" >> $GITHUB_OUTPUT
-        else
-          echo "release_candidate_version=$(cat package.json | jq -r '.version')" >> $GITHUB_OUTPUT
+        VERSION="${{ inputs.version }}"
+        
+        if [ -z "$VERSION" ]; then
+          # Get the version number from the prepare_release shell script and set it as an output
+          # Monorepos have a lerna.json file that contains the updated version number
+          # Non-monorepos, or non-npm repos, have a package.json file that contains the updated version number
+          if [ -f "lerna.json" ]; then
+            VERSION=$(cat lerna.json | jq -r '.version')
+          else
+           VERSION=$(cat package.json | jq -r '.version')
+          fi
         fi
+
+        echo "release_candidate_version=$VERSION" >> $GITHUB_OUTPUT
 
     - name: Get release candidate issue url
       uses: dequelabs/axe-api-team-public/.github/actions/get-release-issue-v1@main
