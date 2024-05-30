@@ -26,6 +26,8 @@ runs:
         fetch-depth: 0
         # Checkout the release branch so we can get the release candidate version and reset it to the base branch later
         ref: 'release'
+        # PAT has required permissions force pushing when the `release` branch is checked out
+        token: ${{ inputs.token }}
 
     - name: Get release candidate version
       shell: bash
