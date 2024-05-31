@@ -4,11 +4,12 @@ A GitHub Action to abort a release candidate.
 
 ## Inputs
 
-| Name        | Required | Description                                                                              | Default |
-| ----------- | -------- | ---------------------------------------------------------------------------------------- | ------- |
-| `token`     | Yes      | A GitHub token used for octokit and GH CLI with the [required permissions](#permissions) | NA      |
-| `base`      | Yes      | The base branch the release candidate was going to be merged into                        | NA      |
-| `docs-repo` | No       | The docs repo where the release notes issue is located                                   | NA      |
+| Name        | Required                                          | Description                                                                              | Default                                                           |
+| ----------- | ------------------------------------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `token`     | Yes                                               | A GitHub token used for octokit and GH CLI with the [required permissions](#permissions) | NA                                                                |
+| `base`      | Yes                                               | The base branch the release candidate was going to be merged into                        | NA                                                                |
+| `docs-repo` | No                                                | The docs repo where the release notes issue is located                                   | NA                                                                |
+| `version`   | only if the RC PR has not yet merged to `release` | The release candidate version number that will be aborted (e.g 1.0.0)                    | inferred from the release branch's `lerna.json` or `package.json` |
 
 ## Permissions
 
@@ -36,4 +37,5 @@ jobs:
           token: ${{ secrets.PAT }}
           base: 'main'
           docs-repo: 'my-docs-repo'
+          version: '1.0.0'
 ```
