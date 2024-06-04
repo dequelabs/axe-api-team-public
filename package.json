@@ -47,7 +47,7 @@
     "sinon": "^18.0.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.2",
-    "typescript-eslint": "^8.0.0-alpha.12"
+    "typescript-eslint": "^8.0.0-alpha.26"
   },
   "lint-staged": {
     "*.{md,json,js,ts,html}": [
