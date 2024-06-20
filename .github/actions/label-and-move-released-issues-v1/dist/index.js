@@ -30569,6 +30569,14 @@ async function getReferencedClosedIssues({ owner, repo, pullRequestID, octokit }
             nodes {
               # The issue number of the issue that was closed
               number
+              repository {
+                # The owner where an issue was created
+                owner {
+                  login
+                }
+                # The repo name where an issue was created
+                name
+              }
             }
           }
          }
@@ -30684,6 +30692,9 @@ async function run(core, github) {
             });
         }
         const issueURLs = [];
+        let issueOwner;
+        let issueRepo;
+        let issueNumber;
         const commits = JSON.parse(commitList);
         core.info(`Found ${commits.length} commits`);
         for (const { id } of commits) {
@@ -30697,21 +30708,31 @@ async function run(core, github) {
                 pullRequestID: parseInt(id),
                 octokit
             });
-            const issueIDs = referenceClosedIssues.repository.pullRequest.closingIssuesReferences.nodes.map(n => n.number);
-            if (!issueIDs.length) {
+            const issueDataArr = referenceClosedIssues.repository.pullRequest.closingIssuesReferences.nodes.reduce((arr, item) => {
+                arr.push({
+                    number: item.number,
+                    owner: item.repository.owner.login,
+                    repo: item.repository.name,
+                });
+                return arr;
+            }, []);
+            if (!issueDataArr.length) {
                 core.info('\nNo issues found for commit, moving on...');
                 continue;
             }
-            for (const issueNumber of issueIDs) {
-                core.info(`\nFetching project board info for: ${owner}, ${repo}, issue: ${issueNumber} for project: ${projectNumber}`);
-                const issueStatus = await (0, getIssueProjectInfo_1.default)({
-                    owner,
-                    repo,
+            for (const issueData of issueDataArr) {
+                issueOwner = issueData.owner;
+                issueRepo = issueData.repo;
+                issueNumber = issueData.number;
+                core.info(`\nFetching project board info for: ${owner}/${repo},  PR: ${id}, issue: ${issueNumber} for project: ${projectNumber}`);
+                const issueStats = await (0, getIssueProjectInfo_1.default)({
+                    owner: issueOwner,
+                    repo: issueRepo,
                     issueNumber,
                     octokit
                 });
-                core.info(`Found stats: ${JSON.stringify(issueStatus)}`);
-                const projectBoard = issueStatus.repository.issue.projectItems.nodes.find(n => n.project.number === projectNumber);
+                core.info(`Found stats: ${JSON.stringify(issueStats)}`);
+                const projectBoard = issueStats.repository.issue.projectItems.nodes.find(n => n.project.number === projectNumber);
                 if (!projectBoard) {
                     core.info(`\nCould not find the project board "${projectNumber}" for issue ${issueNumber}, moving on...`);
                     continue;
@@ -30722,21 +30743,21 @@ async function run(core, github) {
                     continue;
                 }
                 const { data: issue } = await octokit.rest.issues.get({
-                    repo,
-                    owner,
+                    repo: issueRepo,
+                    owner: issueOwner,
                     issue_number: issueNumber
                 });
                 if (issue.state !== 'closed') {
                     await octokit.rest.issues.update({
-                        repo,
-                        owner,
+                        repo: issueRepo,
+                        owner: issueOwner,
                         issue_number: issueNumber,
                         state: 'closed'
                     });
                 }
                 octokit.rest.issues.addLabels({
-                    repo,
-                    owner,
+                    repo: issueRepo,
+                    owner: issueOwner,
                     issue_number: issueNumber,
                     labels: [LABEL]
                 });

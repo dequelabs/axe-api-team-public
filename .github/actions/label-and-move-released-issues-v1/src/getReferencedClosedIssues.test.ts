@@ -12,7 +12,11 @@ const MOCK_REFERENCED_CLOSED_ISSUES: GetReferencedClosedIssuesResult = {
       closingIssuesReferences: {
         nodes: [
           {
-            number: 27
+            number: 27,
+            repository: {
+              owner: { login: 'issue-owner' },
+              name: 'issue-repo-name'
+            }
           }
         ]
       }
