@@ -30675,26 +30675,11 @@ async function run(core, github) {
             core.setFailed(`\nColumn ${releaseColumn} not found in project board ${projectNumber}`);
             return;
         }
-        const labels = await octokit.rest.issues.listLabelsForRepo({
-            repo,
-            owner
-        });
-        core.info(`Found ${labels.data.length} labels`);
-        const LABEL = `VERSION: ${version}`;
-        const hasLabel = labels.data.some(label => label.name === LABEL);
-        if (!hasLabel) {
-            core.info(`Label "${LABEL}" does not exist, creating...`);
-            await octokit.rest.issues.createLabel({
-                repo,
-                owner,
-                name: LABEL,
-                color: 'FFFFFF'
-            });
-        }
-        const issueURLs = [];
+        const LABEL = `VERSION: ${repo}@${version}`;
         let issueOwner;
         let issueRepo;
         let issueNumber;
+        const issueURLs = [];
         const commits = JSON.parse(commitList);
         core.info(`Found ${commits.length} commits`);
         for (const { id } of commits) {
@@ -30712,7 +30697,7 @@ async function run(core, github) {
                 arr.push({
                     number: item.number,
                     owner: item.repository.owner.login,
-                    repo: item.repository.name,
+                    repo: item.repository.name
                 });
                 return arr;
             }, []);
@@ -30753,6 +30738,21 @@ async function run(core, github) {
                         owner: issueOwner,
                         issue_number: issueNumber,
                         state: 'closed'
+                    });
+                }
+                const labels = await octokit.rest.issues.listLabelsForRepo({
+                    repo: issueRepo,
+                    owner: issueOwner
+                });
+                core.info(`Found ${labels.data.length} labels for the issue repo ${issueOwner}/${issueRepo}`);
+                const hasLabel = labels.data.some(label => label.name === LABEL);
+                if (!hasLabel) {
+                    core.info(`The label "${LABEL}" does not exist for the issue repo ${issueOwner}/${issueRepo}, creating...`);
+                    await octokit.rest.issues.createLabel({
+                        repo: issueRepo,
+                        owner: issueOwner,
+                        name: LABEL,
+                        color: 'FFFFFF'
                     });
                 }
                 octokit.rest.issues.addLabels({

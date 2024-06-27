@@ -51,34 +51,16 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       return
     }
 
-    const labels = await octokit.rest.issues.listLabelsForRepo({
-      repo,
-      owner
-    })
-
-    core.info(`Found ${labels.data.length} labels`)
-
-    const LABEL = `VERSION: ${version}`
-    const hasLabel = labels.data.some(label => label.name === LABEL)
-
-    if (!hasLabel) {
-      core.info(`Label "${LABEL}" does not exist, creating...`)
-      await octokit.rest.issues.createLabel({
-        repo,
-        owner,
-        name: LABEL,
-        color: 'FFFFFF'
-      })
-    }
+    const LABEL = `VERSION: ${repo}@${version}`
+    let issueOwner: string
+    let issueRepo: string
+    let issueNumber: number
 
     /**
      * Each confirmed issue URL will be stored here. We'll use this to
      * update the issue column in add-to-board action via composite run steps
      */
     const issueURLs: string[] = []
-    let issueOwner: string
-    let issueRepo: string
-    let issueNumber: number
 
     const commits = JSON.parse(commitList) as ParsedCommitList[]
     core.info(`Found ${commits.length} commits`)
@@ -167,6 +149,29 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
             owner: issueOwner,
             issue_number: issueNumber,
             state: 'closed'
+          })
+        }
+
+        const labels = await octokit.rest.issues.listLabelsForRepo({
+          repo: issueRepo,
+          owner: issueOwner
+        })
+
+        core.info(
+          `Found ${labels.data.length} labels for the issue repo ${issueOwner}/${issueRepo}`
+        )
+
+        const hasLabel = labels.data.some(label => label.name === LABEL)
+
+        if (!hasLabel) {
+          core.info(
+            `The label "${LABEL}" does not exist for the issue repo ${issueOwner}/${issueRepo}, creating...`
+          )
+          await octokit.rest.issues.createLabel({
+            repo: issueRepo,
+            owner: issueOwner,
+            name: LABEL,
+            color: 'FFFFFF'
           })
         }
 
