@@ -167,6 +167,7 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
           core.info(
             `The label "${LABEL}" does not exist for the issue repo ${issueOwner}/${issueRepo}, creating...`
           )
+
           await octokit.rest.issues.createLabel({
             repo: issueRepo,
             owner: issueOwner,

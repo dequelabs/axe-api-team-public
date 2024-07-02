@@ -29,11 +29,13 @@ const MOCK_LIST_LABELS = {
   default: true
 } as unknown as Endpoints['GET /repos/{owner}/{repo}/labels']['response']
 
+const MOCK_LABEL_NAME = 'VERSION: repo@1.0.0'
+
 const MOCK_CREATED_LABEL = {
   id: 208045946,
   node_id: 'MDU6TGFiZWwyMDgwNDU5NDY=',
   url: 'https://api.github.com/repos/octocat/Hello-World/labels/version%3A%201.0.0',
-  name: 'VERSION: 1.0.0',
+  name: MOCK_LABEL_NAME,
   description: 'release 1.0.0',
   color: 'f29513',
   default: true
@@ -60,6 +62,9 @@ const MOCK_FIELD_LIST = {
   totalCount: 1
 }
 
+const ISSUE_OWNER = 'issue-owner'
+const ISSUE_REPO = 'issue-repo-name'
+
 const MOCK_REFERENCED_CLOSED_ISSUES = {
   repository: {
     pullRequest: {
@@ -68,8 +73,8 @@ const MOCK_REFERENCED_CLOSED_ISSUES = {
           {
             number: 27,
             repository: {
-              owner: { login: 'issue-owner' },
-              name: 'issue-repo-name'
+              owner: { login: ISSUE_OWNER },
+              name: ISSUE_REPO
             }
           }
         ]
@@ -104,6 +109,9 @@ describe('run', () => {
   let getInput: sinon.SinonStub
   let setFailed: sinon.SinonStub
   let getExecOutput: sinon.SinonStub
+  let listLabelsForRepoStub: sinon.SinonStub
+  let createLabelStub: sinon.SinonStub
+  let addLabelsStub: sinon.SinonStub
 
   const octokit = getOctokit('token')
 
@@ -111,10 +119,16 @@ describe('run', () => {
     info = sinon.stub()
     getInput = sinon.stub()
     setFailed = sinon.stub()
+    listLabelsForRepoStub = sinon.stub()
+    createLabelStub = sinon.stub()
+    addLabelsStub = sinon.stub()
     getExecOutput = sinon.stub(exec, 'getExecOutput')
   })
 
-  afterEach(sinon.restore)
+  afterEach(() => {
+    sinon.restore()
+    sinon.resetHistory()
+  })
 
   interface GenerateInputsArgs {
     commitList?: ParsedCommitList[]
@@ -163,6 +177,9 @@ describe('run', () => {
 
       await run(core as unknown as Core, {} as unknown as GitHub)
 
+      assert.isTrue(listLabelsForRepoStub.notCalled)
+      assert.isTrue(createLabelStub.notCalled)
+      assert.isTrue(addLabelsStub.notCalled)
       assert.isTrue(setFailed.calledOnce)
       assert.isTrue(
         setFailed.calledWith('Input required and not supplied: commit-list')
@@ -183,6 +200,9 @@ describe('run', () => {
 
       await run(core as unknown as Core, {} as unknown as GitHub)
 
+      assert.isTrue(listLabelsForRepoStub.notCalled)
+      assert.isTrue(createLabelStub.notCalled)
+      assert.isTrue(addLabelsStub.notCalled)
       assert.isTrue(setFailed.calledOnce)
       assert.isTrue(
         setFailed.calledWith('Input required and not supplied: version')
@@ -203,6 +223,9 @@ describe('run', () => {
 
       await run(core as unknown as Core, {} as unknown as GitHub)
 
+      assert.isTrue(listLabelsForRepoStub.notCalled)
+      assert.isTrue(createLabelStub.notCalled)
+      assert.isTrue(addLabelsStub.notCalled)
       assert.isTrue(setFailed.calledOnce)
       assert.isTrue(
         setFailed.calledWith('Input required and not supplied: token')
@@ -221,6 +244,9 @@ describe('run', () => {
 
       await run(core as unknown as Core, {} as unknown as GitHub)
 
+      assert.isTrue(listLabelsForRepoStub.notCalled)
+      assert.isTrue(createLabelStub.notCalled)
+      assert.isTrue(addLabelsStub.notCalled)
       assert.isTrue(setFailed.calledOnce)
       assert.isTrue(setFailed.calledWith('`project-number` must be a number'))
     })
@@ -287,6 +313,9 @@ describe('run', () => {
 
       await run(core as unknown as Core, github as unknown as GitHub)
 
+      assert.isTrue(listLabelsForRepoStub.notCalled)
+      assert.isTrue(createLabelStub.notCalled)
+      assert.isTrue(addLabelsStub.notCalled)
       assert.isTrue(setFailed.notCalled)
       assert.isTrue(info.calledWith('\nNo PR found for commit, moving on...'))
     })
@@ -353,6 +382,9 @@ describe('run', () => {
 
       await run(core as unknown as Core, github as unknown as GitHub)
 
+      assert.isTrue(listLabelsForRepoStub.notCalled)
+      assert.isTrue(createLabelStub.notCalled)
+      assert.isTrue(addLabelsStub.notCalled)
       assert.isTrue(setFailed.calledOnce)
       assert.isTrue(
         setFailed.calledWith(`\nColumn released not found in project board 66`)
@@ -421,17 +453,13 @@ describe('run', () => {
           ...octokit,
           rest: {
             issues: {
-              listLabelsForRepo: () => {
-                return {
-                  data: [MOCK_LIST_LABELS],
-                  status: 200
-                } as unknown as Endpoints['GET /repos/{owner}/{repo}/labels']['response']
-              },
-              createLabel: () => {
-                return {
-                  data: MOCK_CREATED_LABEL
-                } as unknown as Endpoints['POST /repos/{owner}/{repo}/labels']['response']
-              },
+              listLabelsForRepo: listLabelsForRepoStub.resolves({
+                data: [MOCK_LIST_LABELS],
+                status: 200
+              } as unknown as Endpoints['GET /repos/{owner}/{repo}/labels']['response']),
+              createLabel: createLabelStub.resolves({
+                data: MOCK_CREATED_LABEL
+              } as unknown as Endpoints['POST /repos/{owner}/{repo}/labels']['response']),
               get: () => {
                 return {
                   data: {
@@ -447,14 +475,12 @@ describe('run', () => {
                   status: 200
                 }
               },
-              addLabels: () => {
-                return {
-                  data: {
-                    labels: [MOCK_CREATED_LABEL],
-                    status: 200
-                  }
-                } as unknown as Endpoints['POST /repos/{owner}/{repo}/issues/{issue_number}/labels']['response']
-              }
+              addLabels: addLabelsStub.resolves({
+                data: {
+                  labels: [MOCK_CREATED_LABEL],
+                  status: 200
+                }
+              } as unknown as Endpoints['POST /repos/{owner}/{repo}/issues/{issue_number}/labels']['response'])
             }
           }
         }
@@ -473,6 +499,30 @@ describe('run', () => {
 
       await run(core as unknown as Core, github as unknown as GitHub)
 
+      assert.isTrue(
+        listLabelsForRepoStub.calledOnceWithExactly({
+          repo: ISSUE_REPO,
+          owner: ISSUE_OWNER
+        })
+      )
+      assert.isTrue(
+        createLabelStub.calledOnceWithExactly({
+          repo: ISSUE_REPO,
+          owner: ISSUE_OWNER,
+          name: MOCK_LABEL_NAME,
+          color: 'FFFFFF'
+        })
+      )
+      assert.isTrue(
+        addLabelsStub.calledOnceWithExactly({
+          repo: ISSUE_REPO,
+          owner: ISSUE_OWNER,
+          issue_number:
+            MOCK_REFERENCED_CLOSED_ISSUES.repository.pullRequest
+              .closingIssuesReferences.nodes[0].number,
+          labels: [MOCK_LABEL_NAME]
+        })
+      )
       assert.isTrue(setFailed.notCalled)
       assert.isTrue(info.calledWith(`\nSuccessfully moved issue card 123`))
     })
@@ -500,6 +550,9 @@ describe('run', () => {
 
         await run(core as unknown as Core, github as unknown as GitHub)
 
+        assert.isTrue(listLabelsForRepoStub.notCalled)
+        assert.isTrue(createLabelStub.notCalled)
+        assert.isTrue(addLabelsStub.notCalled)
         assert.isTrue(setFailed.notCalled)
         assert.isTrue(
           info.calledWith('\nNo issues found for commit, moving on...')
@@ -544,6 +597,9 @@ describe('run', () => {
 
         await run(core as unknown as Core, github as unknown as GitHub)
 
+        assert.isTrue(listLabelsForRepoStub.notCalled)
+        assert.isTrue(createLabelStub.notCalled)
+        assert.isTrue(addLabelsStub.notCalled)
         assert.isTrue(setFailed.notCalled)
         assert.isTrue(
           info.calledWith(
@@ -591,12 +647,201 @@ describe('run', () => {
 
         await run(core as unknown as Core, github as unknown as GitHub)
 
+        assert.isTrue(listLabelsForRepoStub.notCalled)
+        assert.isTrue(createLabelStub.notCalled)
+        assert.isTrue(addLabelsStub.notCalled)
         assert.isTrue(setFailed.notCalled)
         assert.isTrue(
           info.calledWith(
             '\nIssue 27 is not in the "done" or "dev done" column, moving on...'
           )
         )
+        /**
+         * Called twice for getting the referenced closed issues and the project info
+         */
+        assert.equal(graphqlStub.callCount, 2)
+      })
+    })
+
+    describe('when the issue is related to another repo than action repo', () => {
+      it('should create a new label', async () => {
+        generateInputs()
+
+        const { graphqlStub } = generateResponses({
+          projectInfo: {
+            repository: {
+              issue: {
+                projectItems: {
+                  nodes: [
+                    {
+                      id: '123',
+                      type: 'ISSUE',
+                      project: {
+                        number: 66
+                      },
+                      fieldValueByName: {
+                        name: 'Done'
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        })
+
+        const core = {
+          getInput,
+          setFailed,
+          info
+        }
+
+        await run(core as unknown as Core, github as unknown as GitHub)
+
+        assert.isTrue(
+          listLabelsForRepoStub.calledOnceWithExactly({
+            repo: ISSUE_REPO,
+            owner: ISSUE_OWNER
+          })
+        )
+        assert.isTrue(
+          createLabelStub.calledOnceWithExactly({
+            repo: ISSUE_REPO,
+            owner: ISSUE_OWNER,
+            name: MOCK_LABEL_NAME,
+            color: 'FFFFFF'
+          })
+        )
+        assert.isTrue(
+          addLabelsStub.calledOnceWithExactly({
+            repo: ISSUE_REPO,
+            owner: ISSUE_OWNER,
+            issue_number:
+              MOCK_REFERENCED_CLOSED_ISSUES.repository.pullRequest
+                .closingIssuesReferences.nodes[0].number,
+            labels: [MOCK_LABEL_NAME]
+          })
+        )
+        assert.isTrue(setFailed.notCalled)
+        assert.isTrue(
+          info.calledWith(
+            `The label "${MOCK_LABEL_NAME}" does not exist for the issue repo ${ISSUE_OWNER}/${ISSUE_REPO}, creating...`
+          )
+        )
+        /**
+         * Called twice for getting the referenced closed issues and the project info
+         */
+        assert.equal(graphqlStub.callCount, 2)
+      })
+
+      it('should set existing label', async () => {
+        generateInputs()
+
+        const MOCK_EXIST_LABEL = {
+          id: 123,
+          node_id: 'yyy123',
+          url: 'https://api.github.com/repos/octocat/Hello-World/labels/bug',
+          name: MOCK_LABEL_NAME,
+          description: 'Existing label',
+          color: 'ffffff',
+          default: true
+        }
+
+        const { graphqlStub } = generateResponses({
+          projectInfo: {
+            repository: {
+              issue: {
+                projectItems: {
+                  nodes: [
+                    {
+                      id: '123',
+                      type: 'ISSUE',
+                      project: {
+                        number: 66
+                      },
+                      fieldValueByName: {
+                        name: 'Done'
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        })
+
+        const github = {
+          context: {
+            repo: {
+              owner: 'owner',
+              repo: 'repo'
+            }
+          },
+          getOctokit: () => {
+            return {
+              ...octokit,
+              rest: {
+                issues: {
+                  listLabelsForRepo: listLabelsForRepoStub.resolves({
+                    data: [MOCK_EXIST_LABEL],
+                    status: 200
+                  } as unknown as Endpoints['GET /repos/{owner}/{repo}/labels']['response']),
+                  createLabel: createLabelStub.resolves({
+                    data: MOCK_CREATED_LABEL
+                  } as unknown as Endpoints['POST /repos/{owner}/{repo}/labels']['response']),
+                  get: () => {
+                    return {
+                      data: {
+                        html_url: 'https://github.com/owner/repo/issues/1',
+                        state: 'open'
+                      },
+                      status: 200
+                    }
+                  },
+                  update: () => {
+                    return {
+                      data: {},
+                      status: 200
+                    }
+                  },
+                  addLabels: addLabelsStub.resolves({
+                    data: {
+                      labels: [MOCK_CREATED_LABEL],
+                      status: 200
+                    }
+                  } as unknown as Endpoints['POST /repos/{owner}/{repo}/issues/{issue_number}/labels']['response'])
+                }
+              }
+            }
+          }
+        }
+
+        const core = {
+          getInput,
+          setFailed,
+          info
+        }
+
+        await run(core as unknown as Core, github as unknown as GitHub)
+
+        assert.isTrue(
+          listLabelsForRepoStub.calledOnceWithExactly({
+            repo: ISSUE_REPO,
+            owner: ISSUE_OWNER
+          })
+        )
+        assert.isTrue(createLabelStub.notCalled)
+        assert.isTrue(
+          addLabelsStub.calledOnceWithExactly({
+            repo: ISSUE_REPO,
+            owner: ISSUE_OWNER,
+            issue_number:
+              MOCK_REFERENCED_CLOSED_ISSUES.repository.pullRequest
+                .closingIssuesReferences.nodes[0].number,
+            labels: [MOCK_LABEL_NAME]
+          })
+        )
+        assert.isTrue(setFailed.notCalled)
         /**
          * Called twice for getting the referenced closed issues and the project info
          */
