@@ -34,6 +34,10 @@ export interface GetReferencedClosedIssuesResult {
       closingIssuesReferences: {
         nodes: {
           number: number
+          repository: {
+            owner: { login: string }
+            name: string
+          }
         }[]
       }
     }
@@ -57,6 +61,14 @@ export default async function getReferencedClosedIssues({
             nodes {
               # The issue number of the issue that was closed
               number
+              repository {
+                # The owner where an issue was created
+                owner {
+                  login
+                }
+                # The repo name where an issue was created
+                name
+              }
             }
           }
          }

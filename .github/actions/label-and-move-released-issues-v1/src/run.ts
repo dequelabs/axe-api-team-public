@@ -7,6 +7,12 @@ import getProjectBoardFieldList from '../../add-to-board-v1/src/getProjectBoardF
 import addIssueToBoard from '../../add-to-board-v1/src/addIssueToBoard'
 import moveIssueToColumn from '../../add-to-board-v1/src/moveIssueToColumn'
 
+interface IssueData {
+  number: number
+  owner: string
+  repo: string
+}
+
 export default async function run(core: Core, github: GitHub): Promise<void> {
   try {
     const commitList = core.getInput('commit-list', { required: true })
@@ -29,7 +35,7 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     ])
 
     // Status is the default field name for the project board columns e.g. Backlog, In progress, Done etc
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
     const statusField = fields.find(
       field => field.name.toLowerCase() === 'status'
     )!
@@ -45,25 +51,10 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       return
     }
 
-    const labels = await octokit.rest.issues.listLabelsForRepo({
-      repo,
-      owner
-    })
-
-    core.info(`Found ${labels.data.length} labels`)
-
-    const LABEL = `VERSION: ${version}`
-    const hasLabel = labels.data.some(label => label.name === LABEL)
-
-    if (!hasLabel) {
-      core.info(`Label "${LABEL}" does not exist, creating...`)
-      await octokit.rest.issues.createLabel({
-        repo,
-        owner,
-        name: LABEL,
-        color: 'FFFFFF'
-      })
-    }
+    const LABEL = `VERSION: ${repo}@${version}`
+    let issueOwner: string
+    let issueRepo: string
+    let issueNumber: number
 
     /**
      * Each confirmed issue URL will be stored here. We'll use this to
@@ -87,32 +78,45 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
         octokit
       })
 
-      const issueIDs =
-        referenceClosedIssues.repository.pullRequest.closingIssuesReferences.nodes.map(
-          n => n.number
+      const issueDataArr: IssueData[] =
+        referenceClosedIssues.repository.pullRequest.closingIssuesReferences.nodes.reduce(
+          (arr: IssueData[], item) => {
+            arr.push({
+              number: item.number,
+              owner: item.repository.owner.login,
+              repo: item.repository.name
+            })
+
+            return arr
+          },
+          []
         )
 
-      if (!issueIDs.length) {
+      if (!issueDataArr.length) {
         core.info('\nNo issues found for commit, moving on...')
         continue
       }
 
-      for (const issueNumber of issueIDs) {
+      for (const issueData of issueDataArr) {
+        issueOwner = issueData.owner
+        issueRepo = issueData.repo
+        issueNumber = issueData.number
+
         core.info(
-          `\nFetching project board info for: ${owner}, ${repo}, issue: ${issueNumber} for project: ${projectNumber}`
+          `\nFetching project board info for: ${owner}/${repo},  PR: ${id}, issue: ${issueNumber} for project: ${projectNumber}`
         )
 
-        const issueStatus = await getIssueProjectInfo({
-          owner,
-          repo,
+        const issueStats = await getIssueProjectInfo({
+          owner: issueOwner,
+          repo: issueRepo,
           issueNumber,
           octokit
         })
 
-        core.info(`Found stats: ${JSON.stringify(issueStatus)}`)
+        core.info(`Found stats: ${JSON.stringify(issueStats)}`)
 
         const projectBoard =
-          issueStatus.repository.issue.projectItems.nodes.find(
+          issueStats.repository.issue.projectItems.nodes.find(
             n => n.project.number === projectNumber
           )
 
@@ -134,23 +138,47 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
         }
 
         const { data: issue } = await octokit.rest.issues.get({
-          repo,
-          owner,
+          repo: issueRepo,
+          owner: issueOwner,
           issue_number: issueNumber
         })
 
         if (issue.state !== 'closed') {
           await octokit.rest.issues.update({
-            repo,
-            owner,
+            repo: issueRepo,
+            owner: issueOwner,
             issue_number: issueNumber,
             state: 'closed'
           })
         }
 
+        const labels = await octokit.rest.issues.listLabelsForRepo({
+          repo: issueRepo,
+          owner: issueOwner
+        })
+
+        core.info(
+          `Found ${labels.data.length} labels for the issue repo ${issueOwner}/${issueRepo}`
+        )
+
+        const hasLabel = labels.data.some(label => label.name === LABEL)
+
+        if (!hasLabel) {
+          core.info(
+            `The label "${LABEL}" does not exist for the issue repo ${issueOwner}/${issueRepo}, creating...`
+          )
+
+          await octokit.rest.issues.createLabel({
+            repo: issueRepo,
+            owner: issueOwner,
+            name: LABEL,
+            color: 'FFFFFF'
+          })
+        }
+
         octokit.rest.issues.addLabels({
-          repo,
-          owner,
+          repo: issueRepo,
+          owner: issueOwner,
           issue_number: issueNumber,
           labels: [LABEL]
         })

@@ -11,6 +11,12 @@ export interface GetReferencedClosedIssuesResult {
             closingIssuesReferences: {
                 nodes: {
                     number: number;
+                    repository: {
+                        owner: {
+                            login: string;
+                        };
+                        name: string;
+                    };
                 }[];
             };
         };
