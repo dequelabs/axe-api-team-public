@@ -13,7 +13,7 @@ inputs:
   project-number:
     description: 'The project number of the project board'
     required: false
-    default: '66'
+    default: '186'
   column-name:
     description: 'Name of column to move to'
     required: false
