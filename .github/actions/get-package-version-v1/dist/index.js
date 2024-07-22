@@ -24962,7 +24962,7 @@ const run_1 = __importDefault(__nccwpck_require__(1738));
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.readOptionalFileSync = void 0;
+exports.readOptionalFileSync = readOptionalFileSync;
 function readOptionalFileSync(path, encoding, readFileSync) {
     try {
         return readFileSync(path, encoding);
@@ -24974,7 +24974,6 @@ function readOptionalFileSync(path, encoding, readFileSync) {
         throw err;
     }
 }
-exports.readOptionalFileSync = readOptionalFileSync;
 
 
 /***/ }),
@@ -24985,6 +24984,7 @@ exports.readOptionalFileSync = readOptionalFileSync;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = run;
 const readFile_1 = __nccwpck_require__(8274);
 function run(core, readFileSync) {
     try {
@@ -25004,7 +25004,6 @@ function run(core, readFileSync) {
         core.setFailed(error.message);
     }
 }
-exports["default"] = run;
 
 
 /***/ }),

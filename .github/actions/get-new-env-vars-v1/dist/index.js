@@ -26192,6 +26192,7 @@ const run_1 = __importDefault(__nccwpck_require__(1738));
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = run;
 const exec_1 = __nccwpck_require__(1518);
 async function run(core) {
     try {
@@ -26221,7 +26222,6 @@ async function run(core) {
         core.setFailed(error.message);
     }
 }
-exports["default"] = run;
 
 
 /***/ }),

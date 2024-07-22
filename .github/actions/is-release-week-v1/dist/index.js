@@ -24938,6 +24938,7 @@ const run_1 = __importDefault(__nccwpck_require__(1738));
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = run;
 const utils_1 = __nccwpck_require__(3463);
 function run(core) {
     try {
@@ -24955,7 +24956,6 @@ function run(core) {
         core.setFailed(error.message);
     }
 }
-exports["default"] = run;
 
 
 /***/ }),
@@ -24966,19 +24966,18 @@ exports["default"] = run;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.isReleaseWeek = exports.getWeekNumber = void 0;
+exports.getWeekNumber = getWeekNumber;
+exports.isReleaseWeek = isReleaseWeek;
 function getWeekNumber(date) {
     const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
     const dayOfYear = Math.floor((date.getTime() - firstDayOfYear.getTime()) / (24 * 60 * 60 * 1000)) + 1;
     const weekNumber = Math.ceil((firstDayOfYear.getDay() + dayOfYear) / 7);
     return weekNumber;
 }
-exports.getWeekNumber = getWeekNumber;
 function isReleaseWeek(weekNumber, oddWeek) {
     const offset = oddWeek ? 1 : 0;
     return (weekNumber + offset) % 2 === 0;
 }
-exports.isReleaseWeek = isReleaseWeek;
 
 
 /***/ }),
