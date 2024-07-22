@@ -27,3 +27,22 @@ jobs:
     steps:
       - uses: dequelabs/axe-api-team-public/.github/actions/semantic-pr-footer-v1@main
 ```
+
+## Allowable footers
+
+The footer of a PR will fail unless it [_starts with_ one of the following strings (case insensitive)](https://github.com/dequelabs/axe-api-team-public/blob/main/.github/actions/semantic-pr-footer-v1/src/isValidFooter.ts#L1):
+
+- "close: "
+- "closes: "
+- "closed: "
+- "fix: "
+- "fixes: "
+- "fixed: "
+- "resolve: "
+- "resolves: "
+- "resolved: "
+- "ref: "
+- "refs: "
+- "qa notes: "
+- "no qa required"
+- "no qa needed"
