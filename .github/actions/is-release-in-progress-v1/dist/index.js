@@ -29234,10 +29234,10 @@ const run_1 = __importDefault(__nccwpck_require__(1738));
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = isReleaseInProgress;
 function isReleaseInProgress(pullRequests) {
     return pullRequests.some(pr => pr.labels.some(label => label.name === 'release'));
 }
-exports["default"] = isReleaseInProgress;
 
 
 /***/ }),
@@ -29251,6 +29251,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = run;
 const isReleaseInProgress_1 = __importDefault(__nccwpck_require__(7433));
 async function run(core, github) {
     try {
@@ -29268,7 +29269,6 @@ async function run(core, github) {
         core.setFailed(error.message);
     }
 }
-exports["default"] = run;
 
 
 /***/ }),

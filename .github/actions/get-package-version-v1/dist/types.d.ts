@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import type core from '@actions/core';
 import type { readFileSync } from 'fs';
 export type Core = Pick<typeof core, 'getInput' | 'setOutput' | 'info' | 'setFailed' | 'warning'>;

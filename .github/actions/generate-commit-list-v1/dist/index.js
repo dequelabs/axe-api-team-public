@@ -30931,6 +30931,7 @@ function wrappy (fn, cb) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = doesBranchOrTagExist;
 const exec_1 = __nccwpck_require__(1518);
 async function doesBranchOrTagExist({ branchName, tag }) {
     try {
@@ -30942,7 +30943,6 @@ async function doesBranchOrTagExist({ branchName, tag }) {
         return false;
     }
 }
-exports["default"] = doesBranchOrTagExist;
 
 
 /***/ }),
@@ -30976,6 +30976,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = getCommitType;
 const conventionalCommitsParser = __importStar(__nccwpck_require__(5911));
 function getCommitType(title) {
     const { type } = conventionalCommitsParser.sync(title, {
@@ -30994,7 +30995,6 @@ function getCommitType(title) {
         title.split(':')[0].includes('!');
     return `${type}${hasBreakingSymbol ? '!' : ''}`.toLowerCase();
 }
-exports["default"] = getCommitType;
 
 
 /***/ }),
@@ -31005,6 +31005,7 @@ exports["default"] = getCommitType;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = getFallbackID;
 const exec_1 = __nccwpck_require__(1518);
 async function getFallbackID(sha) {
     try {
@@ -31020,7 +31021,6 @@ async function getFallbackID(sha) {
         return null;
     }
 }
-exports["default"] = getFallbackID;
 
 
 /***/ }),
@@ -31034,6 +31034,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = getParsedCommitList;
 const getCommitType_1 = __importDefault(__nccwpck_require__(8482));
 const getFallbackID_1 = __importDefault(__nccwpck_require__(7294));
 async function getParsedCommitList({ rawCommitList, repository }) {
@@ -31056,7 +31057,6 @@ async function getParsedCommitList({ rawCommitList, repository }) {
     }
     return parsedCommits;
 }
-exports["default"] = getParsedCommitList;
 
 
 /***/ }),
@@ -31067,6 +31067,7 @@ exports["default"] = getParsedCommitList;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = getRawCommitList;
 const exec_1 = __nccwpck_require__(1518);
 async function getRawCommitList({ base, head, tag }) {
     try {
@@ -31078,7 +31079,6 @@ async function getRawCommitList({ base, head, tag }) {
         throw new Error(`Unable to get raw commit list: \n${error.message}`);
     }
 }
-exports["default"] = getRawCommitList;
 
 
 /***/ }),
@@ -31132,6 +31132,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = run;
 const getRawCommitList_1 = __importDefault(__nccwpck_require__(2637));
 const getParsedCommitList_1 = __importDefault(__nccwpck_require__(3368));
 const doesBranchOrTagExist_1 = __importDefault(__nccwpck_require__(636));
@@ -31191,7 +31192,6 @@ async function run(core, github) {
         core.setFailed(error.message);
     }
 }
-exports["default"] = run;
 
 
 /***/ }),

@@ -26436,6 +26436,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = getPackageManager;
 const fs_1 = __nccwpck_require__(7147);
 const path_1 = __importDefault(__nccwpck_require__(1017));
 async function getPackageManager(dirPath) {
@@ -26447,7 +26448,6 @@ async function getPackageManager(dirPath) {
     }
     return undefined;
 }
-exports["default"] = getPackageManager;
 async function exists(filePath) {
     try {
         await fs_1.promises.stat(filePath);
@@ -26507,6 +26507,7 @@ const getPackageManager_1 = __importDefault(__nccwpck_require__(7167));
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = default_1;
 function default_1({ packageManager, pinStrategy, latestAxeCoreVersion, dependencyGroup }) {
     const newAxeVersion = `axe-core@${pinStrategy}${latestAxeCoreVersion}`;
     if (packageManager === 'npm') {
@@ -26519,7 +26520,6 @@ function default_1({ packageManager, pinStrategy, latestAxeCoreVersion, dependen
     }
     throw new Error(`unsupported packageManager: ${packageManager}`);
 }
-exports["default"] = default_1;
 
 
 /***/ }),
@@ -26556,6 +26556,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = run;
 const glob_1 = __nccwpck_require__(1253);
 const exec_1 = __nccwpck_require__(1518);
 const path_1 = __importDefault(__nccwpck_require__(1017));
@@ -26642,7 +26643,6 @@ async function run(core, getPackageManager, cwd) {
         core.setFailed(error.message);
     }
 }
-exports["default"] = run;
 
 
 /***/ }),

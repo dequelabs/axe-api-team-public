@@ -30425,6 +30425,7 @@ function wrappy (fn, cb) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = addIssueToBoard;
 const exec_1 = __nccwpck_require__(1518);
 async function addIssueToBoard({ projectNumber, owner, issueUrl }) {
     try {
@@ -30435,7 +30436,6 @@ async function addIssueToBoard({ projectNumber, owner, issueUrl }) {
         throw new Error(`Error adding issue to project board: ${error.message}`);
     }
 }
-exports["default"] = addIssueToBoard;
 
 
 /***/ }),
@@ -30446,6 +30446,7 @@ exports["default"] = addIssueToBoard;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = getProjectBoardFieldList;
 const exec_1 = __nccwpck_require__(1518);
 async function getProjectBoardFieldList({ projectNumber, owner }) {
     try {
@@ -30456,7 +30457,6 @@ async function getProjectBoardFieldList({ projectNumber, owner }) {
         throw new Error(`Error getting project field list: ${error.message}`);
     }
 }
-exports["default"] = getProjectBoardFieldList;
 
 
 /***/ }),
@@ -30467,6 +30467,7 @@ exports["default"] = getProjectBoardFieldList;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = getProjectBoardID;
 const exec_1 = __nccwpck_require__(1518);
 async function getProjectBoardID({ projectNumber, owner }) {
     try {
@@ -30477,7 +30478,6 @@ async function getProjectBoardID({ projectNumber, owner }) {
         throw new Error(`Error getting project board ID: ${error.message}`);
     }
 }
-exports["default"] = getProjectBoardID;
 
 
 /***/ }),
@@ -30528,6 +30528,7 @@ const run_1 = __importDefault(__nccwpck_require__(1738));
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = moveIssueToColumn;
 const exec_1 = __nccwpck_require__(1518);
 async function moveIssueToColumn({ issueCardID, fieldID, fieldColumnID, projectID }) {
     try {
@@ -30538,7 +30539,6 @@ async function moveIssueToColumn({ issueCardID, fieldID, fieldColumnID, projectI
         throw new Error(`Error moving issue to column: ${error.message}`);
     }
 }
-exports["default"] = moveIssueToColumn;
 
 
 /***/ }),
@@ -30552,6 +30552,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = run;
 const getProjectBoardID_1 = __importDefault(__nccwpck_require__(3499));
 const addIssueToBoard_1 = __importDefault(__nccwpck_require__(9681));
 const getProjectBoardFieldList_1 = __importDefault(__nccwpck_require__(8336));
@@ -30602,7 +30603,6 @@ async function run(core, github) {
         core.setFailed(`Error adding issue to project board: ${error.message}`);
     }
 }
-exports["default"] = run;
 
 
 /***/ }),

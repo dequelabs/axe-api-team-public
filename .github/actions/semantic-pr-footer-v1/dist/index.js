@@ -29234,6 +29234,7 @@ const run_1 = __importDefault(__nccwpck_require__(1738));
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = isValidFooter;
 const validFooters = [
     'close: ',
     'closes: ',
@@ -29254,7 +29255,6 @@ function isValidFooter(footer) {
     footer = footer.toLowerCase();
     return validFooters.some(term => footer.startsWith(term));
 }
-exports["default"] = isValidFooter;
 
 
 /***/ }),
@@ -29269,6 +29269,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.ignoredActors = void 0;
+exports["default"] = run;
 const isValidFooter_1 = __importDefault(__nccwpck_require__(6592));
 exports.ignoredActors = [
     'dependabot[bot]',
@@ -29308,7 +29309,6 @@ function run(core, github) {
         core.setFailed(error.message);
     }
 }
-exports["default"] = run;
 
 
 /***/ }),

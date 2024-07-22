@@ -30425,6 +30425,7 @@ function wrappy (fn, cb) {
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = addIssueToBoard;
 const exec_1 = __nccwpck_require__(1518);
 async function addIssueToBoard({ projectNumber, owner, issueUrl }) {
     try {
@@ -30435,7 +30436,6 @@ async function addIssueToBoard({ projectNumber, owner, issueUrl }) {
         throw new Error(`Error adding issue to project board: ${error.message}`);
     }
 }
-exports["default"] = addIssueToBoard;
 
 
 /***/ }),
@@ -30446,6 +30446,7 @@ exports["default"] = addIssueToBoard;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = getProjectBoardFieldList;
 const exec_1 = __nccwpck_require__(1518);
 async function getProjectBoardFieldList({ projectNumber, owner }) {
     try {
@@ -30456,7 +30457,6 @@ async function getProjectBoardFieldList({ projectNumber, owner }) {
         throw new Error(`Error getting project field list: ${error.message}`);
     }
 }
-exports["default"] = getProjectBoardFieldList;
 
 
 /***/ }),
@@ -30467,6 +30467,7 @@ exports["default"] = getProjectBoardFieldList;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = getProjectBoardID;
 const exec_1 = __nccwpck_require__(1518);
 async function getProjectBoardID({ projectNumber, owner }) {
     try {
@@ -30477,7 +30478,6 @@ async function getProjectBoardID({ projectNumber, owner }) {
         throw new Error(`Error getting project board ID: ${error.message}`);
     }
 }
-exports["default"] = getProjectBoardID;
 
 
 /***/ }),
@@ -30488,6 +30488,7 @@ exports["default"] = getProjectBoardID;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = moveIssueToColumn;
 const exec_1 = __nccwpck_require__(1518);
 async function moveIssueToColumn({ issueCardID, fieldID, fieldColumnID, projectID }) {
     try {
@@ -30498,7 +30499,6 @@ async function moveIssueToColumn({ issueCardID, fieldID, fieldColumnID, projectI
         throw new Error(`Error moving issue to column: ${error.message}`);
     }
 }
-exports["default"] = moveIssueToColumn;
 
 
 /***/ }),
@@ -30509,6 +30509,7 @@ exports["default"] = moveIssueToColumn;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = getIssueProjectInfo;
 async function getIssueProjectInfo({ owner, repo, issueNumber, octokit }) {
     try {
         return octokit.graphql(`
@@ -30547,7 +30548,6 @@ async function getIssueProjectInfo({ owner, repo, issueNumber, octokit }) {
         throw new Error(`Failed to get project info for issue ${issueNumber}: ${error.message}`);
     }
 }
-exports["default"] = getIssueProjectInfo;
 
 
 /***/ }),
@@ -30558,6 +30558,7 @@ exports["default"] = getIssueProjectInfo;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = getReferencedClosedIssues;
 async function getReferencedClosedIssues({ owner, repo, pullRequestID, octokit }) {
     try {
         return octokit.graphql(`
@@ -30592,7 +30593,6 @@ async function getReferencedClosedIssues({ owner, repo, pullRequestID, octokit }
         throw new Error(`Failed to get referenced closed issue for pull request ID ${pullRequestID}: ${error.message}`);
     }
 }
-exports["default"] = getReferencedClosedIssues;
 
 
 /***/ }),
@@ -30646,6 +30646,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = run;
 const getIssueProjectInfo_1 = __importDefault(__nccwpck_require__(4422));
 const getReferencedClosedIssues_1 = __importDefault(__nccwpck_require__(1831));
 const getProjectBoardID_1 = __importDefault(__nccwpck_require__(6966));
@@ -30786,7 +30787,6 @@ async function run(core, github) {
         core.setFailed(error.message);
     }
 }
-exports["default"] = run;
 
 
 /***/ }),

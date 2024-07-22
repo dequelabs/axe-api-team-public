@@ -24964,6 +24964,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = run;
 const shouldAutoRelease_1 = __importDefault(__nccwpck_require__(4815));
 async function run(core) {
     try {
@@ -24990,7 +24991,6 @@ async function run(core) {
         core.setFailed(error.message);
     }
 }
-exports["default"] = run;
 
 
 /***/ }),
@@ -25001,6 +25001,7 @@ exports["default"] = run;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = shouldAutoRelease;
 function shouldAutoRelease({ commitList, isVersionLocked }) {
     if (!commitList.length) {
         return false;
@@ -25034,7 +25035,6 @@ function shouldAutoRelease({ commitList, isVersionLocked }) {
     }
     return true;
 }
-exports["default"] = shouldAutoRelease;
 
 
 /***/ }),
