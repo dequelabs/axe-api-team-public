@@ -29249,10 +29249,7 @@ const validFooterPrefixes = [
     'refs',
     'qa notes'
 ];
-const validFooters = [
-    'no qa needed',
-    'no qa required'
-];
+const validFooters = ['no qa needed', 'no qa required'];
 const validFooterPrefixRegex = new RegExp(`^(${validFooterPrefixes.join('|')}):? `, 'i');
 function isValidFooter(footer) {
     footer = footer.toLowerCase();
