@@ -29235,25 +29235,28 @@ const run_1 = __importDefault(__nccwpck_require__(1738));
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports["default"] = isValidFooter;
-const validFooters = [
-    'close: ',
-    'closes: ',
-    'closed: ',
-    'fix: ',
-    'fixes: ',
-    'fixed: ',
-    'resolve: ',
-    'resolves: ',
-    'resolved: ',
-    'ref: ',
-    'refs: ',
-    'qa notes: ',
-    'no qa required',
-    'no qa needed'
+const validFooterPrefixes = [
+    'close',
+    'closes',
+    'closed',
+    'fix',
+    'fixes',
+    'fixed',
+    'resolve',
+    'resolves',
+    'resolved',
+    'ref',
+    'refs',
+    'qa notes'
 ];
+const validFooters = [
+    'no qa needed',
+    'no qa required'
+];
+const validFooterPrefixRegex = new RegExp(`^(${validFooterPrefixes.join('|')}):? `, 'i');
 function isValidFooter(footer) {
     footer = footer.toLowerCase();
-    return validFooters.some(term => footer.startsWith(term));
+    return validFooters.includes(footer) || validFooterPrefixRegex.test(footer);
 }
 
 
