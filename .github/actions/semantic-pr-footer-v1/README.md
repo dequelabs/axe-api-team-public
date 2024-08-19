@@ -30,7 +30,7 @@ jobs:
 
 ## Allowable footers
 
-The footer of a PR will fail unless it [_starts with_ one of the following strings (case insensitive)](https://github.com/dequelabs/axe-api-team-public/blob/main/.github/actions/semantic-pr-footer-v1/src/isValidFooter.ts#L1):
+The footer of a PR will fail unless it [_starts with_ one of the following strings (case insensitive, and the colon may be omitted)](https://github.com/dequelabs/axe-api-team-public/blob/main/.github/actions/semantic-pr-footer-v1/src/isValidFooter.ts#L1):
 
 - "close: "
 - "closes: "
