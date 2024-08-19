@@ -29251,9 +29251,9 @@ const validFooterPrefixes = [
 ];
 const validFooters = ['no qa needed', 'no qa required'];
 const validFooterPrefixRegex = new RegExp(`^(${validFooterPrefixes.join('|')}):? `, 'i');
+const validFooterRegex = new RegExp(`^(${validFooters.join('|')})`, 'i');
 function isValidFooter(footer) {
-    footer = footer.toLowerCase();
-    return validFooters.includes(footer) || validFooterPrefixRegex.test(footer);
+    return validFooterRegex.test(footer) || validFooterPrefixRegex.test(footer);
 }
 
 

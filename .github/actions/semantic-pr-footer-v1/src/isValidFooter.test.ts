@@ -28,7 +28,9 @@ describe('isValidFooter', () => {
     'QA Notes ',
     'QA Notes: ',
     'No QA required',
-    'No QA needed'
+    'No QA needed',
+    'No QA required (test only)',
+    'No QA needed: validate as part of separate ticket'
   ]
 
   for (const validCase of validCases) {
