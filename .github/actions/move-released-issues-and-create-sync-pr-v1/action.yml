@@ -8,11 +8,11 @@ inputs:
   project-number:
     description: 'A project number of the project board'
     required: false
-    default: '66'
+    default: '186'
   column-name:
     description: 'Name of column to move to'
     required: false
-    default: 'released'
+    default: 'Released'
   head:
     description: 'A head branch to sync from'
     required: false
