@@ -2,6 +2,7 @@ import type { Core } from './types'
 import { glob } from 'glob'
 import { getExecOutput } from '@actions/exec'
 import path from 'path'
+import semver from 'semver'
 import type { PackageManager } from './types'
 import installScript from './installScript'
 
@@ -40,14 +41,18 @@ export default async function run(
       core.info(`package.json found in ${filePath}`)
       const pkg = await import(filePath)
 
-      /*
-        we don't currently have any packages that have axe-core
-        peer dependencies, but if we do eventually add one we
-        want this update script to fail and inform us that we
-        need to update the script to handle updating it
-      */
-      if (pkg.peerDependencies?.['axe-core']) {
-        throw new Error('axe-core peerDependencies not currently supported')
+      const peerDep = pkg.peerDependencies?.['axe-core']
+      if (peerDep) {
+        if (semver.satisfies(latestAxeCoreVersion, peerDep)) {
+          core.info(
+            `axe-core peerDependency ${peerDep} is already satisfied by new version ${latestAxeCoreVersion}`
+          )
+          // Keep evaluating, there might *also* be a devDependency
+        } else {
+          throw new Error(
+            `axe-core peerDependency ${peerDep} is not satisfied by new version ${latestAxeCoreVersion}.\nA human maintainer will need to decide how to handle this.`
+          )
+        }
       }
 
       if (
