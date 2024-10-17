@@ -4,7 +4,8 @@ A GitHub action for updating axe-core to the latest stable version.
 
 - It updates `package.json`, `yarn.lock`, and `package-lock.json`.
 - It is compatible with both workspaces and non-workspaces monorepos.
-- It handles dependencies and devDependencies.
+- It auto-updates dependencies and devDependencies.
+- It validates that peerDependency ranges satisfy the new version.
 - It maintains whatever pinning strategy was already in place (`~`, `^`, or `=`).
 - It does _not_ commit changes or create a PR.
 
