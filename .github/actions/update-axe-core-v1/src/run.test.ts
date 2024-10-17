@@ -147,45 +147,45 @@ describe('run', () => {
     )
   })
 
-  it('succeeds if package has an satisfied axe-core peer dependency', async () => {
-    await createFile(cwd, 'packages/peer-dep/package.json', {
-      peerDependencies: {
-        'axe-core': '^4.0.0'
-      }
-    })
-    const core = { info, setFailed }
-    await run(
-      core as unknown as Core,
-      getPackageManagerStub,
-      path.join(cwd, 'packages', 'peer-dep')
-    )
+  describe('peerDependency handling', () => {
+    it('succeeds if package has an satisfied axe-core peer dependency', async () => {
+      await createFile(cwd, 'packages/peer-dep-satisfied/package.json', {
+        peerDependencies: {
+          'axe-core': '^4.0.0'
+        }
+      })
+      const core = { info, setFailed, setOutput }
+      await run(
+        core as unknown as Core,
+        getPackageManagerStub,
+        path.join(cwd, 'packages', 'peer-dep-satisfied')
+      )
 
-    assert.isTrue(
-      info.calledWith(
+      sinon.assert.calledWith(
+        core.info,
         'axe-core peerDependency ^4.0.0 is already satisfied by new version 4.8.1'
       )
-    )
-    assert.isFalse(setFailed.called)
-  })
-
-  it('fails if package has an unsatisfied axe-core peer dependency', async () => {
-    await createFile(cwd, 'packages/peer-dep/package.json', {
-      peerDependencies: {
-        'axe-core': '^3.0.0 || <=4.5.0'
-      }
+      sinon.assert.notCalled(core.setFailed)
     })
-    const core = { info, setFailed }
-    await run(
-      core as unknown as Core,
-      getPackageManagerStub,
-      path.join(cwd, 'packages', 'peer-dep')
-    )
 
-    assert.isTrue(
-      core.setFailed.calledWith(
-        'axe-core peerDependency ^3.0.0 || <=4.5.0 is not satisfied by new version 4.8.1.\nA human maintainer will need to decide how to handle this.'
+    it('fails if package has an unsatisfied axe-core peer dependency', async () => {
+      await createFile(cwd, 'packages/peer-dep-unsatisfied/package.json', {
+        peerDependencies: {
+          'axe-core': '^3.0.0 || >=4.8.2'
+        }
+      })
+      const core = { info, setFailed, setOutput }
+      await run(
+        core as unknown as Core,
+        getPackageManagerStub,
+        path.join(cwd, 'packages', 'peer-dep-unsatisfied')
       )
-    )
+
+      sinon.assert.calledWith(
+        core.setFailed,
+        'axe-core peerDependency ^3.0.0 || >=4.8.2 is not satisfied by new version 4.8.1.\nA human maintainer will need to decide how to handle this.'
+      )
+    })
   })
 
   describe('package manager', () => {
