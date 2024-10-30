@@ -40,15 +40,19 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       field => field.name.toLowerCase() === 'status'
     )!
 
-    const column = statusField.options.find(
-      option => option.name.toLowerCase() === releaseColumn
-    )
+    let column
 
-    if (!column) {
-      core.setFailed(
-        `\nColumn ${releaseColumn} not found in project board ${projectNumber}`
+    if (releaseColumn) {
+      column = statusField.options.find(
+        option => option.name.toLowerCase() === releaseColumn
       )
-      return
+
+      if (!column) {
+        core.setFailed(
+          `\nColumn ${releaseColumn} not found in project board ${projectNumber}`
+        )
+        return
+      }
     }
 
     const LABEL = `VERSION: ${repo}@${version}`
@@ -198,16 +202,22 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
 
       core.info(`\nReceived issue card ID ${issueCardID}`)
 
-      core.info(`\nMoving issue card ${issueCardID} to column ${releaseColumn}`)
+      if (column) {
+        core.info(
+          `\nMoving issue card ${issueCardID} to column ${releaseColumn}`
+        )
 
-      await moveIssueToColumn({
-        issueCardID,
-        fieldID: statusField.id,
-        fieldColumnID: column.id,
-        projectID: projectBoardID
-      })
+        await moveIssueToColumn({
+          issueCardID,
+          fieldID: statusField.id,
+          fieldColumnID: column.id,
+          projectID: projectBoardID
+        })
 
-      core.info(`\nSuccessfully moved issue card ${issueCardID}`)
+        core.info(`\nSuccessfully moved issue card ${issueCardID}`)
+      } else {
+        core.info(`\nNot moving issue card. No column name provided.`)
+      }
     }
   } catch (error) {
     core.setFailed((error as Error).message)

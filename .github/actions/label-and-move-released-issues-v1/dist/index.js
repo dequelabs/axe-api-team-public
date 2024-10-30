@@ -30671,10 +30671,13 @@ async function run(core, github) {
             (0, getProjectBoardFieldList_1.default)({ projectNumber, owner })
         ]);
         const statusField = fields.find(field => field.name.toLowerCase() === 'status');
-        const column = statusField.options.find(option => option.name.toLowerCase() === releaseColumn);
-        if (!column) {
-            core.setFailed(`\nColumn ${releaseColumn} not found in project board ${projectNumber}`);
-            return;
+        let column;
+        if (releaseColumn) {
+            column = statusField.options.find(option => option.name.toLowerCase() === releaseColumn);
+            if (!column) {
+                core.setFailed(`\nColumn ${releaseColumn} not found in project board ${projectNumber}`);
+                return;
+            }
         }
         const LABEL = `VERSION: ${repo}@${version}`;
         let issueOwner;
@@ -30773,14 +30776,19 @@ async function run(core, github) {
                 issueUrl: issueURL
             });
             core.info(`\nReceived issue card ID ${issueCardID}`);
-            core.info(`\nMoving issue card ${issueCardID} to column ${releaseColumn}`);
-            await (0, moveIssueToColumn_1.default)({
-                issueCardID,
-                fieldID: statusField.id,
-                fieldColumnID: column.id,
-                projectID: projectBoardID
-            });
-            core.info(`\nSuccessfully moved issue card ${issueCardID}`);
+            if (column) {
+                core.info(`\nMoving issue card ${issueCardID} to column ${releaseColumn}`);
+                await (0, moveIssueToColumn_1.default)({
+                    issueCardID,
+                    fieldID: statusField.id,
+                    fieldColumnID: column.id,
+                    projectID: projectBoardID
+                });
+                core.info(`\nSuccessfully moved issue card ${issueCardID}`);
+            }
+            else {
+                core.info(`\nNot moving issue card. No column name provided.`);
+            }
         }
     }
     catch (error) {

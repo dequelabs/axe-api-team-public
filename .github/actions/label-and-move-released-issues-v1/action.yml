@@ -17,7 +17,7 @@ inputs:
   column-name:
     description: 'Name of column to move to'
     required: false
-    default: 'released'
+    default: ''
 runs:
   using: 'node20'
   main: 'dist/index.js'
