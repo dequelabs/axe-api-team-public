@@ -392,6 +392,94 @@ describe('run', () => {
     })
   })
 
+  describe('when the release column is not provided', () => {
+    it('should not move the issue', async () => {
+      generateInputs({ releaseColumn: '' })
+
+      // getProjectBoardID Stub
+      getExecOutput.onFirstCall().resolves({
+        stdout: JSON.stringify(MOCK_PROJECT_BOARD_ID)
+      })
+      // getProjectBoardFieldList Stub
+      getExecOutput.onSecondCall().resolves({
+        stdout: JSON.stringify(MOCK_FIELD_LIST)
+      })
+
+      // addIssueToBoard Stub
+      getExecOutput.onThirdCall().resolves({
+        stdout: JSON.stringify({
+          id: '123'
+        })
+      })
+
+      const core = {
+        getInput,
+        setFailed,
+        info
+      }
+
+      const github = {
+        context: {
+          repo: {
+            owner: 'owner',
+            repo: 'repo'
+          }
+        },
+        getOctokit: () => {
+          return {
+            ...octokit,
+            rest: {
+              issues: {
+                listLabelsForRepo: listLabelsForRepoStub.resolves({
+                  data: [MOCK_LIST_LABELS],
+                  status: 200
+                } as unknown as Endpoints['GET /repos/{owner}/{repo}/labels']['response']),
+                createLabel: createLabelStub.resolves({
+                  data: MOCK_CREATED_LABEL
+                } as unknown as Endpoints['POST /repos/{owner}/{repo}/labels']['response']),
+                get: () => {
+                  return {
+                    data: {
+                      html_url: 'https://github.com/owner/repo/issues/1',
+                      state: 'open'
+                    },
+                    status: 200
+                  }
+                },
+                update: () => {
+                  return {
+                    data: {},
+                    status: 200
+                  }
+                },
+                addLabels: addLabelsStub.resolves({
+                  data: {
+                    labels: [MOCK_CREATED_LABEL],
+                    status: 200
+                  }
+                } as unknown as Endpoints['POST /repos/{owner}/{repo}/issues/{issue_number}/labels']['response'])
+              }
+            }
+          }
+        }
+      }
+
+      const graphqlStub = sinon.stub(octokit, 'graphql')
+
+      // getReferencedClosedIssues 1st call
+      graphqlStub.onFirstCall().resolves(MOCK_REFERENCED_CLOSED_ISSUES)
+      // getIssueProjectInfo 1st call
+      graphqlStub.onSecondCall().resolves(MOCK_PROJECT_INFO)
+
+      await run(core as unknown as Core, github as unknown as GitHub)
+
+      assert.equal(getExecOutput.callCount, 3)
+      assert.isTrue(
+        info.calledWith(`\nNot moving issue card. No column name provided.`)
+      )
+    })
+  })
+
   describe('given the required inputs', () => {
     interface GenerateResponsesArgs {
       referencedClosedIssues?: object
