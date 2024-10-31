@@ -10,7 +10,7 @@ This action labels and moves issues that have been released.
 | `version`        | Yes      | The version number of the release                                    | NA      |
 | `token`          | Yes      | The GitHub token with the required permissions (see below)           | NA      |
 | `project-number` | No       | The project number of the project board                              | 186     |
-| `column-name`    | No       | Name of column to move to, if provided                               | `''`    |
+| `column-name`    | No       | Name of column to move to, if one is provided                        | `''`    |
 
 ## Example
 
