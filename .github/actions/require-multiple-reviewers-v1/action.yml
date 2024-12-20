@@ -1,0 +1,22 @@
+name: Require multiple reviewers
+description: Require multiple reviewers for important files
+
+# Define your inputs here.
+inputs:
+  token:
+    description: 'A GitHub token with the required permissions'
+    required: true
+  number-of-reviewers:
+    description: 'The number of reviewers required.'
+    required: true
+    default: '2'
+  changed-files-path:
+    description: 'The path to the file containing a list of changed files.'
+    required: true
+  important-files-path:
+    description: 'The path to the file containing a list of important files.'
+    required: true
+
+runs:
+  using: node20
+  main: dist/index.js
