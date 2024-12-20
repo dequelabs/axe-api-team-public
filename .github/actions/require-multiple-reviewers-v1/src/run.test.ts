@@ -186,4 +186,52 @@ describe('run()', () => {
 
     getFilesStub.restore()
   })
+
+  it('should fail if number-of-reviewers is not a number', async () => {
+    const getFilesStub = sinon.stub(getFiles, 'getFiles').returns({
+      changedFiles: ['file1.txt'],
+      importantFiles: ['file1.txt']
+    })
+    const core = {
+      getInput: sinon.stub().callsFake((name: string) => {
+        switch (name) {
+          case 'changed-files-path':
+            return 'changed-files-path'
+          case 'important-files-path':
+            return 'important-files-path'
+          case 'number-of-reviewers':
+            return 'not-a-number'
+          case 'token':
+            return 'token'
+          default:
+            throw new Error(`Unexpected input: ${name}`)
+        }
+      }),
+      setOutput: sinon.spy(),
+      setFailed: sinon.spy(),
+      info: sinon.spy()
+    }
+
+    const github = {}
+
+    await run(core as unknown as Core, github as unknown as GitHub)
+
+    assert.isTrue(
+      core.setFailed.calledOnceWith('number-of-reviewers input is not a number')
+    )
+
+    getFilesStub.restore()
+  })
+
+  it('should catch an error and set failed', async () => {
+    const core = {
+      getInput: sinon.stub().throws({ message: 'error' }),
+      setFailed: sinon.spy()
+    }
+    const github = {}
+
+    await run(core as unknown as Core, github as unknown as GitHub)
+
+    assert.isTrue(core.setFailed.calledOnceWith('error'))
+  })
 })
