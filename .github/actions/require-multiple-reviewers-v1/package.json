@@ -1,0 +1,41 @@
+{
+  "name": "require-multiple-reviewers-v1",
+  "version": "1.0.0",
+  "description": "A GitHub Action that requires multiple reviewers for a pull request",
+  "bugs": {
+    "url": "https://github.com/dequelabs/axe-api-team-public/issues"
+  },
+  "homepage": "https://github.com/dequelabs/axe-api-team-public#readme",
+  "license": "MPL-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dequelabs/axe-api-team-public.git"
+  },
+  "scripts": {
+    "prebuild": "rimraf dist",
+    "build": "ncc build src/index.ts --license ../../../licenses.txt",
+    "test": "mocha src/*.test.ts",
+    "coverage": "nyc npm run test",
+    "fmt": "prettier --write \"src/**/*.{js,ts,tsx,json,md,css,html}\"",
+    "lint": "eslint \"src/**/*.{ts,tsx}\""
+  },
+  "nyc": {
+    "checkCoverage": true,
+    "extension": [
+      ".ts"
+    ],
+    "reporter": [
+      "text-summary",
+      "html"
+    ],
+    "statements": 100,
+    "branches": 100,
+    "functions": 100,
+    "lines": 100,
+    "exclude": [
+      "dist",
+      "coverage",
+      "**/*.test.ts"
+    ]
+  }
+}
