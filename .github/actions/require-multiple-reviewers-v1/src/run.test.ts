@@ -2,7 +2,7 @@ import sinon from 'sinon'
 import { assert } from 'chai'
 import run from './run'
 import { Core, GitHub } from './types'
-import * as getFiles from './getFiles'
+import * as utils from './utils'
 
 describe('run()', () => {
   afterEach(() => {
@@ -13,29 +13,43 @@ describe('run()', () => {
     const core = {
       getInput: sinon
         .stub()
-        .withArgs('changed-files-path', { required: true })
-        .throws({ message: 'changed-files-path input is not given' }),
+        .withArgs('token', { required: true })
+        .throws({ message: 'token input is not given' }),
       setFailed: sinon.spy()
     }
-    const github = {}
+    const github = {
+      context: {
+        repo: {
+          owner: 'owner',
+          repo: 'repo'
+        },
+        payload: {
+          pull_request: {
+            number: 1,
+            head: {
+              sha: 'commit-sha'
+            }
+          }
+        }
+      }
+    }
 
     run(core as unknown as Core, github as unknown as GitHub)
-    assert.isTrue(
-      core.setFailed.calledOnceWith('changed-files-path input is not given')
-    )
+    assert.isTrue(core.setFailed.calledOnceWith('token input is not given'))
   })
 
   it('should run successfully', async () => {
-    const getFilesStub = sinon.stub(getFiles, 'getFiles').returns({
-      changedFiles: ['file1.txt'],
-      importantFiles: ['file1.txt']
-    })
-
     const octokit = {
       rest: {
         pulls: {
           listReviews: sinon.stub().resolves({
             data: [{ state: 'APPROVED' }, { state: 'APPROVED' }]
+          }),
+          listFiles: sinon.stub().resolves({
+            data: [
+              { status: 'added', filename: 'file1' },
+              { status: 'added', filename: 'file2' }
+            ]
           })
         }
       },
@@ -45,8 +59,6 @@ describe('run()', () => {
     const core = {
       getInput: sinon.stub().callsFake((name: string) => {
         switch (name) {
-          case 'changed-files-path':
-            return 'changed-files-path'
           case 'important-files-path':
             return 'important-files-path'
           case 'number-of-reviewers':
@@ -79,6 +91,10 @@ describe('run()', () => {
         }
       }
     }
+
+    const getImportantFilesChanged = sinon
+      .stub(utils, 'getImportantFilesChanged')
+      .returns(['file1', 'file2'])
 
     await run(core as unknown as Core, github as unknown as GitHub)
 
@@ -103,20 +119,21 @@ describe('run()', () => {
       )
     )
 
-    getFilesStub.restore()
+    getImportantFilesChanged.restore()
   })
 
   it('should fail if not enough reviewers', async () => {
-    const getFilesStub = sinon.stub(getFiles, 'getFiles').returns({
-      changedFiles: ['file1.txt'],
-      importantFiles: ['file1.txt']
-    })
-
     const octokit = {
       rest: {
         pulls: {
           listReviews: sinon.stub().resolves({
             data: []
+          }),
+          listFiles: sinon.stub().resolves({
+            data: [
+              { status: 'added', filename: 'file1' },
+              { status: 'added', filename: 'file2' }
+            ]
           })
         }
       },
@@ -126,8 +143,6 @@ describe('run()', () => {
     const core = {
       getInput: sinon.stub().callsFake((name: string) => {
         switch (name) {
-          case 'changed-files-path':
-            return 'changed-files-path'
           case 'important-files-path':
             return 'important-files-path'
           case 'number-of-reviewers':
@@ -161,10 +176,21 @@ describe('run()', () => {
       }
     }
 
+    const getImportantFilesChanged = sinon
+      .stub(utils, 'getImportantFilesChanged')
+      .returns(['file1', 'file2'])
+
     await run(core as unknown as Core, github as unknown as GitHub)
 
     assert.isTrue(core.setFailed.notCalled)
 
+    assert.isTrue(
+      octokit.rest.pulls.listFiles.calledWithMatch({
+        owner: 'owner',
+        repo: 'repo',
+        pull_number: 1
+      })
+    )
     assert.isTrue(octokit.rest.pulls.listReviews.calledOnce)
     assert.isTrue(
       octokit.rest.pulls.listReviews.calledWithMatch({
@@ -184,19 +210,13 @@ describe('run()', () => {
       )
     )
 
-    getFilesStub.restore()
+    getImportantFilesChanged.restore()
   })
 
   it('should fail if number-of-reviewers is not a number', async () => {
-    const getFilesStub = sinon.stub(getFiles, 'getFiles').returns({
-      changedFiles: ['file1.txt'],
-      importantFiles: ['file1.txt']
-    })
     const core = {
       getInput: sinon.stub().callsFake((name: string) => {
         switch (name) {
-          case 'changed-files-path':
-            return 'changed-files-path'
           case 'important-files-path':
             return 'important-files-path'
           case 'number-of-reviewers':
@@ -212,26 +232,62 @@ describe('run()', () => {
       info: sinon.spy()
     }
 
-    const github = {}
+    const github = {
+      context: {
+        repo: {
+          owner: 'owner',
+          repo: 'repo'
+        },
+        payload: {
+          pull_request: {
+            number: 1,
+            head: {
+              sha: 'commit-sha'
+            }
+          }
+        }
+      }
+    }
 
     await run(core as unknown as Core, github as unknown as GitHub)
 
     assert.isTrue(
       core.setFailed.calledOnceWith('number-of-reviewers input is not a number')
     )
+  })
 
-    getFilesStub.restore()
+  it('should fail if not in a pull request context', async () => {
+    const core = {
+      getInput: sinon.stub().returns('token'),
+      setFailed: sinon.spy()
+    }
+    const github = {
+      context: {
+        payload: {}
+      }
+    }
+
+    await run(core as unknown as Core, github as unknown as GitHub)
+
+    assert.isTrue(
+      core.setFailed.calledOnceWith(
+        'This action can only be run in the context of a pull request.'
+      )
+    )
   })
 
   it('should catch an error and set failed', async () => {
     const core = {
-      getInput: sinon.stub().throws({ message: 'error' }),
       setFailed: sinon.spy()
     }
     const github = {}
 
     await run(core as unknown as Core, github as unknown as GitHub)
 
-    assert.isTrue(core.setFailed.calledOnceWith('error'))
+    assert.isTrue(
+      core.setFailed.calledOnceWith(
+        "Cannot read properties of undefined (reading 'payload')"
+      )
+    )
   })
 })

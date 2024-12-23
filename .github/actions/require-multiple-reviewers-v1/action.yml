@@ -10,11 +10,8 @@ inputs:
     description: 'The number of reviewers required.'
     required: true
     default: '2'
-  changed-files-path:
-    description: 'The path to the file containing a list of changed files.'
-    required: true
   important-files-path:
-    description: 'The path to the file containing a list of important files.'
+    description: 'The path to the file containing a list of important files (gitignore syntax supported).'
     required: true
 
 runs:

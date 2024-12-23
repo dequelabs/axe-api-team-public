@@ -1,22 +1,13 @@
-import { getAnnotations } from './getAnnotations'
-import { getFiles } from './getFiles'
+import { getAnnotations, getImportantFilesChanged } from './utils'
 import type { Conclusion, Core, GitHub } from './types'
 
 export default async function run(core: Core, github: GitHub): Promise<void> {
   try {
-    const CHANGED_FILES_PATH = core.getInput('changed-files-path', {
-      required: true
-    })
-    const IMPORTANT_FILES_PATH = core.getInput('important-files-path', {
-      required: true
-    })
-    const { changedFiles, importantFiles } = getFiles(
-      CHANGED_FILES_PATH,
-      IMPORTANT_FILES_PATH
-    )
-    const importantFilesChanged = changedFiles.filter(changedFile =>
-      importantFiles.includes(changedFile)
-    )
+    if (!github.context.payload.pull_request) {
+      throw new Error(
+        'This action can only be run in the context of a pull request.'
+      )
+    }
 
     const numberOfReviewers = parseInt(
       core.getInput('number-of-reviewers', { required: true }),
@@ -29,6 +20,24 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     const token = core.getInput('token', { required: true })
     const octokit = github.getOctokit(token)
     const { owner, repo } = github.context.repo
+
+    const { data: files } = await octokit.rest.pulls.listFiles({
+      owner,
+      repo,
+      pull_number: github.context.payload.pull_request.number
+    })
+
+    const changedFiles = files
+      .filter(file => file.status !== 'unchanged')
+      .map(file => file.filename)
+
+    const importantFilesChanged = getImportantFilesChanged(
+      core.getInput('important-files-path', {
+        required: true
+      }),
+      changedFiles
+    )
+
     const requiresMultipleReviewers = importantFilesChanged.length > 0
     let conclusion: Conclusion = 'neutral'
 
