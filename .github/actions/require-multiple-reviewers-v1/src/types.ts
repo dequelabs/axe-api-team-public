@@ -14,3 +14,5 @@ type Output = NonNullable<
 export type Annotation = NonNullable<Output['annotations']>[number]
 export type Conclusion =
   Endpoints['POST /repos/{owner}/{repo}/check-runs']['parameters']['conclusion']
+export type Review =
+  Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews']['response']['data'][0]

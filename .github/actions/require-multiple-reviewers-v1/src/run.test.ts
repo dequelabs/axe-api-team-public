@@ -96,6 +96,8 @@ describe('run()', () => {
       .stub(utils, 'getImportantFilesChanged')
       .returns(['file1', 'file2'])
 
+    const getApproversCount = sinon.stub(utils, 'getApproversCount').returns(2)
+
     await run(core as unknown as Core, github as unknown as GitHub)
 
     assert.isTrue(core.setFailed.notCalled)
@@ -120,6 +122,7 @@ describe('run()', () => {
     )
 
     getImportantFilesChanged.restore()
+    getApproversCount.restore()
   })
 
   it('should fail if not enough reviewers', async () => {
@@ -180,6 +183,8 @@ describe('run()', () => {
       .stub(utils, 'getImportantFilesChanged')
       .returns(['file1', 'file2'])
 
+    const getApproversCount = sinon.stub(utils, 'getApproversCount').returns(0)
+
     await run(core as unknown as Core, github as unknown as GitHub)
 
     assert.isTrue(core.setFailed.notCalled)
@@ -211,6 +216,7 @@ describe('run()', () => {
     )
 
     getImportantFilesChanged.restore()
+    getApproversCount.restore()
   })
 
   it('should fail if number-of-reviewers is not a number', async () => {

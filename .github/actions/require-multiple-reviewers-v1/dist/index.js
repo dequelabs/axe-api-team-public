@@ -29910,8 +29910,8 @@ async function run(core, github) {
                 repo,
                 pull_number: github.context.payload.pull_request.number
             });
-            const approvals = reviews.filter(review => review.state === 'APPROVED');
-            conclusion = approvals.length < numberOfReviewers ? 'failure' : 'success';
+            const approvals = (0, utils_1.getApproversCount)(reviews);
+            conclusion = approvals < numberOfReviewers ? 'failure' : 'success';
         }
         await octokit.request('POST /repos/{owner}/{repo}/check-runs', {
             owner,
@@ -29947,6 +29947,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.getAnnotations = getAnnotations;
 exports.getImportantFilesChanged = getImportantFilesChanged;
+exports.getApproversCount = getApproversCount;
 const fs_1 = __importDefault(__nccwpck_require__(7147));
 const ignore_1 = __importDefault(__nccwpck_require__(5989));
 function getAnnotations(importantFilesChanged, reviewersNumber) {
@@ -29959,9 +29960,29 @@ function getAnnotations(importantFilesChanged, reviewersNumber) {
     }));
 }
 function getImportantFilesChanged(IMPORTANT_FILES_PATH, changedFiles) {
-    const i = (0, ignore_1.default)()
-        .add(fs_1.default.readFileSync(IMPORTANT_FILES_PATH, 'utf-8').toString());
+    const i = (0, ignore_1.default)().add(fs_1.default.readFileSync(IMPORTANT_FILES_PATH, 'utf-8').toString());
     return changedFiles.filter(file => i.ignores(file));
+}
+function getApproversCount(reviews) {
+    const latestReviews = reviews.reduce((acc, review) => {
+        if (!review.user) {
+            return acc;
+        }
+        if (!acc.has(review.user.login)) {
+            acc.set(review.user.login, review);
+        }
+        else {
+            const existingReview = acc.get(review.user.login);
+            if (review.submitted_at &&
+                existingReview.submitted_at &&
+                new Date(review.submitted_at) > new Date(existingReview.submitted_at)) {
+                acc.set(review.user.login, review);
+            }
+        }
+        return acc;
+    }, new Map());
+    const approvals = Array.from(latestReviews.values()).filter(review => review.state === 'APPROVED');
+    return approvals.length;
 }
 
 

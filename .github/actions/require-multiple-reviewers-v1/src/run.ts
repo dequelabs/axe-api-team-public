@@ -1,4 +1,8 @@
-import { getAnnotations, getImportantFilesChanged } from './utils'
+import {
+  getAnnotations,
+  getImportantFilesChanged,
+  getApproversCount
+} from './utils'
 import type { Conclusion, Core, GitHub } from './types'
 
 export default async function run(core: Core, github: GitHub): Promise<void> {
@@ -48,8 +52,8 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
         pull_number: github.context.payload.pull_request!.number
       })
 
-      const approvals = reviews.filter(review => review.state === 'APPROVED')
-      conclusion = approvals.length < numberOfReviewers ? 'failure' : 'success'
+      const approvals = getApproversCount(reviews)
+      conclusion = approvals < numberOfReviewers ? 'failure' : 'success'
     }
 
     await octokit.request('POST /repos/{owner}/{repo}/check-runs', {

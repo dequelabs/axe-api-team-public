@@ -1,8 +1,12 @@
 import { expect } from 'chai'
 import fs from 'fs'
 import sinon from 'sinon'
-import { Annotation } from './types'
-import { getAnnotations, getImportantFilesChanged } from './utils'
+import { Annotation, Review } from './types'
+import {
+  getAnnotations,
+  getImportantFilesChanged,
+  getApproversCount
+} from './utils'
 
 describe('utils', () => {
   describe('getAnnotations', () => {
@@ -175,6 +179,103 @@ describe('utils', () => {
       )
 
       expect(result).to.deep.equal([])
+    })
+  })
+
+  describe('getApproversCount', () => {
+    it('should return the correct number of approvers', () => {
+      const reviews = [
+        {
+          user: { login: 'user1' },
+          state: 'APPROVED',
+          submitted_at: '2023-01-01T00:00:00Z'
+        },
+        {
+          user: { login: 'user2' },
+          state: 'APPROVED',
+          submitted_at: '2023-01-02T00:00:00Z'
+        },
+        {
+          user: { login: 'user3' },
+          state: 'CHANGES_REQUESTED',
+          submitted_at: '2023-01-03T00:00:00Z'
+        }
+      ]
+
+      const result = getApproversCount(reviews as Array<Review>)
+
+      expect(result).to.equal(2)
+    })
+
+    it('should handle multiple reviews from the same user and count only the latest approval', () => {
+      const reviews = [
+        {
+          user: { login: 'user1' },
+          state: 'APPROVED',
+          submitted_at: '2023-01-01T00:00:00Z'
+        },
+        {
+          user: { login: 'user1' },
+          state: 'CHANGES_REQUESTED',
+          submitted_at: '2023-01-02T00:00:00Z'
+        },
+        {
+          user: { login: 'user2' },
+          state: 'APPROVED',
+          submitted_at: '2023-01-03T00:00:00Z'
+        },
+        {
+          user: { login: 'user2' },
+          state: 'APPROVED',
+          submitted_at: '2023-01-04T00:00:00Z'
+        }
+      ]
+
+      const result = getApproversCount(reviews as Array<Review>)
+
+      expect(result).to.equal(1)
+    })
+
+    it('should return 0 if there are no approvals', () => {
+      const reviews = [
+        {
+          user: { login: 'user1' },
+          state: 'CHANGES_REQUESTED',
+          submitted_at: '2023-01-01T00:00:00Z'
+        },
+        {
+          user: { login: 'user2' },
+          state: 'COMMENTED',
+          submitted_at: '2023-01-02T00:00:00Z'
+        }
+      ]
+
+      const result = getApproversCount(reviews as Array<Review>)
+
+      expect(result).to.equal(0)
+    })
+
+    it('should handle an empty array of reviews', () => {
+      const reviews: Array<Review> = []
+
+      const result = getApproversCount(reviews)
+
+      expect(result).to.equal(0)
+    })
+
+    it('should handle reviews with missing user information', () => {
+      const reviews = [
+        { user: null, state: 'APPROVED', submitted_at: '2023-01-01T00:00:00Z' },
+        {
+          user: { login: 'user2' },
+          state: 'APPROVED',
+          submitted_at: '2023-01-02T00:00:00Z'
+        }
+      ]
+
+      const result = getApproversCount(reviews as Array<Review>)
+
+      expect(result).to.equal(1)
     })
   })
 })

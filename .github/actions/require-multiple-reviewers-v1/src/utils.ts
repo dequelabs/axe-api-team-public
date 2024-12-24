@@ -1,6 +1,6 @@
 import fs from 'fs'
 import ignore from 'ignore'
-import { Annotation } from './types'
+import { Annotation, Review } from './types'
 
 /**
  * Returns an array of annotations for the important files that require multiple reviewers.
@@ -37,4 +37,36 @@ export function getImportantFilesChanged(
 
   // Return the files that have changed and are important, since they will be "ignored" if this was a gitignore file.
   return changedFiles.filter(file => i.ignores(file))
+}
+
+/**
+ * Returns the number of approvals after filtering to the latest review of each reviewer.
+ * @param reviews
+ * @returns number
+ */
+export function getApproversCount(reviews: Array<Review>): number {
+  // Get the latest review from each reviewer
+  const latestReviews = reviews.reduce((acc, review) => {
+    if (!review.user) {
+      return acc
+    }
+    if (!acc.has(review.user.login)) {
+      acc.set(review.user.login, review)
+    } else {
+      const existingReview = acc.get(review.user.login)
+      if (
+        review.submitted_at &&
+        existingReview!.submitted_at &&
+        new Date(review.submitted_at) > new Date(existingReview!.submitted_at)
+      ) {
+        acc.set(review.user.login, review)
+      }
+    }
+    return acc
+  }, new Map<string, Review>())
+  // Filter only approvals
+  const approvals = Array.from(latestReviews.values()).filter(
+    review => review.state === 'APPROVED'
+  )
+  return approvals.length
 }

@@ -6,4 +6,5 @@ export type GitHub = Pick<typeof github, 'context' | 'getOctokit'>;
 type Output = NonNullable<Endpoints['POST /repos/{owner}/{repo}/check-runs']['parameters']['output']>;
 export type Annotation = NonNullable<Output['annotations']>[number];
 export type Conclusion = Endpoints['POST /repos/{owner}/{repo}/check-runs']['parameters']['conclusion'];
+export type Review = Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews']['response']['data'][0];
 export {};
