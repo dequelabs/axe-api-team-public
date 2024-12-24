@@ -30,11 +30,11 @@ export function getImportantFilesChanged(
   IMPORTANT_FILES_PATH: string,
   changedFiles: string[]
 ): string[] {
-  // Since this is the ignore package, it will filter out files that match the patterns
-  const notImportantFiles = ignore()
-    .add(fs.readFileSync(IMPORTANT_FILES_PATH, 'utf-8').toString())
-    .filter(changedFiles)
+  // Use the ignore package to create a filter for the important files.
+  const i = ignore().add(
+    fs.readFileSync(IMPORTANT_FILES_PATH, 'utf-8').toString()
+  )
 
-  // Get all the files that were filtered out earlier - those are the important files
-  return changedFiles.filter(file => !notImportantFiles.includes(file))
+  // Return the files that have changed and are important, since they will be "ignored" if this was a gitignore file.
+  return changedFiles.filter(file => i.ignores(file))
 }

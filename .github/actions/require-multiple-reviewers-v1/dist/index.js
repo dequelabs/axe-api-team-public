@@ -29959,10 +29959,9 @@ function getAnnotations(importantFilesChanged, reviewersNumber) {
     }));
 }
 function getImportantFilesChanged(IMPORTANT_FILES_PATH, changedFiles) {
-    const notImportantFiles = (0, ignore_1.default)()
-        .add(fs_1.default.readFileSync(IMPORTANT_FILES_PATH, 'utf-8').toString())
-        .filter(changedFiles);
-    return changedFiles.filter(file => !notImportantFiles.includes(file));
+    const i = (0, ignore_1.default)()
+        .add(fs_1.default.readFileSync(IMPORTANT_FILES_PATH, 'utf-8').toString());
+    return changedFiles.filter(file => i.ignores(file));
 }
 
 

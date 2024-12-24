@@ -15,6 +15,13 @@ A GitHub Action that requires multiple reviewers for important files
 ```yaml
 name: Require multiple reviewers
 
+# This must be both pull_request and pull_request_review.
+# pull_request - for when the PR is initially created (or files are changed)
+# pull_request_review - for when the count of reviews on a PR changes
+on:
+  pull_request:
+  pull_request_review:
+
 jobs:
   require-multiple-reviewers:
     runs-on: ubuntu-latest
@@ -24,10 +31,12 @@ jobs:
       contents: read
       checks: write
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - name: Require two reviewers for important files
         uses: dequelabs/axe-api-team-public/.github/actions/require-multiple-reviewers-v1@main
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ github.token }}
           number-of-reviewers: 2
           important-files-path: .github/important-files.txt
 ```
