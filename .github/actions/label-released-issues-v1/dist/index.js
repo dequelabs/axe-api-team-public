@@ -29346,7 +29346,9 @@ async function run(core, github) {
             core.setFailed('`project-number` must be a number');
             return;
         }
-        const boardDoneColumns = boardDoneColumnsString.split(',').map(columnName => columnName.trim().toLowerCase());
+        const boardDoneColumns = boardDoneColumnsString
+            .split(',')
+            .map(columnName => columnName.trim().toLowerCase());
         const octokit = github.getOctokit(token);
         const { repo, owner } = github.context.repo;
         const LABEL = `RELEASED: ${repo} ${labelTag}`;
