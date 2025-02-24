@@ -1,0 +1,26 @@
+name: label-released-issues-v1
+description: This action labels and closes issues that have been released.
+inputs:
+  commit-list:
+    description: The list of released commits
+    required: true
+  label-tag:
+    description: 'The released tag name (e.g. v1.2.0)'
+    required: true
+  project-number:
+    description: 'The project number of the project board'
+    required: true
+  done-columns:
+    description: 'Board column names mean that an issue is done (must be comma separated "done,devDone")'
+    required: false
+    default: 'done,devDone'
+  token:
+    description: 'A GitHub token with the required permissions'
+    required: true
+outputs:
+  issue-urls:
+    description: 'The issues URLs that are related to the release'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
