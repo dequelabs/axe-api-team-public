@@ -1,0 +1,23 @@
+name: get-latest-and-previous-tags-v1
+description: 'A GitHub Action to retrieve the latest and the previous one Git tags'
+
+outputs:
+  latest-tag:
+    description: 'Latest Git tag name (eg. v1.2.0)'
+    value: ${{ steps.get-tags.outputs.latest-tag }}
+  previous-tag:
+    description: 'Previous Git tag name (eg. v1.1.0)'
+    value: ${{ steps.get-tags.outputs.previous-tag }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Get latest and previous tags
+      id: get-tags
+      shell: bash
+      run: |
+        LATEST_TAG=$(git describe --abbrev=0 --tags)
+        PREVIOUS_TAG=$(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1))
+        
+        echo "latest-tag=$LATEST_TAG" >> $GITHUB_OUTPUT
+        echo "previous-tag=$PREVIOUS_TAG" >> $GITHUB_OUTPUT
