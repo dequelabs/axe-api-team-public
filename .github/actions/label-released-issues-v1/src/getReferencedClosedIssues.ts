@@ -44,7 +44,6 @@ export interface GetReferencedClosedIssuesResult {
   }
 }
 
-// TODO: to work with
 export default async function getReferencedClosedIssues({
   owner,
   repo,

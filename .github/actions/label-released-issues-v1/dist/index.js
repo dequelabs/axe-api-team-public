@@ -29188,7 +29188,7 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 4422:
+/***/ 9641:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -29332,7 +29332,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports["default"] = run;
-const getIssueProjectInfo_1 = __importDefault(__nccwpck_require__(4422));
+const getIssueProjectInfo_1 = __importDefault(__nccwpck_require__(9641));
 const getReferencedClosedIssues_1 = __importDefault(__nccwpck_require__(1831));
 const DEFAULT_DONE_COLUMNS = 'done,devDone';
 async function run(core, github) {

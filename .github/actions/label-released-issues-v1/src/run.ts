@@ -1,6 +1,6 @@
 import type { Core, GitHub } from './types'
 import { ParsedCommitList } from '../../generate-commit-list-v1/src/types'
-import getIssueProjectInfo from './getIssueProjectInfo'
+import getIssueProjectInfo from '../../label-and-move-released-issues-v1/src/getIssueProjectInfo'
 import getReferencedClosedIssues from './getReferencedClosedIssues'
 
 interface IssueData {
