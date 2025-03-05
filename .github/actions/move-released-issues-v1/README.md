@@ -6,9 +6,13 @@ This action moves issues that have been released.
 
 | Name              | Required | Description                             | Default |
 | ----------------- | -------- | --------------------------------------- | ------- |
-| `issues-url-list` | Yes      | The list of released issues URL         | NA      |
+| `issues-url-list` | Yes      | The list of released issues URL\*       | NA      |
 | `project-number`  | Yes      | The project number of the project board | NA      |
 | `release-сolumn`  | Yes      | Column name to move a released issue    | NA      |
+
+### Notes:
+
+\*The value for the input `issues-url-list` should be taken from the [label-released-issues-v1](https://github.com/dequelabs/axe-api-team-public/tree/main/.github/actions/label-released-issues-v1) GitHub action output.
 
 ## Example
 
