@@ -1,7 +1,7 @@
 import type { Core, GitHub } from './types'
 import { ParsedCommitList } from '../../generate-commit-list-v1/src/types'
 import getIssueProjectInfo from '../../label-and-move-released-issues-v1/src/getIssueProjectInfo'
-import getReferencedClosedIssues from './getReferencedClosedIssues'
+import getReferencedClosedIssues from '../../label-and-move-released-issues-v1/src/getReferencedClosedIssues'
 
 interface IssueData {
   number: number
@@ -19,7 +19,7 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     const projectNumber = parseInt(
       core.getInput('project-number', { required: true })
     )
-    const boardDoneColumnsString =
+    const boardColumnsString =
       core.getInput('done-columns') || DEFAULT_DONE_COLUMNS
 
     if (isNaN(projectNumber)) {
@@ -27,7 +27,7 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       return
     }
 
-    const boardDoneColumns = boardDoneColumnsString
+    const boardColumns = boardColumnsString
       .split(',')
       .map(columnName => columnName.trim().toLowerCase())
 
@@ -110,9 +110,9 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
 
         const { name: columnNameStatus } = projectBoard.fieldValueByName
 
-        if (!boardDoneColumns.includes(columnNameStatus.toLowerCase())) {
+        if (!boardColumns.includes(columnNameStatus.toLowerCase())) {
           core.info(
-            `\nThe issue ${issueNumber} is not in one of the "${boardDoneColumns.join(',')}" columns, moving on...`
+            `\nThe issue ${issueNumber} is not in one of the "${boardColumnsString}" columns, moving on...`
           )
           continue
         }

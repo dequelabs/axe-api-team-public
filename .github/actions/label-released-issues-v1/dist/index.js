@@ -29237,7 +29237,7 @@ async function getIssueProjectInfo({ owner, repo, issueNumber, octokit }) {
 
 /***/ }),
 
-/***/ 1831:
+/***/ 4515:
 /***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
@@ -29250,7 +29250,7 @@ async function getReferencedClosedIssues({ owner, repo, pullRequestID, octokit }
       query getReferencedClosedIssues($owner: String!, $repo: String!, $pullRequestID: Int!) {
         repository(owner: $owner, name: $repo) {
          pullRequest(number: $pullRequestID) {
-          # An arbitrary number of issues to get (we expect 1 PR : 1 issue, there can be cases where there are more, but 5 issues limit it for performance reasons)
+          # Arbitrary number of issues to get (we expect 1 PR : 1 issue, there can be cases where there are more)
           closingIssuesReferences(first: 5) {
             nodes {
               # The issue number of the issue that was closed
@@ -29333,7 +29333,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports["default"] = run;
 const getIssueProjectInfo_1 = __importDefault(__nccwpck_require__(9641));
-const getReferencedClosedIssues_1 = __importDefault(__nccwpck_require__(1831));
+const getReferencedClosedIssues_1 = __importDefault(__nccwpck_require__(4515));
 const DEFAULT_DONE_COLUMNS = 'done,devDone';
 async function run(core, github) {
     try {
@@ -29341,12 +29341,12 @@ async function run(core, github) {
         const labelTag = core.getInput('label-tag', { required: true });
         const token = core.getInput('token', { required: true });
         const projectNumber = parseInt(core.getInput('project-number', { required: true }));
-        const boardDoneColumnsString = core.getInput('done-columns') || DEFAULT_DONE_COLUMNS;
+        const boardColumnsString = core.getInput('done-columns') || DEFAULT_DONE_COLUMNS;
         if (isNaN(projectNumber)) {
             core.setFailed('`project-number` must be a number');
             return;
         }
-        const boardDoneColumns = boardDoneColumnsString
+        const boardColumns = boardColumnsString
             .split(',')
             .map(columnName => columnName.trim().toLowerCase());
         const octokit = github.getOctokit(token);
@@ -29399,8 +29399,8 @@ async function run(core, github) {
                     continue;
                 }
                 const { name: columnNameStatus } = projectBoard.fieldValueByName;
-                if (!boardDoneColumns.includes(columnNameStatus.toLowerCase())) {
-                    core.info(`\nThe issue ${issueNumber} is not in one of the "${boardDoneColumns.join(',')}" columns, moving on...`);
+                if (!boardColumns.includes(columnNameStatus.toLowerCase())) {
+                    core.info(`\nThe issue ${issueNumber} is not in one of the "${boardColumnsString}" columns, moving on...`);
                     continue;
                 }
                 const { data: issue } = await octokit.rest.issues.get({

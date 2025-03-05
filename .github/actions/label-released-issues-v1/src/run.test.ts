@@ -599,7 +599,7 @@ describe('run', () => {
         assert.isTrue(setFailed.notCalled)
         assert.isTrue(
           info.calledWith(
-            `\nThe issue 27 is not in one of the "${DEFAULT_DONE_COLUMNS.toLowerCase()}" columns, moving on...`
+            `\nThe issue 27 is not in one of the "${DEFAULT_DONE_COLUMNS}" columns, moving on...`
           )
         )
         /**
