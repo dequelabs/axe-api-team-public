@@ -11,14 +11,19 @@ inputs:
   should-checkout:
     description: 'Whether or not the action should checkout the repository'
     default: 'true'
-
+  should-setup-node:
+    description: 'Whether or not the action should setup node on behalf of the consumer'
+    default: 'true'
+    
 runs:
   using: 'composite'
   steps:
     - name: Checkout repository
       if: ${{ inputs.should-checkout == 'true' }}
       uses: actions/checkout@v4
-    - uses: actions/setup-node@v3
+    - name: Setup Node
+      if: ${{ inputs.should-checkout == 'true' }}
+      uses: actions/setup-node@v4
       with:
         node-version: 18
     - id: update-axe-core
