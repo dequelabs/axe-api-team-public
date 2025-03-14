@@ -30578,7 +30578,9 @@ async function getIssuesByProjectAndLabel({ core, owner, octokit, labelPrefix, p
         const filteredIssues = allIssues.filter((issue) => {
             const statusField = issue.fieldValues?.nodes?.find((fieldValue) => fieldValue?.field && fieldValue.field.id === statusFieldId);
             const currentColumnId = statusField?.optionId;
-            if (sourceColumnId && currentColumnId && currentColumnId !== sourceColumnId) {
+            if (sourceColumnId &&
+                currentColumnId &&
+                currentColumnId !== sourceColumnId) {
                 return false;
             }
             if (currentColumnId === targetColumnId) {
@@ -30598,7 +30600,7 @@ async function getIssuesByProjectAndLabel({ core, owner, octokit, labelPrefix, p
             url: issue.content.url,
             repository: {
                 owner: issue.content.repository.owner.login,
-                repo: issue.content.repository.name,
+                repo: issue.content.repository.name
             }
         }));
         core.info(`\nFound issues: ${JSON.stringify(result)}`);
@@ -30702,7 +30704,7 @@ async function run(core, github) {
             statusFieldId: statusField.id,
             targetColumnId: targetColumnData.id,
             sourceColumnId: sourceColumnData?.id,
-            sourceColumn,
+            sourceColumn
         });
         core.info(`\nFound ${issues.length} issues to move`);
         core.info(`\nStart moving issues to the "${targetColumn}" column...`);
