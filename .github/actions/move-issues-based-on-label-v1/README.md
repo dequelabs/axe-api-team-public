@@ -9,6 +9,7 @@ This action moves issues based on a label and a source column (if it is provided
 | `project-number` | Yes      | The project number of the project board                                                                         | NA      |
 | `source-column`  | No       | The name of the column where issues should be found and moved from                                              | NA      |
 | `target-column`  | Yes      | The name of the column where matching issues will be moved to                                                   | NA      |
+| `team-label`     | No       | The team label name to move only team-related issues                                                            | NA      |
 | `label-prefix`   | Yes      | The label to match against issues (e.g. "release" will find all issues with a label that starts with "release") | NA      |
 | `token`          | Yes      | The GitHub token with the required permissions (see below)                                                      | NA      |
 
@@ -33,6 +34,7 @@ jobs:
           project-number: 186
           target-column: 'released'
           source-column: 'done'
+          team-label: 'team-name'
           label-prefix: 'RELEASED:'
           token: ${{ secrets.GITHUB_TOKEN }}
     env:

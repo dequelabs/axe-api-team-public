@@ -30561,7 +30561,7 @@ const getAllProjectIssuesWithPagination = async ({ core, owner, octokit, project
     }
     return allItems;
 };
-async function getIssuesByProjectAndLabel({ core, owner, octokit, labelPrefix, projectNumber, statusFieldId, targetColumnId, sourceColumnId, sourceColumn }) {
+async function getIssuesByProjectAndLabel({ core, owner, octokit, labelPrefix, projectNumber, statusFieldId, targetColumnId, sourceColumnId, sourceColumn, teamLabel }) {
     try {
         core.info(`\nGetting not-filtered issues from the project board ${projectNumber} recursively...`);
         const allIssues = await getAllProjectIssuesWithPagination({
@@ -30573,7 +30573,8 @@ async function getIssuesByProjectAndLabel({ core, owner, octokit, labelPrefix, p
         core.info(`\nGot all not-filtered ${allIssues.length} issues from the project board ${projectNumber}`);
         core.info(`\nStart filtering issues by the conditions: ${JSON.stringify({
             labelPrefix,
-            sourceColumn
+            sourceColumn,
+            teamLabel
         })}...`);
         const filteredIssues = allIssues.filter((issue) => {
             const statusField = issue.fieldValues?.nodes?.find((fieldValue) => fieldValue?.field && fieldValue.field.id === statusFieldId);
@@ -30586,12 +30587,24 @@ async function getIssuesByProjectAndLabel({ core, owner, octokit, labelPrefix, p
             if (currentColumnId === targetColumnId) {
                 return false;
             }
-            const issueLabels = issue?.content.labels?.nodes?.map((label) => label.name);
-            const hasMatchingLabel = issueLabels?.some((labelName) => labelName.toLowerCase().startsWith(labelPrefix.toLowerCase()));
-            if (!hasMatchingLabel) {
-                return false;
+            const issueLabels = issue?.content.labels?.nodes?.map((label) => label.name) ||
+                [];
+            let hasMatchingLabel = false;
+            let hasTeamLabel = !teamLabel;
+            for (const labelName of issueLabels) {
+                const lowercaseLabelName = labelName.toLowerCase();
+                if (lowercaseLabelName.startsWith(labelPrefix.toLowerCase().trim())) {
+                    hasMatchingLabel = true;
+                }
+                if (teamLabel &&
+                    lowercaseLabelName === teamLabel.toLowerCase().trim()) {
+                    hasTeamLabel = true;
+                }
+                if (hasMatchingLabel && hasTeamLabel) {
+                    break;
+                }
             }
-            return true;
+            return hasMatchingLabel && hasTeamLabel;
         });
         const result = filteredIssues.map((issue) => ({
             id: issue.id,
@@ -30673,6 +30686,7 @@ async function run(core, github) {
         const projectNumber = parseInt(core.getInput('project-number', { required: true }));
         const sourceColumn = core.getInput('source-column', { required: false });
         const targetColumn = core.getInput('target-column', { required: true });
+        const teamLabel = core.getInput('team-label', { required: false });
         const labelPrefix = core.getInput('label-prefix', { required: true });
         const token = core.getInput('token', { required: true });
         if (isNaN(projectNumber)) {
@@ -30704,7 +30718,8 @@ async function run(core, github) {
             statusFieldId: statusField.id,
             targetColumnId: targetColumnData.id,
             sourceColumnId: sourceColumnData?.id,
-            sourceColumn
+            sourceColumn,
+            teamLabel
         });
         core.info(`\nFound ${issues.length} issues to move`);
         core.info(`\nStart moving issues to the "${targetColumn}" column...`);

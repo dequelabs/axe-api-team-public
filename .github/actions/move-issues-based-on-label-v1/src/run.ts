@@ -21,6 +21,7 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     )
     const sourceColumn = core.getInput('source-column', { required: false })
     const targetColumn = core.getInput('target-column', { required: true })
+    const teamLabel = core.getInput('team-label', { required: false })
     const labelPrefix = core.getInput('label-prefix', { required: true })
     const token = core.getInput('token', { required: true })
 
@@ -70,7 +71,8 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       statusFieldId: statusField.id,
       targetColumnId: targetColumnData.id,
       sourceColumnId: sourceColumnData?.id,
-      sourceColumn
+      sourceColumn,
+      teamLabel
     })
 
     core.info(`\nFound ${issues.length} issues to move`)

@@ -66,6 +66,7 @@ interface GetIssuesByProjectAndLabelArgs {
   sourceColumnId?: string
   targetColumnId: string
   sourceColumn?: string
+  teamLabel?: string
 }
 
 export interface IssueResult {
@@ -178,7 +179,8 @@ export default async function getIssuesByProjectAndLabel({
   statusFieldId,
   targetColumnId,
   sourceColumnId,
-  sourceColumn
+  sourceColumn,
+  teamLabel
 }: GetIssuesByProjectAndLabelArgs): Promise<IssueResult[]> {
   try {
     core.info(
@@ -199,7 +201,8 @@ export default async function getIssuesByProjectAndLabel({
     core.info(
       `\nStart filtering issues by the conditions: ${JSON.stringify({
         labelPrefix,
-        sourceColumn
+        sourceColumn,
+        teamLabel
       })}...`
     )
 
@@ -227,19 +230,35 @@ export default async function getIssuesByProjectAndLabel({
           return false
         }
 
-        // Filter issues by a label prefix
-        const issueLabels: string[] | undefined =
-          issue?.content.labels?.nodes?.map((label: LabelNode) => label.name)
-        const hasMatchingLabel: boolean | undefined = issueLabels?.some(
-          (labelName: string) =>
-            labelName.toLowerCase().startsWith(labelPrefix.toLowerCase())
-        )
+        const issueLabels: string[] =
+          issue?.content.labels?.nodes?.map((label: LabelNode) => label.name) ||
+          []
 
-        if (!hasMatchingLabel) {
-          return false
+        let hasMatchingLabel: boolean = false
+        // if 'teamLabel' is not provided, then we should not filter by it
+        let hasTeamLabel: boolean = !teamLabel
+
+        // Start filtering by label prefix and team label
+        for (const labelName of issueLabels) {
+          const lowercaseLabelName = labelName.toLowerCase()
+
+          if (lowercaseLabelName.startsWith(labelPrefix.toLowerCase().trim())) {
+            hasMatchingLabel = true
+          }
+
+          if (
+            teamLabel &&
+            lowercaseLabelName === teamLabel.toLowerCase().trim()
+          ) {
+            hasTeamLabel = true
+          }
+
+          if (hasMatchingLabel && hasTeamLabel) {
+            break
+          }
         }
 
-        return true
+        return hasMatchingLabel && hasTeamLabel
       }
     )
 

@@ -53,6 +53,7 @@ interface GetIssuesByProjectAndLabelArgs {
     sourceColumnId?: string;
     targetColumnId: string;
     sourceColumn?: string;
+    teamLabel?: string;
 }
 export interface IssueResult {
     id: string;
@@ -64,5 +65,5 @@ export interface IssueResult {
         repo: string;
     };
 }
-export default function getIssuesByProjectAndLabel({ core, owner, octokit, labelPrefix, projectNumber, statusFieldId, targetColumnId, sourceColumnId, sourceColumn }: GetIssuesByProjectAndLabelArgs): Promise<IssueResult[]>;
+export default function getIssuesByProjectAndLabel({ core, owner, octokit, labelPrefix, projectNumber, statusFieldId, targetColumnId, sourceColumnId, sourceColumn, teamLabel }: GetIssuesByProjectAndLabelArgs): Promise<IssueResult[]>;
 export {};

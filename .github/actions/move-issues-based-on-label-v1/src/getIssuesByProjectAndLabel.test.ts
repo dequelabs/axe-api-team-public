@@ -11,6 +11,7 @@ import getIssuesByProjectAndLabel, {
 
 const owner = 'owner_name'
 const labelPrefix = 'release:'
+const teamLabel = 'team-name-label'
 const projectNumber = 123
 const statusFieldId = 'PVTSSF_lADOAD55W84AjfJEzgb1044'
 const targetColumnId = '2b75f771'
@@ -63,6 +64,9 @@ const FIRST_ISSUE_MOCK: ProjectItemNode = {
         },
         {
           name: `${labelPrefix} 1.0.0`
+        },
+        {
+          name: teamLabel
         }
       ]
     }
@@ -187,6 +191,23 @@ describe('getIssuesByProjectAndLabel', () => {
       })
 
       assert.deepEqual(result, createIssuesResult([SECOND_ISSUE_MOCK]))
+    })
+
+    it('by a label prefix AND team label', async () => {
+      graphql.resolves(ISSUES_NODE_MOCK)
+
+      const result = await getIssuesByProjectAndLabel({
+        core,
+        owner,
+        octokit,
+        labelPrefix,
+        projectNumber,
+        statusFieldId,
+        targetColumnId,
+        teamLabel
+      })
+
+      assert.deepEqual(result, createIssuesResult([FIRST_ISSUE_MOCK]))
     })
 
     it('by only label prefix because a source column is not provided', async () => {

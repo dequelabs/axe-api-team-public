@@ -7,6 +7,7 @@ import type { default as runType } from './run'
 
 const ghToken = 'github token'
 const owner = 'owner_name'
+const teamLabelName = 'team-name-label'
 const label = 'release:'
 const project = 123
 const projectBoardId = 'PVT_kwDOAD55W84AjfJE'
@@ -76,6 +77,7 @@ describe('run', () => {
     projectNumber?: string
     sourceColumn?: string
     targetColumn?: string
+    teamLabel?: string
     labelPrefix?: string
     token?: string
   }
@@ -90,6 +92,9 @@ describe('run', () => {
     const targetColumn = getInputStub
       .withArgs('target-column', { required: true })
       .returns(inputs?.targetColumn ?? targetColumnName)
+    const teamLabel = getInputStub
+      .withArgs('team-label', { required: false })
+      .returns(inputs?.teamLabel ?? teamLabelName)
     const labelPrefix = getInputStub
       .withArgs('label-prefix', { required: true })
       .returns(inputs?.labelPrefix ?? label)
@@ -101,6 +106,7 @@ describe('run', () => {
       projectNumber,
       sourceColumn,
       targetColumn,
+      teamLabel,
       labelPrefix,
       token
     }
@@ -271,7 +277,8 @@ describe('run', () => {
           statusFieldId,
           targetColumnId,
           sourceColumnId,
-          sourceColumn: sourceColumnName
+          sourceColumn: sourceColumnName,
+          teamLabel: teamLabelName
         })
       )
       assert.isTrue(
