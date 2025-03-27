@@ -30563,7 +30563,7 @@ const getAllProjectIssuesWithPagination = async ({ core, owner, octokit, project
 };
 async function getIssuesByProjectAndLabel({ core, owner, octokit, labelPrefix, projectNumber, statusFieldId, targetColumnId, sourceColumnId, sourceColumn, teamLabel }) {
     try {
-        core.info(`\nGetting not-filtered issues from the project board ${projectNumber} recursively...`);
+        core.info(`\nGetting issues from the project board ${projectNumber}...`);
         const allIssues = await getAllProjectIssuesWithPagination({
             core,
             owner,
@@ -30587,23 +30587,9 @@ async function getIssuesByProjectAndLabel({ core, owner, octokit, labelPrefix, p
             if (currentColumnId === targetColumnId) {
                 return false;
             }
-            const issueLabels = issue?.content.labels?.nodes?.map((label) => label.name) ||
-                [];
-            let hasMatchingLabel = false;
-            let hasTeamLabel = !teamLabel;
-            for (const labelName of issueLabels) {
-                const lowercaseLabelName = labelName.toLowerCase();
-                if (lowercaseLabelName.startsWith(labelPrefix.toLowerCase().trim())) {
-                    hasMatchingLabel = true;
-                }
-                if (teamLabel &&
-                    lowercaseLabelName === teamLabel.toLowerCase().trim()) {
-                    hasTeamLabel = true;
-                }
-                if (hasMatchingLabel && hasTeamLabel) {
-                    break;
-                }
-            }
+            const issueLabels = issue?.content.labels?.nodes?.map((label) => label.name) || [];
+            const hasMatchingLabel = issueLabels.some(labelName => labelName.toLowerCase().startsWith(labelPrefix.toLowerCase().trim()));
+            const hasTeamLabel = !teamLabel || issueLabels.some(labelName => labelName.toLowerCase() === teamLabel.toLowerCase().trim());
             return hasMatchingLabel && hasTeamLabel;
         });
         const result = filteredIssues.map((issue) => ({

@@ -183,9 +183,7 @@ export default async function getIssuesByProjectAndLabel({
   teamLabel
 }: GetIssuesByProjectAndLabelArgs): Promise<IssueResult[]> {
   try {
-    core.info(
-      `\nGetting not-filtered issues from the project board ${projectNumber} recursively...`
-    )
+    core.info(`\nGetting issues from the project board ${projectNumber}...`)
 
     const allIssues: ProjectItemNode[] =
       await getAllProjectIssuesWithPagination({
@@ -234,29 +232,18 @@ export default async function getIssuesByProjectAndLabel({
           issue?.content.labels?.nodes?.map((label: LabelNode) => label.name) ||
           []
 
-        let hasMatchingLabel: boolean = false
-        // if 'teamLabel' is not provided, then we should not filter by it
-        let hasTeamLabel: boolean = !teamLabel
+        // Check if any label matches the label prefix
+        const hasMatchingLabel = issueLabels.some(labelName =>
+          labelName.toLowerCase().startsWith(labelPrefix.toLowerCase().trim())
+        )
 
-        // Start filtering by label prefix and team label
-        for (const labelName of issueLabels) {
-          const lowercaseLabelName = labelName.toLowerCase()
-
-          if (lowercaseLabelName.startsWith(labelPrefix.toLowerCase().trim())) {
-            hasMatchingLabel = true
-          }
-
-          if (
-            teamLabel &&
-            lowercaseLabelName === teamLabel.toLowerCase().trim()
-          ) {
-            hasTeamLabel = true
-          }
-
-          if (hasMatchingLabel && hasTeamLabel) {
-            break
-          }
-        }
+        // Check if any label matches the teamLabel if it's presented
+        const hasTeamLabel =
+          !teamLabel ||
+          issueLabels.some(
+            labelName =>
+              labelName.toLowerCase() === teamLabel.toLowerCase().trim()
+          )
 
         return hasMatchingLabel && hasTeamLabel
       }
