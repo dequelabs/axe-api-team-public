@@ -30587,9 +30587,11 @@ async function getIssuesByProjectAndLabel({ core, owner, octokit, labelPrefix, p
             if (currentColumnId === targetColumnId) {
                 return false;
             }
-            const issueLabels = issue?.content.labels?.nodes?.map((label) => label.name) || [];
+            const issueLabels = issue?.content.labels?.nodes?.map((label) => label.name) ||
+                [];
             const hasMatchingLabel = issueLabels.some(labelName => labelName.toLowerCase().startsWith(labelPrefix.toLowerCase().trim()));
-            const hasTeamLabel = !teamLabel || issueLabels.some(labelName => labelName.toLowerCase() === teamLabel.toLowerCase().trim());
+            const hasTeamLabel = !teamLabel ||
+                issueLabels.some(labelName => labelName.toLowerCase() === teamLabel.toLowerCase().trim());
             return hasMatchingLabel && hasTeamLabel;
         });
         const result = filteredIssues.map((issue) => ({
