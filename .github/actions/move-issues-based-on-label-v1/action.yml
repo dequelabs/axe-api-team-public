@@ -1,0 +1,25 @@
+name: move-issues-based-on-label-v1
+description: This action moves issues based on a label and a source column (if it is provided)
+inputs:
+  project-number:
+    description: The project number of the project board
+    required: true
+  source-column:
+    description: The name of the column where issues should be found and moved from
+    required: false
+  target-column:
+    description: The name of the column where matching issues will be moved to
+    required: true
+  team-label:
+    description: The team label name to work only with the team-related issues
+    required: false
+  label-prefix:
+    description: The label to match against issues (e.g. "release" will find all issues with a label that starts with "release")
+    required: true
+  token:
+    description: 'A GitHub token with the required permissions'
+    required: true
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
