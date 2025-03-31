@@ -39,7 +39,7 @@ This action requires the following permission scopes:
 ## Example
 
 If a ticket has the label `DesignSignoff: hold for epic` and does NOT have the label `DesignSignoff: passed` then move it to the column `DesignSignoffHoldForEpic`.  
-Issue's labels: `first-label`, `DesignSignoff: hold for epic`.
+Issue's labels: `team-name-label`, `DesignSignoff: hold for epic`.
 
 ```yaml
 name: Check and move issue based on labels
@@ -74,7 +74,7 @@ jobs:
 - If a ticket does NOT have any of the following labels: "DesignSignoff: required", "DesignSignoff: hold for epic", or "DesignSignoff: none" -> move it to column ManualGHA
 
 ```yaml
-# Issue's labels: first-label
+# Issue's labels: team-results
 
 team-label: 'team-results'
 label-prefixes-to-exclude: 'DesignSignoff: required, DesignSignoff: hold for epic, DesignSignoff: none'
@@ -85,7 +85,7 @@ target-column: ManualGHA
 - If a ticket does NOT have at least one of the following labels: "DesignSignoff: required", "DesignSignoff: hold for epic", or "DesignSignoff: none" -> move it to column ManualGHA
 
 ```yaml
-# Issue's labels: first-label, DesignSignoff: required, DesignSignoff: hold for epic
+# Issue's labels: team-results, DesignSignoff: required, DesignSignoff: hold for epic
 
 team-label: 'team-results'
 label-prefixes-to-exclude: 'DesignSignoff: required, DesignSignoff: hold for epic, DesignSignoff: none'
@@ -95,7 +95,7 @@ target-column: ManualGHA
 - If a ticket has the label "DesignSignoff: hold for epic" and does NOT have the label "DesignSignoff: passed" -> move it to column DesignSignoffHoldForEpic
 
 ```yaml
-# Issue's labels: first-label, DesignSignoff: hold for epic
+# Issue's labels: team-results, DesignSignoff: hold for epic
 
 team-label: 'team-results'
 label-prefixes-to-match: 'DesignSignoff: hold for epic'
@@ -106,7 +106,7 @@ target-column: DesignSignoffHoldForEpic
 - If a ticket has the labels "DesignSignoff: hold for epic, DesignSignoff: passed" -> move it to column DesignSignoffPassed
 
 ```yaml
-# Issue's labels: first-label, DesignSignoff: hold for epic, DesignSignoff: passed
+# Issue's labels: team-results, DesignSignoff: hold for epic, DesignSignoff: passed
 
 team-label: 'team-results'
 label-prefixes-to-match: 'DesignSignoff: hold for epic, DesignSignoff: passed'
@@ -117,7 +117,7 @@ target-column: DesignSignoffPassed
 - If a ticket has at least one of the labels "DesignSignoff: hold for epic, DesignSignoff: passed" -> move it to column DesignSignoffPassed
 
 ```yaml
-# Issue's labels: first-label, DesignSignoff: passed
+# Issue's labels: team-results, DesignSignoff: passed
 
 team-label: 'team-results'
 label-prefixes-to-match: 'DesignSignoff: hold for epic, DesignSignoff: passed'
