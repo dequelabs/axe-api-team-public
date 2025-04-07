@@ -6,10 +6,10 @@ inputs:
     required: true
   project-number:
     description: 'The project board number to add the issue to'
-    default: '66'
+    default: '188'
   column-name:
     description: 'Name of column to add to'
-    default: 'Backlog'
+    default: 'New'
 runs:
   using: 'node20'
   main: 'dist/index.js'
