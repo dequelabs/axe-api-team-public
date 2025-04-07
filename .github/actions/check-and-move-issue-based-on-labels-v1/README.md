@@ -4,17 +4,17 @@ This action moves the issue based on the label list to the project board's targe
 
 ## Inputs
 
-| Name                                  | Required | Description                                                                                        | Default |
-| ------------------------------------- | -------- | -------------------------------------------------------------------------------------------------- | ------- |
-| `token`                               | Yes      | The GitHub token with the required permissions (see below)                                         | NA      |
-| `project-number`                      | Yes      | The project number of the project board                                                            | NA      |
-| `target-column`                       | Yes      | The name of the column where matching issues will be moved to                                      | NA      |
-| `issue-number`                        | Yes      | The issue number                                                                                   | NA      |
-| `team-label`                          | Yes      | The team label name to work only with the team-related issues                                      | NA      |
-| `label-prefixes-to-match`             | No       | Comma-separated list of label prefixes to match (e.g. "QA: required, QA: hold for epic, QA: none") | NA      |
-| `need-match-from-each-label-prefix`   | No       | The flag to check if every value in the "label-prefixes-to-match" should match                     | NA      |
-| `label-prefixes-to-exclude`           | No       | Comma-separated list of label prefixes that should be excluded (e.g. "QA: failed, QA: not tested") | NA      |
-| `need-exclude-from-each-label-prefix` | No       | The flag to check if every value in the "label-prefixes-to-exclude" should match                   | NA      |
+| Name                                  | Required | Description                                                                                              | Default |
+| ------------------------------------- | -------- | -------------------------------------------------------------------------------------------------------- | ------- |
+| `token`                               | Yes      | The GitHub token with the required permissions (see below)                                               | NA      |
+| `project-number`                      | Yes      | The project number of the project board                                                                  | NA      |
+| `target-column`                       | Yes      | The name of the column where matching issues will be moved to                                            | NA      |
+| `issue-number`                        | Yes      | The issue number                                                                                         | NA      |
+| `team-label`                          | Yes      | The team label name to work only with the team-related issues                                            | NA      |
+| `label-prefixes-to-match`             | No       | Comma-separated list of label prefixes to match (e.g. "QA:, QA: hold for epic, Release:")                | NA      |
+| `need-match-from-each-label-prefix`   | No       | The flag to check if every value in the "label-prefixes-to-match" should match                           | NA      |
+| `label-prefixes-to-exclude`           | No       | Comma-separated list of label prefixes that should be excluded (e.g. "QA: failed, Some Excluded label:") | NA      |
+| `need-exclude-from-each-label-prefix` | No       | The flag to check if every value in the "label-prefixes-to-exclude" should match                         | NA      |
 
 ### Notes:
 
