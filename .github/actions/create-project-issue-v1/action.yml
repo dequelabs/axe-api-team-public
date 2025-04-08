@@ -28,11 +28,11 @@ inputs:
     required: false
   project_number:
     description: 'The project board number to create the issue in'
-    default: '66'
+    default: '188'
     required: false
   column_name:
     description: 'The column name to create the issue in'
-    default: 'Backlog'
+    default: 'New'
     required: false
 
 # Allows other actions to use the output of the composite action
