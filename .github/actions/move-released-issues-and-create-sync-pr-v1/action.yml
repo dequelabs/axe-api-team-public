@@ -8,11 +8,11 @@ inputs:
   project-number:
     description: 'A project number of the project board'
     required: false
-    default: '66'
+    default: '188'
   column-name:
     description: 'Name of column to move to'
     required: false
-    default: 'released'
+    default: 'Released'
   head:
     description: 'A head branch to sync from'
     required: false
@@ -24,7 +24,7 @@ inputs:
   pr-team-reviewers:
     description: 'Reviewers to tag on the created pull request'
     required: false
-    default: axe-api-team
+    default: 'results-team'
 
 runs:
   using: 'composite'

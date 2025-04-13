@@ -162,14 +162,17 @@ runs:
     - name: Move to board
       uses: dequelabs/axe-api-team-public/.github/actions/add-to-board-v1@main
       with:
-        token: ${{ inputs.project_token }}
-        issue-id: ${{ steps.issue-id.outputs.id }}
-        # 66 taken from the url: https://github.com/orgs/dequelabs/projects/66
-        project-number: 66
+        issue-urls: ${{ steps.issue-id.outputs.id }}
+        # 188 taken from the url: https://github.com/orgs/dequelabs/projects/188
+        project-number: 188
+        column-name: New
+      env:
+        # Required for the GH CLI
+        GH_TOKEN: ${{ inputs.project_token }}
     - name: Slack Notification
       uses: rtCamp/action-slack-notify@b24d75fe0e728a4bf9fc42ee217caa686d141ee8 # tag=v2
       env:
-        SLACK_CHANNEL: api-team-releases
+        SLACK_CHANNEL: results-team-dev
         SLACK_COLOR: ${{ job.status }} # or a specific color like 'good' or '#ff00ff'
         SLACK_MESSAGE: |
           The develop branch of ${{ github.event.repository.name }} is ready for QA.

@@ -10,8 +10,8 @@ A GitHub Action to create a new issue and move the issue to a specific column on
 | `body`           | The body of the issue                                                                                                              | Yes      | NA                          |
 | `labels`         | Comma separated list of labels to add to the issue                                                                                 | No       | NA                          |
 | `assignees`      | Comma separated list of assignees to add to the issue                                                                              | No       | NA                          |
-| `project-number` | The number of the project board to add the issue to                                                                                | No       | `66`                        |
-| `column-name`    | The name of the column within the project board to add the issue to                                                                | No       | `Backlog`                   |
+| `project-number` | The number of the project board to add the issue to                                                                                | No       | `188`                       |
+| `column-name`    | The name of the column within the project board to add the issue to                                                                | No       | `New`                       |
 | `token`          | The GitHub token, used for creating the issue and adding to project board                                                          | No       | `github.token`              |
 | `repo`           | The repository to create the issue in e.g. if the repository is under dequelabs/axe-core-npm, then supply "axe-core-npm"           | No       | `github.context.repo.repo`  |
 | `owner`          | The owner of the repository to create the issue in e.g. if the repository is under dequelabs/axe-core-npm, then supply "dequelabs" | No       | `github.context.repo.owner` |

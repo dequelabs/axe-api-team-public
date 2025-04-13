@@ -65,13 +65,13 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.token }}
 
-    - name: Move release candidate issue to `Release Cancelled` column (Board 103)
+    - name: Move release candidate issue to `No` column (Board 188)
       if: steps.get-release-issue.outputs.issue-url != null
       uses: dequelabs/axe-api-team-public/.github/actions/add-to-board-v1@main
       with:
         issue-urls: ${{ steps.get-release-issue.outputs.issue-url }}
-        column-name: 'Release Cancelled'
-        project-number: '103'
+        column-name: 'No'
+        project-number: '188'
       env:
         GH_TOKEN: ${{ inputs.token }}
 
@@ -94,13 +94,13 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.token }}
 
-    - name: Move release candidate doc issue to `Cancelled` column (Board 171)
+    - name: Move release candidate doc issue to `Cancelled` column (Board 193)
       if: inputs.docs-repo != '' && steps.get-release-issue-from-docs-repo.outputs.issue-url != null
       uses: dequelabs/axe-api-team-public/.github/actions/add-to-board-v1@main
       with:
         issue-urls: ${{ steps.get-release-issue-from-docs-repo.outputs.issue-url }}
         column-name: 'Cancelled'
-        project-number: '171'
+        project-number: '193'
       env:
         GH_TOKEN: ${{ inputs.token }}
 

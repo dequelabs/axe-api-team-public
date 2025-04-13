@@ -7,11 +7,11 @@ A GitHub Action to label all related issues with the package version and create 
 | Name                | Required | Description                                  | Default      |
 | ------------------- | -------- | -------------------------------------------- | ------------ |
 | `token`             | Yes      | A GitHub token with the required permissions | NA           |
-| `project-number`    | No       | A project number of the project board        | 66           |
-| `column-name`       | No       | Name of column to move to                    | released     |
+| `project-number`    | No       | A project number of the project board        | 188          |
+| `column-name`       | No       | Name of column to move to                    | Released     |
 | `head`              | No       | A head branch to sync from                   | main         |
 | `base`              | No       | A target branch for the created pull request | develop      |
-| `pr-team-reviewers` | No       | Reviewers to tag on the created pull request | axe-api-team |
+| `pr-team-reviewers` | No       | Reviewers to tag on the created pull request | results-team |
 
 ## Example usage
 

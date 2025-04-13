@@ -9,7 +9,7 @@ This action labels and moves issues that have been released.
 | `commit-list`    | Yes      | The list of commits generated from the "Generate commit list" action | NA      |
 | `version`        | Yes      | The version number of the release                                    | NA      |
 | `token`          | Yes      | The GitHub token with the required permissions (see below)           | NA      |
-| `project-number` | No       | The project number of the project board                              | 186     |
+| `project-number` | No       | The project number of the project board                              | 188     |
 | `column-name`    | No       | Name of column to move to, if one is provided                        | `''`    |
 
 ## Example
