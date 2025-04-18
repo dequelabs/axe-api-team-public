@@ -11,6 +11,10 @@ inputs:
   prisma-api-url:
     description: Prisma Cloud API URL
     required: true
+  frameworks:
+    description: Comma-separated list of frameworks to scan
+    required: false
+    default: sca_package,github_actions,dockerfile,secrets
 
 runs:
   using: 'composite'
@@ -25,7 +29,7 @@ runs:
         api-key: ${{ inputs.prisma-access-key }}::${{ inputs.prisma-secret-key }}
         # CLI output to the console and md file
         output_format: cli
-        framework: sca_package,github_actions,dockerfile,secrets
+        framework: ${{ inputs.frameworks }}
         soft_fail_on: LOW
       env:
         PRISMA_API_URL: ${{ inputs.prisma-api-url }}
