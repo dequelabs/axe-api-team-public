@@ -1,15 +1,13 @@
 import { getOctokit } from '@actions/github'
-import {
-  Core,
-  Field,
-  GitHub,
-  IssueNodes,
-  LabelNode,
-  projectItemsNode
-} from './types'
+import { Core, Field, GitHub } from './types'
 import moveIssueToColumn from '../../add-to-board-v1/src/moveIssueToColumn'
 import getProjectBoardID from '../../add-to-board-v1/src/getProjectBoardID'
 import getProjectBoardFieldList from '../../add-to-board-v1/src/getProjectBoardFieldList'
+import getIssueLabels, {
+  GetIssueLabelsResult,
+  LabelNode,
+  projectItemsNode
+} from './getIssueLabels'
 
 export default async function run(core: Core, github: GitHub): Promise<void> {
   try {
@@ -55,31 +53,12 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     const { owner, repo } = github.context.repo
     const octokit: ReturnType<typeof getOctokit> = github.getOctokit(token)
 
-    const query = `
-      query {
-        repository(owner: "${owner}", name: "${repo}") {
-          issue(number: ${issueNumber}) {
-            id
-            number
-            url
-            labels(first: 20) {
-              nodes {
-                name
-              }
-            }
-            projectItems(first: 10) {
-              nodes {
-                id
-                project {
-                  number
-                }
-              }
-            }
-          }
-        }
-      }
-    `
-    const issuesNode: IssueNodes = await octokit.graphql(query)
+    const issuesNode: GetIssueLabelsResult = await getIssueLabels({
+      issueOwner: owner,
+      issueRepo: repo,
+      issueNumber,
+      octokit
+    })
     const issueUrl: string = issuesNode.repository.issue.url
     const issueNode: projectItemsNode | undefined =
       issuesNode.repository.issue.projectItems.nodes.find(
