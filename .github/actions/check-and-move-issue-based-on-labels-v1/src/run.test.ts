@@ -2,8 +2,9 @@ import 'mocha'
 import { assert } from 'chai'
 import sinon from 'sinon'
 import proxyquire from 'proxyquire'
-import { Core, GitHub, IssueNodes } from './types'
+import { Core, GitHub } from './types'
 import type { default as runType } from './run'
+import type { GetIssueLabelsResult } from './getIssueLabels'
 
 const ghToken = 'github token'
 const owner = 'owner_name'
@@ -41,7 +42,7 @@ const FIELD_LIST_MOCK = {
   ],
   totalCount: 1
 }
-const ISSUES_NODE_MOCK: IssueNodes = {
+const ISSUES_NODE_MOCK: GetIssueLabelsResult = {
   repository: {
     issue: {
       id: 'I_kwDOLYvJE86pLaF5',
@@ -306,7 +307,7 @@ describe('run', () => {
   describe('given the required inputs', () => {
     describe('when an issue is not found in the project board', () => {
       it('throws an error', async () => {
-        const ISSUES_NODE_MOCK_NO_ISSUE: IssueNodes = JSON.parse(
+        const ISSUES_NODE_MOCK_NO_ISSUE: GetIssueLabelsResult = JSON.parse(
           JSON.stringify(ISSUES_NODE_MOCK)
         )
 
@@ -329,7 +330,7 @@ describe('run', () => {
 
     describe('when an issue does not have any label', () => {
       it(`throws an error`, async () => {
-        const ISSUES_NODE_MOCK_NO_LABELS: IssueNodes = JSON.parse(
+        const ISSUES_NODE_MOCK_NO_LABELS: GetIssueLabelsResult = JSON.parse(
           JSON.stringify(ISSUES_NODE_MOCK)
         )
 
@@ -352,9 +353,8 @@ describe('run', () => {
 
     describe('when an issue does not have a team label', () => {
       it(`throws an error`, async () => {
-        const ISSUES_NODE_MOCK_NO__TEAM_LABEL: IssueNodes = JSON.parse(
-          JSON.stringify(ISSUES_NODE_MOCK)
-        )
+        const ISSUES_NODE_MOCK_NO__TEAM_LABEL: GetIssueLabelsResult =
+          JSON.parse(JSON.stringify(ISSUES_NODE_MOCK))
 
         ISSUES_NODE_MOCK_NO__TEAM_LABEL.repository.issue.labels.nodes.shift()
 
@@ -424,7 +424,7 @@ describe('run', () => {
 
       describe('and an issue does not have one of the provided labels', () => {
         it(`should NOT be moved`, async () => {
-          const ISSUES_NODE_NOT_MOVE_MOCK: IssueNodes = JSON.parse(
+          const ISSUES_NODE_NOT_MOVE_MOCK: GetIssueLabelsResult = JSON.parse(
             JSON.stringify(ISSUES_NODE_MOCK)
           )
 
@@ -502,7 +502,7 @@ describe('run', () => {
 
       describe('and an issue does not have all the provided labels', () => {
         it(`should NOT be moved`, async () => {
-          const ISSUES_NODE_NOT_MOVE_MOCK: IssueNodes = JSON.parse(
+          const ISSUES_NODE_NOT_MOVE_MOCK: GetIssueLabelsResult = JSON.parse(
             JSON.stringify(ISSUES_NODE_MOCK)
           )
 
@@ -536,9 +536,8 @@ describe('run', () => {
 
       describe('and an issue does not have at least one of the excluded labels', () => {
         it(`should be moved to the target column "${targetColumnName}"`, async () => {
-          const ISSUES_NODE_ONE_EXCLUDED_LABEL_MOCK: IssueNodes = JSON.parse(
-            JSON.stringify(ISSUES_NODE_MOCK)
-          )
+          const ISSUES_NODE_ONE_EXCLUDED_LABEL_MOCK: GetIssueLabelsResult =
+            JSON.parse(JSON.stringify(ISSUES_NODE_MOCK))
 
           ISSUES_NODE_ONE_EXCLUDED_LABEL_MOCK.repository.issue.labels.nodes.push(
             {
@@ -590,9 +589,8 @@ describe('run', () => {
 
       describe('and an issue has all of the excluded labels', () => {
         it(`should NOT be moved`, async () => {
-          const ISSUES_NODE_ALL_EXCLUDED_LABEL_MOCK: IssueNodes = JSON.parse(
-            JSON.stringify(ISSUES_NODE_MOCK)
-          )
+          const ISSUES_NODE_ALL_EXCLUDED_LABEL_MOCK: GetIssueLabelsResult =
+            JSON.parse(JSON.stringify(ISSUES_NODE_MOCK))
 
           ISSUES_NODE_ALL_EXCLUDED_LABEL_MOCK.repository.issue.labels.nodes.push(
             {
@@ -676,7 +674,7 @@ describe('run', () => {
       describe('and an issue has one of the provided labels', () => {
         describe('and does not have at least one of the excluded labels', () => {
           it(`should be moved to the target column "${targetColumnName}"`, async () => {
-            const ISSUES_NODE_WITH_ONE_EXCLUDED_LABEL_MOCK: IssueNodes =
+            const ISSUES_NODE_WITH_ONE_EXCLUDED_LABEL_MOCK: GetIssueLabelsResult =
               JSON.parse(JSON.stringify(ISSUES_NODE_MOCK))
 
             ISSUES_NODE_WITH_ONE_EXCLUDED_LABEL_MOCK.repository.issue.labels.nodes.push(
