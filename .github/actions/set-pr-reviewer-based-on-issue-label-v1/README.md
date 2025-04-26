@@ -35,12 +35,13 @@ jobs:
           required-issue-label: 'DesignSignoff: before merge'
           team-reviewers: 'test-team, test-team-2'
           reviewers: 'reviewer-1, reviewer-2'
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_TOKEN }}
 ```
 
 ## Permissions
 
 This action requires the following permission scopes:
 
-- `workflow` - To access the `GITHUB_TOKEN` secret
+- `workflow` - To access the `GH_TOKEN` secret
 - `read:org` - To read the project board
+- `project` - access to project board
