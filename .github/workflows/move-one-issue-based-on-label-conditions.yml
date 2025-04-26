@@ -38,7 +38,7 @@ jobs:
         with:
           token: ${{ github.event.client_payload.gh-token }}
           project-number: 188
-          issue-number: ${{ github.event.issue.number }}
+          issue-number: ${{ github.event.client_payload.issue-number }}
           issue-owner: ${{ github.event.client_payload.issue-owner }}
           issue-repo: ${{ github.event.client_payload.issue-repo }}
           team-label: 'team-results'
@@ -54,7 +54,7 @@ jobs:
         with:
           token: ${{ github.event.client_payload.gh-token }}
           project-number: 188
-          issue-number: ${{ github.event.issue.number }}
+          issue-number: ${{ github.event.client_payload.issue-number }}
           issue-owner: ${{ github.event.client_payload.issue-owner }}
           issue-repo: ${{ github.event.client_payload.issue-repo }}
           team-label: 'team-results'
@@ -70,7 +70,7 @@ jobs:
         with:
           token: ${{ github.event.client_payload.gh-token }}
           project-number: 188
-          issue-number: ${{ github.event.issue.number }}
+          issue-number: ${{ github.event.client_payload.issue-number }}
           issue-owner: ${{ github.event.client_payload.issue-owner }}
           issue-repo: ${{ github.event.client_payload.issue-repo }}
           team-label: 'team-results'
@@ -86,7 +86,7 @@ jobs:
         with:
           token: ${{ github.event.client_payload.gh-token }}
           project-number: 188
-          issue-number: ${{ github.event.issue.number }}
+          issue-number: ${{ github.event.client_payload.issue-number }}
           issue-owner: ${{ github.event.client_payload.issue-owner }}
           issue-repo: ${{ github.event.client_payload.issue-repo }}
           team-label: 'team-results'
@@ -102,7 +102,7 @@ jobs:
         with:
           token: ${{ github.event.client_payload.gh-token }}
           project-number: 188
-          issue-number: ${{ github.event.issue.number }}
+          issue-number: ${{ github.event.client_payload.issue-number }}
           issue-owner: ${{ github.event.client_payload.issue-owner }}
           issue-repo: ${{ github.event.client_payload.issue-repo }}
           team-label: 'team-results'
@@ -118,7 +118,7 @@ jobs:
         with:
           token: ${{ github.event.client_payload.gh-token }}
           project-number: 188
-          issue-number: ${{ github.event.issue.number }}
+          issue-number: ${{ github.event.client_payload.issue-number }}
           issue-owner: ${{ github.event.client_payload.issue-owner }}
           issue-repo: ${{ github.event.client_payload.issue-repo }}
           team-label: 'team-results'
@@ -134,7 +134,7 @@ jobs:
         with:
           token: ${{ github.event.client_payload.gh-token }}
           project-number: 188
-          issue-number: ${{ github.event.issue.number }}
+          issue-number: ${{ github.event.client_payload.issue-number }}
           issue-owner: ${{ github.event.client_payload.issue-owner }}
           issue-repo: ${{ github.event.client_payload.issue-repo }}
           team-label: 'team-results'
@@ -150,7 +150,7 @@ jobs:
         with:
           token: ${{ github.event.client_payload.gh-token }}
           project-number: 188
-          issue-number: ${{ github.event.issue.number }}
+          issue-number: ${{ github.event.client_payload.issue-number }}
           issue-owner: ${{ github.event.client_payload.issue-owner }}
           issue-repo: ${{ github.event.client_payload.issue-repo }}
           team-label: 'team-results'
