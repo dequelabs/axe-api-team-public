@@ -8,9 +8,9 @@ A GitHub Action assigns a reviewer to a PR if at least one of the closed issues 
 | ---------------------- | -------- | -------------------------------------------------------------------------------------------------------------------- | ------- |
 | `pull-request-number`  | Yes      | The pull request number to check for linked issues with a specific label                                             | NA      |
 | `required-issue-label` | Yes      | The issue label that triggers the reviewer assignment when present on any linked issue                               | NA      |
-| `reviewers`            | Yes      | The comma-separated reviewer user names are to be added as required reviewers when the specified label is found      | NA      |
+| `reviewers`            | No       | The comma-separated reviewer user names are to be added as required reviewers when the specified label is found      | NA      |
 | `team-reviewers`       | No       | The comma-separated reviewer team names are to be added as required reviewer teams when the specified label is found | NA      |
-| `token`                | No       | The GitHub token with the required permissions (see below)                                                           | NA      |
+| `token`                | Yes      | The GitHub token with the required permissions (see below)                                                           | NA      |
 
 ### Note:
 
