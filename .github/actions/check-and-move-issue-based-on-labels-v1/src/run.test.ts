@@ -100,6 +100,8 @@ describe('run', () => {
     projectNumber?: string
     targetColumn?: string
     issueNumber?: string
+    issueOwner?: string
+    issueRepo?: string
     teamLabel?: string
     labelPrefixesToMatch?: string
     needMatchFromEachLabelPrefix?: string
@@ -120,6 +122,12 @@ describe('run', () => {
     const issueNumber = getInputStub
       .withArgs('issue-number', { required: true })
       .returns(inputs?.issueNumber ?? issue)
+    const issueOwner = getInputStub
+      .withArgs('issue-owner', { required: true })
+      .returns(inputs?.issueOwner ?? owner)
+    const issueRepo = getInputStub
+      .withArgs('issue-repo', { required: true })
+      .returns(inputs?.issueRepo ?? repo)
     const teamLabel = getInputStub
       .withArgs('team-label', { required: true })
       .returns(inputs?.teamLabel ?? teamLabelName)
@@ -141,6 +149,8 @@ describe('run', () => {
       projectNumber,
       targetColumn,
       issueNumber,
+      issueOwner,
+      issueRepo,
       teamLabel,
       labelPrefixesToMatch,
       needMatchFromEachLabelPrefix,
@@ -162,13 +172,7 @@ describe('run', () => {
     github = {
       getOctokit: () => ({
         graphql: graphqlStub
-      }),
-      context: {
-        repo: {
-          owner,
-          repo
-        }
-      }
+      })
     }
 
     core = {
@@ -241,6 +245,34 @@ describe('run', () => {
       const errorMessage = 'Input required and not supplied: target-column'
 
       getInputStub.withArgs('target-column', { required: true }).throws({
+        message: errorMessage
+      })
+
+      await run(core as unknown as Core, {} as unknown as GitHub)
+
+      assert.isTrue(setFailedStub.calledOnceWith(errorMessage))
+    })
+  })
+
+  describe('when the `issue-owner` input is not provided', () => {
+    it('throws an error', async () => {
+      const errorMessage = 'Input required and not supplied: issue-owner'
+
+      getInputStub.withArgs('issue-owner', { required: true }).throws({
+        message: errorMessage
+      })
+
+      await run(core as unknown as Core, {} as unknown as GitHub)
+
+      assert.isTrue(setFailedStub.calledOnceWith(errorMessage))
+    })
+  })
+
+  describe('when the `issue-repo` input is not provided', () => {
+    it('throws an error', async () => {
+      const errorMessage = 'Input required and not supplied: issue-repo'
+
+      getInputStub.withArgs('issue-repo', { required: true }).throws({
         message: errorMessage
       })
 
