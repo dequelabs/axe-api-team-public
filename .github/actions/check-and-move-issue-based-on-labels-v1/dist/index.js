@@ -30482,6 +30482,48 @@ async function moveIssueToColumn({ issueCardID, fieldID, fieldColumnID, projectI
 
 /***/ }),
 
+/***/ 2706:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = getIssueLabels;
+async function getIssueLabels({ issueOwner, issueRepo, issueNumber, octokit }) {
+    try {
+        return octokit.graphql(`
+      query {
+        repository(owner: "${issueOwner}", name: "${issueRepo}") {
+          issue(number: ${issueNumber}) {
+            id
+            number
+            url
+            labels(first: 20) {
+              nodes {
+                name
+              }
+            }
+            projectItems(first: 10) {
+              nodes {
+                id
+                project {
+                  number
+                }
+              }
+            }
+          }
+        }
+      }
+    `);
+    }
+    catch (error) {
+        throw new Error(`Failed to get the issue's labels "https://github.com/${issueOwner}/${issueRepo}/issues/${issueNumber}": ${error.message}`);
+    }
+}
+
+
+/***/ }),
+
 /***/ 1856:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -30535,6 +30577,7 @@ exports["default"] = run;
 const moveIssueToColumn_1 = __importDefault(__nccwpck_require__(5831));
 const getProjectBoardID_1 = __importDefault(__nccwpck_require__(6966));
 const getProjectBoardFieldList_1 = __importDefault(__nccwpck_require__(9663));
+const getIssueLabels_1 = __importDefault(__nccwpck_require__(2706));
 async function run(core, github) {
     try {
         const token = core.getInput('token', { required: true });
@@ -30568,31 +30611,12 @@ async function run(core, github) {
         }
         const { owner, repo } = github.context.repo;
         const octokit = github.getOctokit(token);
-        const query = `
-      query {
-        repository(owner: "${owner}", name: "${repo}") {
-          issue(number: ${issueNumber}) {
-            id
-            number
-            url
-            labels(first: 20) {
-              nodes {
-                name
-              }
-            }
-            projectItems(first: 10) {
-              nodes {
-                id
-                project {
-                  number
-                }
-              }
-            }
-          }
-        }
-      }
-    `;
-        const issuesNode = await octokit.graphql(query);
+        const issuesNode = await (0, getIssueLabels_1.default)({
+            issueOwner: owner,
+            issueRepo: repo,
+            issueNumber,
+            octokit
+        });
         const issueUrl = issuesNode.repository.issue.url;
         const issueNode = issuesNode.repository.issue.projectItems.nodes.find((item) => item.project.number === projectNumber);
         if (!issueNode) {
