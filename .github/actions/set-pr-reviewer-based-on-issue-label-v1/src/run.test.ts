@@ -404,8 +404,9 @@ describe('run', () => {
               owner,
               repo,
               pull_number: pullRequest,
+              team_reviewers: [],
               reviewers: reviewersString
-                .split(', ')
+                .split(',')
                 .map((reviewer: string) => reviewer.trim())
             })
           )
@@ -516,8 +517,9 @@ describe('run', () => {
               owner,
               repo,
               pull_number: pullRequest,
+              team_reviewers: [],
               reviewers: reviewersString
-                .split(', ')
+                .split(',')
                 .map((reviewer: string) => reviewer.trim())
             })
           )
@@ -554,7 +556,9 @@ describe('run', () => {
           )
           assert.isTrue(
             infoStub.calledWithExactly(
-              `The reviewers "${reviewersString}" have been added to the PR "${pullRequestUrl}"`
+              `Reviewers added to PR "${pullRequestUrl}": ` +
+                `reviewers: ${reviewersString}, ` +
+                `no team reviewers`
             )
           )
           assert.isTrue(
@@ -562,8 +566,9 @@ describe('run', () => {
               owner,
               repo,
               pull_number: pullRequest,
+              team_reviewers: [],
               reviewers: reviewersString
-                .split(', ')
+                .split(',')
                 .map((reviewer: string) => reviewer.trim())
             })
           )
@@ -600,7 +605,9 @@ describe('run', () => {
           )
           assert.isTrue(
             infoStub.calledWithExactly(
-              `The team-reviewers "${teamReviewersString}" have been added to the PR "${pullRequestUrl}"`
+              `Reviewers added to PR "${pullRequestUrl}": ` +
+                `no individual reviewers, ` +
+                `team reviewers: ${teamReviewersString}`
             )
           )
           assert.isTrue(
@@ -608,8 +615,9 @@ describe('run', () => {
               owner,
               repo,
               pull_number: pullRequest,
+              reviewers: [],
               team_reviewers: teamReviewersString
-                .split(', ')
+                .split(',')
                 .map((reviewer: string) => reviewer.trim())
             })
           )
@@ -644,31 +652,21 @@ describe('run', () => {
           )
           assert.isTrue(
             infoStub.calledWithExactly(
-              `The reviewers "${reviewersString}" have been added to the PR "${pullRequestUrl}"`
+              `Reviewers added to PR "${pullRequestUrl}": ` +
+                `reviewers: ${reviewersString}, ` +
+                `team reviewers: ${teamReviewersString}`
             )
           )
           assert.isTrue(
-            infoStub.calledWithExactly(
-              `The team-reviewers "${teamReviewersString}" have been added to the PR "${pullRequestUrl}"`
-            )
-          )
-          assert.isTrue(
-            octokitRequestReviewersStub.calledWithExactly({
-              owner,
-              repo,
-              pull_number: pullRequest,
-              team_reviewers: teamReviewersString
-                .split(', ')
-                .map((reviewer: string) => reviewer.trim())
-            })
-          )
-          assert.isTrue(
-            octokitRequestReviewersStub.calledWithExactly({
+            octokitRequestReviewersStub.calledOnceWithExactly({
               owner,
               repo,
               pull_number: pullRequest,
               reviewers: reviewersString
-                .split(', ')
+                .split(',')
+                .map((reviewer: string) => reviewer.trim()),
+              team_reviewers: teamReviewersString
+                .split(',')
                 .map((reviewer: string) => reviewer.trim())
             })
           )

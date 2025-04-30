@@ -29343,11 +29343,11 @@ async function run(core, github) {
         const reviewersArr = reviewers
             .split(',')
             .map(reviewer => reviewer.trim())
-            .filter(reviewer => reviewer !== '');
+            .filter(reviewer => reviewer);
         const teamReviewersArr = teamReviewers
             .split(',')
             .map(reviewer => reviewer.trim())
-            .filter(reviewer => reviewer !== '');
+            .filter(reviewer => reviewer);
         if (!reviewersArr.length && !teamReviewersArr.length) {
             core.setFailed('One of the inputs `reviewers` or `team-reviewers` must be provided');
             return;
@@ -29414,24 +29414,17 @@ async function run(core, github) {
             return;
         }
         core.info(`Adding the reviewers to the PR "${pullRequestUrl}"...`);
-        if (reviewersArr.length) {
-            await octokit.rest.pulls.requestReviewers({
-                owner,
-                repo,
-                pull_number: pullRequestNumber,
-                reviewers: reviewersArr
-            });
-            core.info(`The reviewers "${reviewers}" have been added to the PR "${pullRequestUrl}"`);
-        }
-        if (teamReviewersArr.length) {
-            await octokit.rest.pulls.requestReviewers({
-                owner,
-                repo,
-                pull_number: pullRequestNumber,
-                team_reviewers: teamReviewersArr
-            });
-            core.info(`The team-reviewers "${teamReviewers}" have been added to the PR "${pullRequestUrl}"`);
-        }
+        await octokit.rest.pulls.requestReviewers({
+            owner,
+            repo,
+            pull_number: pullRequestNumber,
+            reviewers: reviewersArr,
+            team_reviewers: teamReviewersArr
+        });
+        const logMessage = `Reviewers added to PR "${pullRequestUrl}": ` +
+            `${reviewersArr.length ? `reviewers: ${reviewersArr.join(', ')}` : 'no individual reviewers'}, ` +
+            `${teamReviewersArr.length ? `team reviewers: ${teamReviewersArr.join(', ')}` : 'no team reviewers'}`;
+        core.info(logMessage);
     }
     catch (error) {
         core.setFailed(error.message);

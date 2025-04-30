@@ -34,11 +34,11 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     const reviewersArr = reviewers
       .split(',')
       .map(reviewer => reviewer.trim())
-      .filter(reviewer => reviewer !== '')
+      .filter(reviewer => reviewer)
     const teamReviewersArr = teamReviewers
       .split(',')
       .map(reviewer => reviewer.trim())
-      .filter(reviewer => reviewer !== '')
+      .filter(reviewer => reviewer)
 
     if (!reviewersArr.length && !teamReviewersArr.length) {
       core.setFailed(
@@ -148,31 +148,21 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     }
 
     core.info(`Adding the reviewers to the PR "${pullRequestUrl}"...`)
-    if (reviewersArr.length) {
-      await octokit.rest.pulls.requestReviewers({
-        owner,
-        repo,
-        pull_number: pullRequestNumber,
-        reviewers: reviewersArr
-      })
 
-      core.info(
-        `The reviewers "${reviewers}" have been added to the PR "${pullRequestUrl}"`
-      )
-    }
+    await octokit.rest.pulls.requestReviewers({
+      owner,
+      repo,
+      pull_number: pullRequestNumber,
+      reviewers: reviewersArr,
+      team_reviewers: teamReviewersArr
+    })
 
-    if (teamReviewersArr.length) {
-      await octokit.rest.pulls.requestReviewers({
-        owner,
-        repo,
-        pull_number: pullRequestNumber,
-        team_reviewers: teamReviewersArr
-      })
+    const logMessage =
+      `Reviewers added to PR "${pullRequestUrl}": ` +
+      `${reviewersArr.length ? `reviewers: ${reviewersArr.join(', ')}` : 'no individual reviewers'}, ` +
+      `${teamReviewersArr.length ? `team reviewers: ${teamReviewersArr.join(', ')}` : 'no team reviewers'}`
 
-      core.info(
-        `The team-reviewers "${teamReviewers}" have been added to the PR "${pullRequestUrl}"`
-      )
-    }
+    core.info(logMessage)
   } catch (error) {
     core.setFailed((error as Error).message)
   }
