@@ -29361,14 +29361,11 @@ async function run(core, github) {
             pullRequestID: pullRequestNumber,
             octokit
         });
-        const issueDataArr = referenceClosedIssues.repository.pullRequest.closingIssuesReferences.nodes.reduce((arr, item) => {
-            arr.push({
-                number: item.number,
-                owner: item.repository.owner.login,
-                repo: item.repository.name
-            });
-            return arr;
-        }, []);
+        const issueDataArr = referenceClosedIssues.repository.pullRequest.closingIssuesReferences.nodes.map(item => ({
+            number: item.number,
+            owner: item.repository.owner.login,
+            repo: item.repository.name
+        }));
         if (!issueDataArr.length) {
             core.info(`No issues found for the PR "${pullRequestUrl}", stopped the process.`);
             return;

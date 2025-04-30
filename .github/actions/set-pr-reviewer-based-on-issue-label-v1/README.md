@@ -44,4 +44,6 @@ This action requires the following permission scopes:
 
 - `workflow` - To access the `GH_TOKEN` secret
 - `read:org` - To read the project board
-- `project` - access to project board
+- `project` - Access to project board
+- `issues: read` - To fetch labels from referenced issues
+- `pull-requests: write` - To request reviewers on the pull request

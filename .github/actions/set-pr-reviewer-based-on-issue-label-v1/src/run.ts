@@ -60,17 +60,12 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       })
 
     const issueDataArr: IssueData[] =
-      referenceClosedIssues.repository.pullRequest.closingIssuesReferences.nodes.reduce(
-        (arr: IssueData[], item) => {
-          arr.push({
-            number: item.number,
-            owner: item.repository.owner.login,
-            repo: item.repository.name
-          })
-
-          return arr
-        },
-        []
+      referenceClosedIssues.repository.pullRequest.closingIssuesReferences.nodes.map(
+        item => ({
+          number: item.number,
+          owner: item.repository.owner.login,
+          repo: item.repository.name
+        })
       )
 
     if (!issueDataArr.length) {
