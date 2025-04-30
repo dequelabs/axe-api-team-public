@@ -13,7 +13,7 @@ inputs:
   issue-number:
     description: 'The issue number to check and move if it matches any'
     required: true
-  issue-owner:
+  issue-organization:
     description: 'The issue organization name'
     required: true
   issue-repo:

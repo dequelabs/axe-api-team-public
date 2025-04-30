@@ -100,7 +100,7 @@ describe('run', () => {
     projectNumber?: string
     targetColumn?: string
     issueNumber?: string
-    issueOwner?: string
+    issueOrganization?: string
     issueRepo?: string
     teamLabel?: string
     labelPrefixesToMatch?: string
@@ -122,9 +122,9 @@ describe('run', () => {
     const issueNumber = getInputStub
       .withArgs('issue-number', { required: true })
       .returns(inputs?.issueNumber ?? issue)
-    const issueOwner = getInputStub
-      .withArgs('issue-owner', { required: true })
-      .returns(inputs?.issueOwner ?? owner)
+    const issueOrganization = getInputStub
+      .withArgs('issue-organization', { required: true })
+      .returns(inputs?.issueOrganization ?? owner)
     const issueRepo = getInputStub
       .withArgs('issue-repo', { required: true })
       .returns(inputs?.issueRepo ?? repo)
@@ -149,7 +149,7 @@ describe('run', () => {
       projectNumber,
       targetColumn,
       issueNumber,
-      issueOwner,
+      issueOrganization,
       issueRepo,
       teamLabel,
       labelPrefixesToMatch,
@@ -254,11 +254,11 @@ describe('run', () => {
     })
   })
 
-  describe('when the `issue-owner` input is not provided', () => {
+  describe('when the `issue-organization` input is not provided', () => {
     it('throws an error', async () => {
-      const errorMessage = 'Input required and not supplied: issue-owner'
+      const errorMessage = 'Input required and not supplied: issue-organization'
 
-      getInputStub.withArgs('issue-owner', { required: true }).throws({
+      getInputStub.withArgs('issue-organization', { required: true }).throws({
         message: errorMessage
       })
 

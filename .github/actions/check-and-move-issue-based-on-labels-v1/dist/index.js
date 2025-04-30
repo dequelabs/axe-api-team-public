@@ -30584,7 +30584,7 @@ async function run(core, github) {
         const projectNumber = parseInt(core.getInput('project-number', { required: true }));
         const targetColumn = core.getInput('target-column', { required: true });
         const issueNumber = parseInt(core.getInput('issue-number', { required: true }));
-        const issueOwner = core.getInput('issue-owner', { required: true });
+        const issueOrganization = core.getInput('issue-organization', { required: true });
         const issueRepo = core.getInput('issue-repo', { required: true });
         const teamLabel = core.getInput('team-label', { required: true });
         const labelPrefixesToMatch = core.getInput('label-prefixes-to-match', {
@@ -30613,7 +30613,7 @@ async function run(core, github) {
         }
         const octokit = github.getOctokit(token);
         const issuesNode = await (0, getIssueLabels_1.default)({
-            issueOwner,
+            issueOwner: issueOrganization,
             issueRepo,
             issueNumber,
             octokit
@@ -30690,8 +30690,8 @@ async function run(core, github) {
         }
         core.info(`The issue should be moved to the column "${targetColumn}"`);
         const [{ id: projectBoardID }, { fields }] = await Promise.all([
-            (0, getProjectBoardID_1.default)({ projectNumber, owner: issueOwner }),
-            (0, getProjectBoardFieldList_1.default)({ projectNumber, owner: issueOwner })
+            (0, getProjectBoardID_1.default)({ projectNumber, owner: issueOrganization }),
+            (0, getProjectBoardFieldList_1.default)({ projectNumber, owner: issueOrganization })
         ]);
         const statusField = fields.find(field => field.name.toLowerCase() === 'status');
         const targetColumnData = statusField.options.find(option => option.name.toLowerCase() === targetColumn.toLowerCase());

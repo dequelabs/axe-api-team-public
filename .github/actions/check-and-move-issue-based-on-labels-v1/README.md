@@ -10,7 +10,7 @@ This action moves the issue based on the label list to the project board's targe
 | `project-number`                      | Yes      | The project number of the project board                                                                  | NA      |
 | `target-column`                       | Yes      | The name of the column where matching issues will be moved to                                            | NA      |
 | `issue-number`                        | Yes      | The issue number                                                                                         | NA      |
-| `issue-owner`                         | Yes      | The issue organization name                                                                              | NA      |
+| `issue-organization`                  | Yes      | The issue organization name                                                                              | NA      |
 | `issue-repo`                          | Yes      | The issue repository name                                                                                | NA      |
 | `team-label`                          | Yes      | The team label name to work only with the team-related issues                                            | NA      |
 | `label-prefixes-to-match`             | No       | Comma-separated list of label prefixes to match (e.g. "QA:, QA: hold for epic, Release:")                | NA      |
@@ -62,8 +62,8 @@ jobs:
           token: ${{ secrets.GH_TOKEN }}
           project-number: 188
           issue-number: 70
-          issue-owner: owner-name
-          issue-repo: repo-name
+          issue-organization: issue-organization-name
+          issue-repo: issue-repo-name
           team-label: 'team-name-label'
           label-prefixes-to-match: 'DesignSignoff: hold for epic'
           label-prefixes-to-exclude: 'DesignSignoff: passed'
