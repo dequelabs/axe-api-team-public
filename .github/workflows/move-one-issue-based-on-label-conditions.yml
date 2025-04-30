@@ -23,7 +23,7 @@ jobs:
           token: ${{ github.event.client_payload.gh-token }}
           project-number: 188
           issue-number: ${{ github.event.client_payload.issue-number }}
-          issue-owner: ${{ github.event.client_payload.issue-owner }}
+          issue-organization: ${{ github.event.client_payload.issue-organization }}
           issue-repo: ${{ github.event.client_payload.issue-repo }}
           team-label: 'team-results'
           label-prefixes-to-exclude: 'DesignSignoff: after merge, DesignSignoff: hold for epic, DesignSignoff: none'
@@ -39,7 +39,7 @@ jobs:
           token: ${{ github.event.client_payload.gh-token }}
           project-number: 188
           issue-number: ${{ github.event.client_payload.issue-number }}
-          issue-owner: ${{ github.event.client_payload.issue-owner }}
+          issue-organization: ${{ github.event.client_payload.issue-organization }}
           issue-repo: ${{ github.event.client_payload.issue-repo }}
           team-label: 'team-results'
           label-prefixes-to-exclude: 'QA: required, QA: hold for epic, QA: none'
@@ -55,7 +55,7 @@ jobs:
           token: ${{ github.event.client_payload.gh-token }}
           project-number: 188
           issue-number: ${{ github.event.client_payload.issue-number }}
-          issue-owner: ${{ github.event.client_payload.issue-owner }}
+          issue-organization: ${{ github.event.client_payload.issue-organization }}
           issue-repo: ${{ github.event.client_payload.issue-repo }}
           team-label: 'team-results'
           label-prefixes-to-exclude: 'Docs: required, Docs: hold for epic, Docs: none'
@@ -71,7 +71,7 @@ jobs:
           token: ${{ github.event.client_payload.gh-token }}
           project-number: 188
           issue-number: ${{ github.event.client_payload.issue-number }}
-          issue-owner: ${{ github.event.client_payload.issue-owner }}
+          issue-organization: ${{ github.event.client_payload.issue-organization }}
           issue-repo: ${{ github.event.client_payload.issue-repo }}
           team-label: 'team-results'
           label-prefixes-to-match: 'DesignSignoff: hold for epic'
@@ -87,7 +87,7 @@ jobs:
           token: ${{ github.event.client_payload.gh-token }}
           project-number: 188
           issue-number: ${{ github.event.client_payload.issue-number }}
-          issue-owner: ${{ github.event.client_payload.issue-owner }}
+          issue-organization: ${{ github.event.client_payload.issue-organization }}
           issue-repo: ${{ github.event.client_payload.issue-repo }}
           team-label: 'team-results'
           label-prefixes-to-match: 'DesignSignoff: after merge'
@@ -103,7 +103,7 @@ jobs:
           token: ${{ github.event.client_payload.gh-token }}
           project-number: 188
           issue-number: ${{ github.event.client_payload.issue-number }}
-          issue-owner: ${{ github.event.client_payload.issue-owner }}
+          issue-organization: ${{ github.event.client_payload.issue-organization }}
           issue-repo: ${{ github.event.client_payload.issue-repo }}
           team-label: 'team-results'
           label-prefixes-to-match: 'QA: hold for epic'
@@ -119,7 +119,7 @@ jobs:
           token: ${{ github.event.client_payload.gh-token }}
           project-number: 188
           issue-number: ${{ github.event.client_payload.issue-number }}
-          issue-owner: ${{ github.event.client_payload.issue-owner }}
+          issue-organization: ${{ github.event.client_payload.issue-organization }}
           issue-repo: ${{ github.event.client_payload.issue-repo }}
           team-label: 'team-results'
           label-prefixes-to-match: 'QA: required'
@@ -135,7 +135,7 @@ jobs:
           token: ${{ github.event.client_payload.gh-token }}
           project-number: 188
           issue-number: ${{ github.event.client_payload.issue-number }}
-          issue-owner: ${{ github.event.client_payload.issue-owner }}
+          issue-organization: ${{ github.event.client_payload.issue-organization }}
           issue-repo: ${{ github.event.client_payload.issue-repo }}
           team-label: 'team-results'
           label-prefixes-to-match: 'Docs: hold for epic'
@@ -151,7 +151,7 @@ jobs:
           token: ${{ github.event.client_payload.gh-token }}
           project-number: 188
           issue-number: ${{ github.event.client_payload.issue-number }}
-          issue-owner: ${{ github.event.client_payload.issue-owner }}
+          issue-organization: ${{ github.event.client_payload.issue-organization }}
           issue-repo: ${{ github.event.client_payload.issue-repo }}
           team-label: 'team-results'
           label-prefixes-to-match: 'Docs: required'
