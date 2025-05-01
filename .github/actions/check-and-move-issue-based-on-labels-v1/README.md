@@ -10,6 +10,8 @@ This action moves the issue based on the label list to the project board's targe
 | `project-number`                      | Yes      | The project number of the project board                                                                  | NA      |
 | `target-column`                       | Yes      | The name of the column where matching issues will be moved to                                            | NA      |
 | `issue-number`                        | Yes      | The issue number                                                                                         | NA      |
+| `issue-organization`                  | Yes      | The issue organization name                                                                              | NA      |
+| `issue-repo`                          | Yes      | The issue repository name                                                                                | NA      |
 | `team-label`                          | Yes      | The team label name to work only with the team-related issues                                            | NA      |
 | `label-prefixes-to-match`             | No       | Comma-separated list of label prefixes to match (e.g. "QA:, QA: hold for epic, Release:")                | NA      |
 | `need-match-from-each-label-prefix`   | No       | The flag to check if every value in the "label-prefixes-to-match" should match                           | NA      |
@@ -25,7 +27,7 @@ Should be provided at least one of the `label-prefixes-to-match` or `label-prefi
 This action requires the following permission scopes:
 
 - `repo` - To create the issue within private repositories
-- `workflow` - To access the `GITHUB_TOKEN` secret
+- `workflow` - To access the `GH_TOKEN` secret
 - `write:org` - To add the issue to a project board
 - `read:org` - To read the project board
 - `project` - access to project board
@@ -57,16 +59,18 @@ jobs:
           fetch-depth: 0
       - uses: dequelabs/axe-api-team-public/.github/actions/check-and-move-issue-based-on-labels-v1@main
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_TOKEN }}
           project-number: 188
           issue-number: 70
+          issue-organization: issue-organization-name
+          issue-repo: issue-repo-name
           team-label: 'team-name-label'
           label-prefixes-to-match: 'DesignSignoff: hold for epic'
           label-prefixes-to-exclude: 'DesignSignoff: passed'
           target-column: DesignSignoffHoldForEpic
     env:
       # Requires for GH CLI
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ secrets.GH_TOKEN }}
 ```
 
 ## Different cases how to use the action

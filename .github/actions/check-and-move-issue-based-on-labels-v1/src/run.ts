@@ -19,6 +19,10 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     const issueNumber = parseInt(
       core.getInput('issue-number', { required: true })
     )
+    const issueOrganization = core.getInput('issue-organization', {
+      required: true
+    })
+    const issueRepo = core.getInput('issue-repo', { required: true })
     const teamLabel = core.getInput('team-label', { required: true })
     const labelPrefixesToMatch = core.getInput('label-prefixes-to-match', {
       required: false
@@ -50,12 +54,10 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       return
     }
 
-    const { owner, repo } = github.context.repo
     const octokit: ReturnType<typeof getOctokit> = github.getOctokit(token)
-
     const issuesNode: GetIssueLabelsResult = await getIssueLabels({
-      issueOwner: owner,
-      issueRepo: repo,
+      issueOwner: issueOrganization,
+      issueRepo,
       issueNumber,
       octokit
     })
@@ -189,8 +191,8 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     core.info(`The issue should be moved to the column "${targetColumn}"`)
 
     const [{ id: projectBoardID }, { fields }] = await Promise.all([
-      getProjectBoardID({ projectNumber, owner }),
-      getProjectBoardFieldList({ projectNumber, owner })
+      getProjectBoardID({ projectNumber, owner: issueOrganization }),
+      getProjectBoardFieldList({ projectNumber, owner: issueOrganization })
     ])
 
     // Status is the default field name for the project board columns e.g., Backlog, In progress, Done, etc.
