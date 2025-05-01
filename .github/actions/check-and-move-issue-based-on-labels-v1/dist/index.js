@@ -30584,7 +30584,9 @@ async function run(core, github) {
         const projectNumber = parseInt(core.getInput('project-number', { required: true }));
         const targetColumn = core.getInput('target-column', { required: true });
         const issueNumber = parseInt(core.getInput('issue-number', { required: true }));
-        const issueOrganization = core.getInput('issue-organization', { required: true });
+        const issueOrganization = core.getInput('issue-organization', {
+            required: true
+        });
         const issueRepo = core.getInput('issue-repo', { required: true });
         const teamLabel = core.getInput('team-label', { required: true });
         const labelPrefixesToMatch = core.getInput('label-prefixes-to-match', {
