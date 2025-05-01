@@ -29332,6 +29332,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports["default"] = run;
+const request_error_1 = __nccwpck_require__(7488);
 const getIssueProjectInfo_1 = __importDefault(__nccwpck_require__(9641));
 const getReferencedClosedIssues_1 = __importDefault(__nccwpck_require__(4515));
 const DEFAULT_DONE_COLUMNS = 'done,devDone';
@@ -29425,12 +29426,27 @@ async function run(core, github) {
                 const hasLabel = labels.data.some(label => label.name === LABEL);
                 if (!hasLabel) {
                     core.info(`\nThe label "${LABEL}" does not exist for the issue repo ${issueOwner}/${issueRepo}, creating...`);
-                    await octokit.rest.issues.createLabel({
-                        repo: issueRepo,
-                        owner: issueOwner,
-                        name: LABEL,
-                        color: 'FFFFFF'
-                    });
+                    try {
+                        await octokit.rest.issues.createLabel({
+                            repo: issueRepo,
+                            owner: issueOwner,
+                            name: LABEL,
+                            color: 'FFFFFF'
+                        });
+                    }
+                    catch (err) {
+                        let shouldThrowError = true;
+                        if (err instanceof request_error_1.RequestError) {
+                            const data = err.response?.data;
+                            const alreadyExistsError = data?.errors?.some(error => error.code === 'already_exists');
+                            if (alreadyExistsError) {
+                                shouldThrowError = false;
+                            }
+                        }
+                        if (shouldThrowError) {
+                            throw err;
+                        }
+                    }
                 }
                 core.info(`\nAdding the label "${LABEL}" to the issue "${issueNumber}"...`);
                 octokit.rest.issues.addLabels({
