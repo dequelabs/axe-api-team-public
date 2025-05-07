@@ -3,6 +3,7 @@ import { assert } from 'chai'
 import sinon from 'sinon'
 import { getOctokit } from '@actions/github'
 import type { Endpoints } from '@octokit/types'
+import { RequestError as OctokitError } from '@octokit/request-error'
 import { Core, GitHub } from './types'
 import type { ParsedCommitList } from '../../generate-commit-list-v1/src/types'
 import run from './run'
@@ -794,6 +795,360 @@ describe('run', () => {
          * Called twice for getting the referenced closed issues and the project info
          */
         assert.equal(graphqlStub.callCount, 2)
+      })
+
+      it('and the label exists should not throw an error', async () => {
+        generateInputs()
+
+        const { graphqlStub } = generateResponses({
+          projectInfo: {
+            repository: {
+              issue: {
+                projectItems: {
+                  nodes: [
+                    {
+                      id: '123',
+                      type: 'ISSUE',
+                      project: {
+                        number: 66
+                      },
+                      fieldValueByName: {
+                        name: 'Done'
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        })
+
+        const github = {
+          context: {
+            repo: {
+              owner: ISSUE_OWNER,
+              repo: ISSUE_REPO
+            }
+          },
+          getOctokit: () => {
+            return {
+              ...octokit,
+              rest: {
+                issues: {
+                  listLabelsForRepo: listLabelsForRepoStub.resolves({
+                    data: [MOCK_LIST_LABELS],
+                    status: 200
+                  } as unknown as Endpoints['GET /repos/{owner}/{repo}/labels']['response']),
+                  createLabel: createLabelStub.rejects(
+                    new OctokitError('some-octokit-error', 422, {
+                      request: {
+                        method: 'POST',
+                        url: 'some-utl',
+                        headers: {}
+                      },
+                      response: {
+                        headers: {},
+                        url: 'some-url',
+                        status: 422,
+                        data: {
+                          errors: [
+                            {
+                              resource: 'Label',
+                              field: 'name',
+                              code: 'already_exists'
+                            }
+                          ]
+                        }
+                      }
+                    }) as unknown as Endpoints['POST /repos/{owner}/{repo}/labels']['response']
+                  ),
+                  get: () => {
+                    return {
+                      data: {
+                        html_url: 'https://github.com/owner/repo/issues/1',
+                        state: 'open'
+                      },
+                      status: 200
+                    }
+                  },
+                  update: () => {
+                    return {
+                      data: {},
+                      status: 200
+                    }
+                  },
+                  addLabels: addLabelsStub.resolves({
+                    data: {
+                      labels: [MOCK_CREATED_LABEL],
+                      status: 200
+                    }
+                  } as unknown as Endpoints['POST /repos/{owner}/{repo}/issues/{issue_number}/labels']['response'])
+                }
+              }
+            }
+          }
+        }
+
+        const core = {
+          getInput,
+          setOutput,
+          setFailed,
+          info
+        }
+
+        await run(core as unknown as Core, github as unknown as GitHub)
+
+        assert.isTrue(
+          listLabelsForRepoStub.calledOnceWithExactly({
+            repo: ISSUE_REPO,
+            owner: ISSUE_OWNER
+          })
+        )
+        assert.isTrue(
+          createLabelStub.calledOnceWithExactly({
+            repo: ISSUE_REPO,
+            owner: ISSUE_OWNER,
+            name: MOCK_LABEL_NAME,
+            color: 'FFFFFF'
+          })
+        )
+        assert.isTrue(
+          addLabelsStub.calledOnceWithExactly({
+            repo: ISSUE_REPO,
+            owner: ISSUE_OWNER,
+            issue_number:
+              MOCK_REFERENCED_CLOSED_ISSUES.repository.pullRequest
+                .closingIssuesReferences.nodes[0].number,
+            labels: [MOCK_LABEL_NAME]
+          })
+        )
+        assert.isTrue(setFailed.notCalled)
+        /**
+         * Called twice for getting the referenced closed issues and the project info
+         */
+        assert.equal(graphqlStub.callCount, 2)
+      })
+
+      it('and octokit has another error should throw an error', async () => {
+        generateInputs()
+
+        generateResponses({
+          projectInfo: {
+            repository: {
+              issue: {
+                projectItems: {
+                  nodes: [
+                    {
+                      id: '123',
+                      type: 'ISSUE',
+                      project: {
+                        number: 66
+                      },
+                      fieldValueByName: {
+                        name: 'Done'
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        })
+
+        const github = {
+          context: {
+            repo: {
+              owner: ISSUE_OWNER,
+              repo: ISSUE_REPO
+            }
+          },
+          getOctokit: () => {
+            return {
+              ...octokit,
+              rest: {
+                issues: {
+                  listLabelsForRepo: listLabelsForRepoStub.resolves({
+                    data: [MOCK_LIST_LABELS],
+                    status: 200
+                  } as unknown as Endpoints['GET /repos/{owner}/{repo}/labels']['response']),
+                  createLabel: createLabelStub.rejects(
+                    new OctokitError('some-octokit-error', 422, {
+                      request: {
+                        method: 'POST',
+                        url: 'some-utl',
+                        headers: {}
+                      },
+                      response: {
+                        headers: {},
+                        url: 'some-url',
+                        status: 422,
+                        data: {
+                          errors: [
+                            {
+                              resource: 'Label',
+                              field: 'name',
+                              code: 'another-error-code'
+                            }
+                          ]
+                        }
+                      }
+                    }) as unknown as Endpoints['POST /repos/{owner}/{repo}/labels']['response']
+                  ),
+                  get: () => {
+                    return {
+                      data: {
+                        html_url: 'https://github.com/owner/repo/issues/1',
+                        state: 'open'
+                      },
+                      status: 200
+                    }
+                  },
+                  update: () => {
+                    return {
+                      data: {},
+                      status: 200
+                    }
+                  },
+                  addLabels: addLabelsStub.resolves({
+                    data: {
+                      labels: [MOCK_CREATED_LABEL],
+                      status: 200
+                    }
+                  } as unknown as Endpoints['POST /repos/{owner}/{repo}/issues/{issue_number}/labels']['response'])
+                }
+              }
+            }
+          }
+        }
+
+        const core = {
+          getInput,
+          setOutput,
+          setFailed,
+          info
+        }
+
+        await run(core as unknown as Core, github as unknown as GitHub)
+
+        assert.isTrue(
+          listLabelsForRepoStub.calledOnceWithExactly({
+            repo: ISSUE_REPO,
+            owner: ISSUE_OWNER
+          })
+        )
+        assert.isTrue(
+          createLabelStub.calledOnceWithExactly({
+            repo: ISSUE_REPO,
+            owner: ISSUE_OWNER,
+            name: MOCK_LABEL_NAME,
+            color: 'FFFFFF'
+          })
+        )
+        assert.isTrue(addLabelsStub.notCalled)
+        assert.isTrue(setFailed.calledOnce)
+        assert.isTrue(setFailed.calledWith('some-octokit-error'))
+      })
+
+      it('and an error during label creation should throw an error', async () => {
+        generateInputs()
+
+        generateResponses({
+          projectInfo: {
+            repository: {
+              issue: {
+                projectItems: {
+                  nodes: [
+                    {
+                      id: '123',
+                      type: 'ISSUE',
+                      project: {
+                        number: 66
+                      },
+                      fieldValueByName: {
+                        name: 'Done'
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        })
+
+        const github = {
+          context: {
+            repo: {
+              owner: ISSUE_OWNER,
+              repo: ISSUE_REPO
+            }
+          },
+          getOctokit: () => {
+            return {
+              ...octokit,
+              rest: {
+                issues: {
+                  listLabelsForRepo: listLabelsForRepoStub.resolves({
+                    data: [MOCK_LIST_LABELS],
+                    status: 200
+                  } as unknown as Endpoints['GET /repos/{owner}/{repo}/labels']['response']),
+                  createLabel: createLabelStub.rejects(
+                    new Error(
+                      'some-error'
+                    ) as unknown as Endpoints['POST /repos/{owner}/{repo}/labels']['response']
+                  ),
+                  get: () => {
+                    return {
+                      data: {
+                        html_url: 'https://github.com/owner/repo/issues/1',
+                        state: 'open'
+                      },
+                      status: 200
+                    }
+                  },
+                  update: () => {
+                    return {
+                      data: {},
+                      status: 200
+                    }
+                  },
+                  addLabels: addLabelsStub.resolves({
+                    data: {
+                      labels: [MOCK_CREATED_LABEL],
+                      status: 200
+                    }
+                  } as unknown as Endpoints['POST /repos/{owner}/{repo}/issues/{issue_number}/labels']['response'])
+                }
+              }
+            }
+          }
+        }
+
+        const core = {
+          getInput,
+          setOutput,
+          setFailed,
+          info
+        }
+
+        await run(core as unknown as Core, github as unknown as GitHub)
+
+        assert.isTrue(
+          listLabelsForRepoStub.calledOnceWithExactly({
+            repo: ISSUE_REPO,
+            owner: ISSUE_OWNER
+          })
+        )
+        assert.isTrue(
+          createLabelStub.calledOnceWithExactly({
+            repo: ISSUE_REPO,
+            owner: ISSUE_OWNER,
+            name: MOCK_LABEL_NAME,
+            color: 'FFFFFF'
+          })
+        )
+        assert.isTrue(addLabelsStub.notCalled)
+        assert.isTrue(setFailed.calledOnce)
+        assert.isTrue(setFailed.calledWith('some-error'))
       })
     })
   })

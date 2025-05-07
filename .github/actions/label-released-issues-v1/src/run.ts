@@ -1,3 +1,4 @@
+import { RequestError as OctokitError } from '@octokit/request-error'
 import type { Core, GitHub } from './types'
 import { ParsedCommitList } from '../../generate-commit-list-v1/src/types'
 import getIssueProjectInfo from '../../label-and-move-released-issues-v1/src/getIssueProjectInfo'
@@ -7,6 +8,11 @@ interface IssueData {
   number: number
   owner: string
   repo: string
+}
+interface OctokitDataError {
+  resource: string
+  code: string
+  field: string
 }
 
 const DEFAULT_DONE_COLUMNS = 'done,devDone'
@@ -150,12 +156,32 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
             `\nThe label "${LABEL}" does not exist for the issue repo ${issueOwner}/${issueRepo}, creating...`
           )
 
-          await octokit.rest.issues.createLabel({
-            repo: issueRepo,
-            owner: issueOwner,
-            name: LABEL,
-            color: 'FFFFFF' // "white" color
-          })
+          // Should be in try-catch to avoid failing the action if the label already exists
+          try {
+            await octokit.rest.issues.createLabel({
+              repo: issueRepo,
+              owner: issueOwner,
+              name: LABEL,
+              color: 'FFFFFF' // "white" color
+            })
+          } catch (err) {
+            let shouldThrowError = true
+
+            if (err instanceof OctokitError) {
+              const data = err.response?.data as { errors?: OctokitDataError[] }
+              const alreadyExistsError = data?.errors?.some(
+                error => error.code === 'already_exists'
+              )
+
+              if (alreadyExistsError) {
+                shouldThrowError = false
+              }
+            }
+
+            if (shouldThrowError) {
+              throw err
+            }
+          }
         }
 
         core.info(
