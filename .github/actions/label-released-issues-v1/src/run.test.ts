@@ -85,6 +85,7 @@ describe('run', () => {
   let listLabelsForRepoStub: sinon.SinonStub
   let createLabelStub: sinon.SinonStub
   let addLabelsStub: sinon.SinonStub
+  let paginateStub: sinon.SinonStub
 
   const octokit = getOctokit('token')
 
@@ -96,6 +97,7 @@ describe('run', () => {
     listLabelsForRepoStub = sinon.stub()
     createLabelStub = sinon.stub()
     addLabelsStub = sinon.stub()
+    paginateStub = sinon.stub()
   })
 
   afterEach(() => {
@@ -150,7 +152,7 @@ describe('run', () => {
 
       await run(core as unknown as Core, {} as unknown as GitHub)
 
-      assert.isTrue(listLabelsForRepoStub.notCalled)
+      assert.isTrue(paginateStub.notCalled)
       assert.isTrue(createLabelStub.notCalled)
       assert.isTrue(addLabelsStub.notCalled)
       assert.isTrue(setFailed.calledOnce)
@@ -174,7 +176,7 @@ describe('run', () => {
 
       await run(core as unknown as Core, {} as unknown as GitHub)
 
-      assert.isTrue(listLabelsForRepoStub.notCalled)
+      assert.isTrue(paginateStub.notCalled)
       assert.isTrue(createLabelStub.notCalled)
       assert.isTrue(addLabelsStub.notCalled)
       assert.isTrue(setFailed.calledOnce)
@@ -198,7 +200,7 @@ describe('run', () => {
 
       await run(core as unknown as Core, {} as unknown as GitHub)
 
-      assert.isTrue(listLabelsForRepoStub.notCalled)
+      assert.isTrue(paginateStub.notCalled)
       assert.isTrue(createLabelStub.notCalled)
       assert.isTrue(addLabelsStub.notCalled)
       assert.isTrue(setFailed.calledOnce)
@@ -220,7 +222,7 @@ describe('run', () => {
 
       await run(core as unknown as Core, {} as unknown as GitHub)
 
-      assert.isTrue(listLabelsForRepoStub.notCalled)
+      assert.isTrue(paginateStub.notCalled)
       assert.isTrue(createLabelStub.notCalled)
       assert.isTrue(addLabelsStub.notCalled)
       assert.isTrue(setFailed.calledOnce)
@@ -260,14 +262,10 @@ describe('run', () => {
         getOctokit: () => {
           return {
             ...octokit,
+            paginate: paginateStub,
             rest: {
               issues: {
-                listLabelsForRepo: () => {
-                  return {
-                    data: [MOCK_LIST_LABELS],
-                    status: 200
-                  } as unknown as Endpoints['GET /repos/{owner}/{repo}/labels']['response']
-                },
+                listLabelsForRepo: listLabelsForRepoStub,
                 createLabel: () => {
                   return {
                     data: MOCK_CREATED_LABEL
@@ -279,9 +277,13 @@ describe('run', () => {
         }
       }
 
+      paginateStub
+        .withArgs(listLabelsForRepoStub, sinon.match.any)
+        .resolves([MOCK_LIST_LABELS])
+
       await run(core as unknown as Core, github as unknown as GitHub)
 
-      assert.isTrue(listLabelsForRepoStub.notCalled)
+      assert.isTrue(paginateStub.notCalled)
       assert.isTrue(createLabelStub.notCalled)
       assert.isTrue(addLabelsStub.notCalled)
       assert.isTrue(setFailed.notCalled)
@@ -325,12 +327,10 @@ describe('run', () => {
       getOctokit: () => {
         return {
           ...octokit,
+          paginate: paginateStub,
           rest: {
             issues: {
-              listLabelsForRepo: listLabelsForRepoStub.resolves({
-                data: [MOCK_LIST_LABELS],
-                status: 200
-              } as unknown as Endpoints['GET /repos/{owner}/{repo}/labels']['response']),
+              listLabelsForRepo: listLabelsForRepoStub,
               createLabel: createLabelStub.resolves({
                 data: MOCK_CREATED_LABEL
               } as unknown as Endpoints['POST /repos/{owner}/{repo}/labels']['response']),
@@ -371,15 +371,18 @@ describe('run', () => {
         setFailed,
         info
       }
+      paginateStub
+        .withArgs(listLabelsForRepoStub, sinon.match.any)
+        .resolves([MOCK_LIST_LABELS])
 
       await run(core as unknown as Core, github as unknown as GitHub)
 
-      assert.isTrue(
-        listLabelsForRepoStub.calledOnceWithExactly({
-          repo: ISSUE_REPO,
-          owner: ISSUE_OWNER
-        })
-      )
+      assert.isTrue(paginateStub.calledOnce)
+      assert.deepEqual(paginateStub.args[0][1], {
+        owner: ISSUE_OWNER,
+        repo: ISSUE_REPO,
+        per_page: 100
+      })
       assert.isTrue(
         createLabelStub.calledOnceWithExactly({
           repo: ISSUE_REPO,
@@ -438,7 +441,7 @@ describe('run', () => {
 
         await run(core as unknown as Core, github as unknown as GitHub)
 
-        assert.isTrue(listLabelsForRepoStub.notCalled)
+        assert.isTrue(paginateStub.notCalled)
         assert.isTrue(createLabelStub.notCalled)
         assert.isTrue(addLabelsStub.notCalled)
         assert.isTrue(setFailed.notCalled)
@@ -487,7 +490,7 @@ describe('run', () => {
         }
         await run(core as unknown as Core, github as unknown as GitHub)
 
-        assert.isTrue(listLabelsForRepoStub.notCalled)
+        assert.isTrue(paginateStub.notCalled)
         assert.isTrue(createLabelStub.notCalled)
         assert.isTrue(addLabelsStub.notCalled)
         assert.isTrue(setFailed.notCalled)
@@ -541,7 +544,7 @@ describe('run', () => {
 
         await run(core as unknown as Core, github as unknown as GitHub)
 
-        assert.isTrue(listLabelsForRepoStub.notCalled)
+        assert.isTrue(paginateStub.notCalled)
         assert.isTrue(createLabelStub.notCalled)
         assert.isTrue(addLabelsStub.notCalled)
         assert.isTrue(setFailed.notCalled)
@@ -593,7 +596,7 @@ describe('run', () => {
 
         await run(core as unknown as Core, github as unknown as GitHub)
 
-        assert.isTrue(listLabelsForRepoStub.notCalled)
+        assert.isTrue(paginateStub.notCalled)
         assert.isTrue(createLabelStub.notCalled)
         assert.isTrue(addLabelsStub.notCalled)
         assert.isTrue(setFailed.notCalled)
@@ -643,14 +646,18 @@ describe('run', () => {
           info
         }
 
+        paginateStub
+          .withArgs(listLabelsForRepoStub, sinon.match.any)
+          .resolves([MOCK_LIST_LABELS])
+
         await run(core as unknown as Core, github as unknown as GitHub)
 
-        assert.isTrue(
-          listLabelsForRepoStub.calledOnceWithExactly({
-            repo: ISSUE_REPO,
-            owner: ISSUE_OWNER
-          })
-        )
+        assert.isTrue(paginateStub.calledOnce)
+        assert.deepEqual(paginateStub.args[0][1], {
+          owner: ISSUE_OWNER,
+          repo: ISSUE_REPO,
+          per_page: 100
+        })
         assert.isTrue(
           createLabelStub.calledOnceWithExactly({
             repo: ISSUE_REPO,
@@ -727,12 +734,10 @@ describe('run', () => {
           getOctokit: () => {
             return {
               ...octokit,
+              paginate: paginateStub,
               rest: {
                 issues: {
-                  listLabelsForRepo: listLabelsForRepoStub.resolves({
-                    data: [MOCK_EXIST_LABEL],
-                    status: 200
-                  } as unknown as Endpoints['GET /repos/{owner}/{repo}/labels']['response']),
+                  listLabelsForRepo: listLabelsForRepoStub,
                   createLabel: createLabelStub.resolves({
                     data: MOCK_CREATED_LABEL
                   } as unknown as Endpoints['POST /repos/{owner}/{repo}/labels']['response']),
@@ -770,14 +775,18 @@ describe('run', () => {
           info
         }
 
+        paginateStub
+          .withArgs(listLabelsForRepoStub, sinon.match.any)
+          .resolves([MOCK_EXIST_LABEL])
+
         await run(core as unknown as Core, github as unknown as GitHub)
 
-        assert.isTrue(
-          listLabelsForRepoStub.calledOnceWithExactly({
-            repo: ISSUE_REPO,
-            owner: ISSUE_OWNER
-          })
-        )
+        assert.isTrue(paginateStub.calledOnce)
+        assert.deepEqual(paginateStub.args[0][1], {
+          owner: ISSUE_OWNER,
+          repo: ISSUE_REPO,
+          per_page: 100
+        })
         assert.isTrue(createLabelStub.notCalled)
         assert.isTrue(
           addLabelsStub.calledOnceWithExactly({
