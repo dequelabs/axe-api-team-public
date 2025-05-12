@@ -1,0 +1,23 @@
+name: Set PR reviewers based on a closed issue's label
+description: A GitHub Action assigns a reviewer to a PR if at least one of the closed issues has a particular label
+
+inputs:
+  pull-request-number:
+    description: 'The pull request number to check for linked issues with a specific label'
+    required: true
+  required-issue-label:
+    description: 'The issue label that triggers the reviewer assignment when present on any linked issue'
+    required: true
+  reviewers:
+    description: 'The comma-separated reviewer user names are to be added as required reviewers when the specified label is found'
+    required: false
+  team-reviewers:
+    description: 'The comma-separated reviewer team names are to be added as required reviewer teams when the specified label is found'
+    required: false
+  token:
+    description: 'A GitHub token with the required permissions'
+    required: true
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'

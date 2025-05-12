@@ -13,6 +13,12 @@ inputs:
   issue-number:
     description: 'The issue number to check and move if it matches any'
     required: true
+  issue-organization:
+    description: 'The issue organization name'
+    required: true
+  issue-repo:
+    description: 'The issue repository name'
+    required: true
   team-label:
     description: 'The team label name to work only with the team-related issues'
     required: true
