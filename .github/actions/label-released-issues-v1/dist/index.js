@@ -29418,11 +29418,12 @@ async function run(core, github) {
                     });
                     core.info(`\nThe issue ${issueNumber} has been closed successfully.`);
                 }
-                const labels = await octokit.rest.issues.listLabelsForRepo({
+                const labels = await octokit.paginate(octokit.rest.issues.listLabelsForRepo, {
                     repo: issueRepo,
-                    owner: issueOwner
+                    owner: issueOwner,
+                    per_page: 100
                 });
-                const hasLabel = labels.data.some(label => label.name === LABEL);
+                const hasLabel = labels.some(label => label.name === LABEL);
                 if (!hasLabel) {
                     core.info(`\nThe label "${LABEL}" does not exist for the issue repo ${issueOwner}/${issueRepo}, creating...`);
                     await octokit.rest.issues.createLabel({
