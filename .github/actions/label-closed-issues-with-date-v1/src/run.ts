@@ -3,7 +3,6 @@ export default async function run(
   github: typeof import('@actions/github')
 ): Promise<void> {
   try {
-    // Get required inputs
     const issueNumber = parseInt(core.getInput('issue-number', { required: true }))
     const issueOrganization = core.getInput('issue-organization', { required: true })
     const issueRepo = core.getInput('issue-repo', { required: true })
