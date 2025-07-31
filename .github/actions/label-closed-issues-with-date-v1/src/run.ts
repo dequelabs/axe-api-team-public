@@ -53,7 +53,6 @@ export default async function run(
         )
       }
       
-      // Add the new date label to the issue
       await octokit.rest.issues.addLabels({
         owner: issueOrganization,
         repo: issueRepo,
