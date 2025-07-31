@@ -10,7 +10,6 @@ export default async function run(
 
     core.info(`Checking issue ${issueNumber} in ${issueOrganization}/${issueRepo}`)
 
-    // Get the octokit instance
     const octokit = github.getOctokit(token)
 
     // Get issue details from REST API
