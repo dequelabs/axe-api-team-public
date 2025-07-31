@@ -38,7 +38,7 @@ describe('run', () => {
       }
     }
     
-    githubStub.getOctokit.returns(octokitStub as ReturnType<typeof github.getOctokit>)
+    githubStub.getOctokit.returns(octokitStub as unknown as ReturnType<typeof github.getOctokit>)
   })
 
   afterEach(() => {
@@ -96,6 +96,52 @@ describe('run', () => {
       repo: 'test-repo',
       issue_number: 123,
       name: 'Closed: 2024-01-10'
+    })
+
+    // Should add new "Closed:" label
+    const addLabelsCalled = octokitStub.rest.issues.addLabels.called
+    void expect(addLabelsCalled).to.be.true
+    const addLabelsArgs = octokitStub.rest.issues.addLabels.firstCall.args[0]
+    void expect(addLabelsArgs).to.deep.include({
+      owner: 'test-org',
+      repo: 'test-repo',
+      issue_number: 123,
+      labels: ['Closed: 2024-01-15']
+    })
+  })
+
+  it('should handle mixed label formats (string and object)', async () => {
+    coreStub.getInput.withArgs('issue-number', { required: true }).returns('123')
+    coreStub.getInput.withArgs('issue-organization', { required: true }).returns('test-org')
+    coreStub.getInput.withArgs('issue-repo', { required: true }).returns('test-repo')
+    coreStub.getInput.withArgs('token', { required: true }).returns('test-token')
+
+    // Mock issue with mixed label formats - both string and object
+    octokitStub.rest.issues.get.resolves({
+      data: {
+        state: 'closed',
+        closed_at: '2024-01-15T10:30:00Z',
+        html_url: 'https://github.com/test/repo/issues/123',
+        labels: [
+          'Closed: 2024-01-10', // String format
+          { name: 'Closed: 2024-01-12' }, // Object format
+          'bug', // String format
+          { name: 'enhancement' } // Object format
+        ]
+      }
+    })
+
+    await run(coreStub, githubStub)
+
+    // Should remove existing "Closed:" labels (only object format ones)
+    const removeLabelCalled = octokitStub.rest.issues.removeLabel.called
+    void expect(removeLabelCalled).to.be.true
+    const removeLabelArgs = octokitStub.rest.issues.removeLabel.firstCall.args[0]
+    void expect(removeLabelArgs).to.deep.include({
+      owner: 'test-org',
+      repo: 'test-repo',
+      issue_number: 123,
+      name: 'Closed: 2024-01-12'
     })
 
     // Should add new "Closed:" label
