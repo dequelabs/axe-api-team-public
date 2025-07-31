@@ -38,7 +38,7 @@ describe('run', () => {
       }
     }
     
-    githubStub.getOctokit.returns(octokitStub as any)
+    githubStub.getOctokit.returns(octokitStub as ReturnType<typeof github.getOctokit>)
   })
 
   afterEach(() => {
@@ -53,8 +53,10 @@ describe('run', () => {
 
     await run(coreStub, githubStub)
 
-    expect(octokitStub.rest.issues.addLabels.called).to.be.true
-    expect(octokitStub.rest.issues.addLabels.firstCall.args[0]).to.deep.include({
+    const addLabelsCalled = octokitStub.rest.issues.addLabels.called
+    expect(addLabelsCalled).to.be.true
+    const addLabelsArgs = octokitStub.rest.issues.addLabels.firstCall.args[0]
+    expect(addLabelsArgs).to.deep.include({
       owner: 'test-org',
       repo: 'test-repo',
       issue_number: 123,
@@ -86,8 +88,10 @@ describe('run', () => {
     await run(coreStub, githubStub)
 
     // Should remove existing "Closed:" labels
-    expect(octokitStub.rest.issues.removeLabel.called).to.be.true
-    expect(octokitStub.rest.issues.removeLabel.firstCall.args[0]).to.deep.include({
+    const removeLabelCalled = octokitStub.rest.issues.removeLabel.called
+    expect(removeLabelCalled).to.be.true
+    const removeLabelArgs = octokitStub.rest.issues.removeLabel.firstCall.args[0]
+    expect(removeLabelArgs).to.deep.include({
       owner: 'test-org',
       repo: 'test-repo',
       issue_number: 123,
@@ -95,8 +99,10 @@ describe('run', () => {
     })
 
     // Should add new "Closed:" label
-    expect(octokitStub.rest.issues.addLabels.called).to.be.true
-    expect(octokitStub.rest.issues.addLabels.firstCall.args[0]).to.deep.include({
+    const addLabelsCalled = octokitStub.rest.issues.addLabels.called
+    expect(addLabelsCalled).to.be.true
+    const addLabelsArgs = octokitStub.rest.issues.addLabels.firstCall.args[0]
+    expect(addLabelsArgs).to.deep.include({
       owner: 'test-org',
       repo: 'test-repo',
       issue_number: 123,
@@ -122,8 +128,10 @@ describe('run', () => {
 
     await run(coreStub, githubStub)
 
-    expect(octokitStub.rest.issues.addLabels.called).to.be.false
-    expect(octokitStub.rest.issues.removeLabel.called).to.be.false
+    const addLabelsCalled = octokitStub.rest.issues.addLabels.called
+    expect(addLabelsCalled).to.be.false
+    const removeLabelCalled = octokitStub.rest.issues.removeLabel.called
+    expect(removeLabelCalled).to.be.false
   })
 
   it('should not add label when issue is closed but has no closed_at date', async () => {
@@ -144,8 +152,10 @@ describe('run', () => {
 
     await run(coreStub, githubStub)
 
-    expect(octokitStub.rest.issues.addLabels.called).to.be.false
-    expect(octokitStub.rest.issues.removeLabel.called).to.be.false
+    const addLabelsCalled = octokitStub.rest.issues.addLabels.called
+    expect(addLabelsCalled).to.be.false
+    const removeLabelCalled = octokitStub.rest.issues.removeLabel.called
+    expect(removeLabelCalled).to.be.false
   })
 
   it('should handle errors gracefully', async () => {
@@ -153,7 +163,9 @@ describe('run', () => {
 
     await run(coreStub, githubStub)
 
-    expect(coreStub.setFailed.called).to.be.true
-    expect(coreStub.setFailed.firstCall.args[0]).to.include('Test error')
+    const setFailedCalled = coreStub.setFailed.called
+    expect(setFailedCalled).to.be.true
+    const setFailedArgs = coreStub.setFailed.firstCall.args[0]
+    expect(setFailedArgs).to.include('Test error')
   })
 }) 

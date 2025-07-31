@@ -55,7 +55,7 @@ export default async function run(
                 issue_number: issueNumber,
                 name: labelName
               })
-            } catch (error) {
+            } catch {
               // Label might have already been removed, continue
               core.info(`Label ${labelName} may have already been removed`)
             }
