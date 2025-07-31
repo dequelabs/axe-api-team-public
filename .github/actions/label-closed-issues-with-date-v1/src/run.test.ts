@@ -7,7 +7,15 @@ import run from './run'
 describe('run', () => {
   let coreStub: sinon.SinonStubbedInstance<typeof core>
   let githubStub: sinon.SinonStubbedInstance<typeof github>
-  let octokitStub: any
+  let octokitStub: {
+    rest: {
+      issues: {
+        get: sinon.SinonStub
+        addLabels: sinon.SinonStub
+        removeLabel: sinon.SinonStub
+      }
+    }
+  }
 
   beforeEach(() => {
     coreStub = sinon.stub(core)
@@ -30,7 +38,7 @@ describe('run', () => {
       }
     }
     
-    githubStub.getOctokit.returns(octokitStub)
+    githubStub.getOctokit.returns(octokitStub as any)
   })
 
   afterEach(() => {
