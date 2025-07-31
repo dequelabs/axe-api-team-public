@@ -1,6 +1,3 @@
-import * as core from '@actions/core'
-import * as github from '@actions/github'
-
 interface IssueLabel {
   name: string
 }
@@ -40,8 +37,8 @@ export default async function run(
       // Get current labels to find existing "Closed:" labels
       const currentLabels = issue.labels || []
       const closedLabelsToRemove = currentLabels
-        .filter((label: IssueLabel) => typeof label === 'object' && label.name && label.name.startsWith('Closed:'))
-        .map((label: IssueLabel) => label.name)
+        .filter((label) => typeof label === 'object' && label && 'name' in label && typeof label.name === 'string' && label.name.startsWith('Closed:'))
+        .map((label) => (label as { name: string }).name)
       
       // Remove existing "Closed:" labels if any exist
       if (closedLabelsToRemove.length > 0) {
