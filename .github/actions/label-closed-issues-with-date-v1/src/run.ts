@@ -1,6 +1,9 @@
+import type Core from '@actions/core'
+import type Github from '@actions/github'
+
 export default async function run(
-  core: typeof import('@actions/core'),
-  github: typeof import('@actions/github')
+  core: typeof Core,
+  github: typeof Github
 ): Promise<void> {
   try {
     const issueNumber = parseInt(core.getInput('issue-number', { required: true }))
