@@ -46,27 +46,21 @@ export default async function run(
       // Remove existing "Closed:" labels if any exist
       if (closedLabelsToRemove.length > 0) {
         core.info(`Removing existing "Closed:" labels: ${closedLabelsToRemove.join(', ')}`)
-        await octokit.rest.issues.removeLabel({
-          owner: issueOrganization,
-          repo: issueRepo,
-          issue_number: issueNumber,
-          name: closedLabelsToRemove[0] // Remove one at a time since the API doesn't support bulk removal
-        })
-        
-        // If there are multiple "Closed:" labels, remove the rest
-        for (let i = 1; i < closedLabelsToRemove.length; i++) {
-          try {
-            await octokit.rest.issues.removeLabel({
-              owner: issueOrganization,
-              repo: issueRepo,
-              issue_number: issueNumber,
-              name: closedLabelsToRemove[i]
-            })
-          } catch {
-            // Label might have already been removed, continue
-            core.info(`Label ${closedLabelsToRemove[i]} may have already been removed`)
-          }
-        }
+        await Promise.all(
+          closedLabelsToRemove.map(async (labelName: string) => {
+            try {
+              await octokit.rest.issues.removeLabel({
+                owner: issueOrganization,
+                repo: issueRepo,
+                issue_number: issueNumber,
+                name: labelName
+              })
+            } catch (error) {
+              // Label might have already been removed, continue
+              core.info(`Label ${labelName} may have already been removed`)
+            }
+          })
+        )
       }
       
       // Add the new date label to the issue
