@@ -12,7 +12,6 @@ export default async function run(
 
     const octokit = github.getOctokit(token)
 
-    // Get issue details from REST API
     const { data: issue } = await octokit.rest.issues.get({
       owner: issueOrganization,
       repo: issueRepo,
