@@ -1,9 +1,11 @@
+import type Core from '@actions/core'
+import type Github from '@actions/github'
+
 export default async function run(
-  core: typeof import('@actions/core'),
-  github: typeof import('@actions/github')
+  core: typeof Core,
+  github: typeof Github
 ): Promise<void> {
   try {
-    // Get required inputs
     const issueNumber = parseInt(core.getInput('issue-number', { required: true }))
     const issueOrganization = core.getInput('issue-organization', { required: true })
     const issueRepo = core.getInput('issue-repo', { required: true })
@@ -11,10 +13,8 @@ export default async function run(
 
     core.info(`Checking issue ${issueNumber} in ${issueOrganization}/${issueRepo}`)
 
-    // Get the octokit instance
     const octokit = github.getOctokit(token)
 
-    // Get issue details from REST API
     const { data: issue } = await octokit.rest.issues.get({
       owner: issueOrganization,
       repo: issueRepo,
@@ -23,7 +23,6 @@ export default async function run(
 
     core.info(`Issue state: ${issue.state}, closed_at: ${issue.closed_at}`)
 
-    // Check if issue is closed
     if (issue.state === 'closed' && issue.closed_at) {
       const closedDate = new Date(issue.closed_at)
       const dateLabel = `Closed: ${closedDate.toISOString().split('T')[0]}` // Format as YYYY-MM-DD
@@ -56,7 +55,6 @@ export default async function run(
         )
       }
       
-      // Add the new date label to the issue
       await octokit.rest.issues.addLabels({
         owner: issueOrganization,
         repo: issueRepo,
