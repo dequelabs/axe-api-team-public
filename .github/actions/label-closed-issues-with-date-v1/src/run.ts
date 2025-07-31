@@ -31,9 +31,15 @@ export default async function run(
       
       // Get current labels to find existing "Closed:" labels
       const currentLabels = issue.labels || []
-      const closedLabelsToRemove = currentLabels
-        .filter((label) => typeof label === 'object' && label && 'name' in label && typeof label.name === 'string' && label.name.startsWith('Closed:'))
-        .map((label) => (label as { name: string }).name)
+      const labelsToRemove: string[] = []
+      for (const currentLabel of currentLabels) {
+        const name =
+          typeof currentLabel === 'string' ? currentLabel : currentLabel?.name
+
+        if (name?.startsWith('Closed:')) {
+          labelsToRemove.push(name)
+        }
+      }
       
       // Remove existing "Closed:" labels if any exist
       if (closedLabelsToRemove.length > 0) {
