@@ -20,10 +20,12 @@ describe('run', () => {
             data: {
               state: 'closed',
               closed_at: '2024-01-15T10:30:00Z',
-              html_url: 'https://github.com/test/repo/issues/123'
+              html_url: 'https://github.com/test/repo/issues/123',
+              labels: []
             }
           }),
-          addLabels: sinon.stub().resolves()
+          addLabels: sinon.stub().resolves(),
+          removeLabel: sinon.stub().resolves()
         }
       }
     }
@@ -52,6 +54,48 @@ describe('run', () => {
     })
   })
 
+  it('should remove existing "Closed:" labels before adding new one', async () => {
+    coreStub.getInput.withArgs('issue-number', { required: true }).returns('123')
+    coreStub.getInput.withArgs('issue-organization', { required: true }).returns('test-org')
+    coreStub.getInput.withArgs('issue-repo', { required: true }).returns('test-repo')
+    coreStub.getInput.withArgs('token', { required: true }).returns('test-token')
+
+    // Mock issue with existing "Closed:" labels
+    octokitStub.rest.issues.get.resolves({
+      data: {
+        state: 'closed',
+        closed_at: '2024-01-15T10:30:00Z',
+        html_url: 'https://github.com/test/repo/issues/123',
+        labels: [
+          { name: 'Closed: 2024-01-10' },
+          { name: 'Closed: 2024-01-12' },
+          { name: 'bug' },
+          { name: 'enhancement' }
+        ]
+      }
+    })
+
+    await run(coreStub, githubStub)
+
+    // Should remove existing "Closed:" labels
+    expect(octokitStub.rest.issues.removeLabel.called).to.be.true
+    expect(octokitStub.rest.issues.removeLabel.firstCall.args[0]).to.deep.include({
+      owner: 'test-org',
+      repo: 'test-repo',
+      issue_number: 123,
+      name: 'Closed: 2024-01-10'
+    })
+
+    // Should add new "Closed:" label
+    expect(octokitStub.rest.issues.addLabels.called).to.be.true
+    expect(octokitStub.rest.issues.addLabels.firstCall.args[0]).to.deep.include({
+      owner: 'test-org',
+      repo: 'test-repo',
+      issue_number: 123,
+      labels: ['Closed: 2024-01-15']
+    })
+  })
+
   it('should not add label when issue is not closed', async () => {
     coreStub.getInput.withArgs('issue-number', { required: true }).returns('123')
     coreStub.getInput.withArgs('issue-organization', { required: true }).returns('test-org')
@@ -63,13 +107,15 @@ describe('run', () => {
       data: {
         state: 'open',
         closed_at: null,
-        html_url: 'https://github.com/test/repo/issues/123'
+        html_url: 'https://github.com/test/repo/issues/123',
+        labels: []
       }
     })
 
     await run(coreStub, githubStub)
 
     expect(octokitStub.rest.issues.addLabels.called).to.be.false
+    expect(octokitStub.rest.issues.removeLabel.called).to.be.false
   })
 
   it('should not add label when issue is closed but has no closed_at date', async () => {
@@ -83,13 +129,15 @@ describe('run', () => {
       data: {
         state: 'closed',
         closed_at: null,
-        html_url: 'https://github.com/test/repo/issues/123'
+        html_url: 'https://github.com/test/repo/issues/123',
+        labels: []
       }
     })
 
     await run(coreStub, githubStub)
 
     expect(octokitStub.rest.issues.addLabels.called).to.be.false
+    expect(octokitStub.rest.issues.removeLabel.called).to.be.false
   })
 
   it('should handle errors gracefully', async () => {

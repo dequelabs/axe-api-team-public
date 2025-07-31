@@ -51,8 +51,9 @@ This action can be used to check issues from any repository:
 
 1. **Issue Check**: Gets the issue details using the provided issue number, organization, and repository
 2. **Closed Status Check**: Checks if the issue is closed and has a `closed_at` date
-3. **Date Label**: If closed, adds a label with the format `Closed: YYYY-MM-DD` (e.g., `Closed: 2024-01-15`)
-4. **Re-closing**: If an issue is reopened and closed again, the label will be updated to the latest close date
+3. **Label Cleanup**: Removes any existing labels that start with "Closed:" to ensure only one date label exists
+4. **Date Label**: If closed, adds a label with the format `Closed: YYYY-MM-DD` (e.g., `Closed: 2024-01-15`)
+5. **Re-closing**: If an issue is reopened and closed again, the old date label is removed and replaced with the latest close date
 
 ## Label Format
 
