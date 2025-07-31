@@ -20,7 +20,6 @@ export default async function run(
 
     core.info(`Issue state: ${issue.state}, closed_at: ${issue.closed_at}`)
 
-    // Check if issue is closed
     if (issue.state === 'closed' && issue.closed_at) {
       const closedDate = new Date(issue.closed_at)
       const dateLabel = `Closed: ${closedDate.toISOString().split('T')[0]}` // Format as YYYY-MM-DD
