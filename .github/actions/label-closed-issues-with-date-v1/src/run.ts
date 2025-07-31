@@ -1,7 +1,3 @@
-interface IssueLabel {
-  name: string
-}
-
 export default async function run(
   core: typeof import('@actions/core'),
   github: typeof import('@actions/github')
