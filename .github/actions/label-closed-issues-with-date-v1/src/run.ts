@@ -42,10 +42,10 @@ export default async function run(
       }
       
       // Remove existing "Closed:" labels if any exist
-      if (closedLabelsToRemove.length > 0) {
-        core.info(`Removing existing "Closed:" labels: ${closedLabelsToRemove.join(', ')}`)
+      if (labelsToRemove.length > 0) {
+        core.info(`Removing existing "Closed:" labels: ${labelsToRemove.join(', ')}`)
         await Promise.all(
-          closedLabelsToRemove.map(async (labelName) => {
+          labelsToRemove.map(async (labelName) => {
             try {
               await octokit.rest.issues.removeLabel({
                 owner: issueOrganization,
