@@ -9,6 +9,22 @@ const MOCK_ISSUE = {owner: 'test-org',
   issue_number: 123,
   labels: ['Closed: 2024-01-15']}
 
+  interface GenerateInputsArgs {
+    issueNumber: string
+    issueOrganization: string
+    issueRepo: string
+    token: string
+  } 
+
+  const generateInputs = (coreStub: sinon.SinonStubbedInstance<typeof core>, inputs: GenerateInputsArgs) => {
+    coreStub.getInput.withArgs('issue-number', { required: true }).returns(inputs.issueNumber)
+    coreStub.getInput.withArgs('issue-organization', { required: true }).returns(inputs.issueOrganization)
+    coreStub.getInput.withArgs('issue-repo', { required: true }).returns(inputs.issueRepo)
+    coreStub.getInput.withArgs('token', { required: true }).returns(inputs.token)
+    return coreStub;  
+  }
+
+
 describe('run', () => {
   let coreStub: sinon.SinonStubbedInstance<typeof core>
   let githubStub: sinon.SinonStubbedInstance<typeof github>
@@ -51,12 +67,9 @@ describe('run', () => {
   })
 
   it('should add date label when issue is closed', async () => {
-    coreStub.getInput.withArgs('issue-number', { required: true }).returns('123')
-    coreStub.getInput.withArgs('issue-organization', { required: true }).returns('test-org')
-    coreStub.getInput.withArgs('issue-repo', { required: true }).returns('test-repo')
-    coreStub.getInput.withArgs('token', { required: true }).returns('test-token')
+    const coreStubOutput = generateInputs(coreStub, {issueNumber: '123', issueOrganization: 'test-org', issueRepo: 'test-repo', token: 'test-token'})
 
-    await run(coreStub, githubStub)
+    await run(coreStubOutput, githubStub)
 
     const addLabelsCalled = octokitStub.rest.issues.addLabels.called
     void expect(addLabelsCalled).to.be.true
@@ -65,10 +78,7 @@ describe('run', () => {
   })
 
   it('should remove existing "Closed:" labels before adding new one', async () => {
-    coreStub.getInput.withArgs('issue-number', { required: true }).returns('123')
-    coreStub.getInput.withArgs('issue-organization', { required: true }).returns('test-org')
-    coreStub.getInput.withArgs('issue-repo', { required: true }).returns('test-repo')
-    coreStub.getInput.withArgs('token', { required: true }).returns('test-token')
+    const coreStubOutput = generateInputs(coreStub, {issueNumber: '123', issueOrganization: 'test-org', issueRepo: 'test-repo', token: 'test-token'})
 
     // Mock issue with existing "Closed:" labels
     octokitStub.rest.issues.get.resolves({
@@ -85,7 +95,7 @@ describe('run', () => {
       }
     })
 
-    await run(coreStub, githubStub)
+    await run(coreStubOutput, githubStub)
 
     // Should remove existing "Closed:" labels
     const removeLabelCalled = octokitStub.rest.issues.removeLabel.called
@@ -106,10 +116,7 @@ describe('run', () => {
   })
 
   it('should handle mixed label formats (string and object)', async () => {
-    coreStub.getInput.withArgs('issue-number', { required: true }).returns('123')
-    coreStub.getInput.withArgs('issue-organization', { required: true }).returns('test-org')
-    coreStub.getInput.withArgs('issue-repo', { required: true }).returns('test-repo')
-    coreStub.getInput.withArgs('token', { required: true }).returns('test-token')
+    const coreStubOutput = generateInputs(coreStub, {issueNumber: '123', issueOrganization: 'test-org', issueRepo: 'test-repo', token: 'test-token'})
 
     // Mock issue with mixed label formats - both string and object
     octokitStub.rest.issues.get.resolves({
@@ -126,7 +133,7 @@ describe('run', () => {
       }
     })
 
-    await run(coreStub, githubStub)
+    await run(coreStubOutput, githubStub)
 
     // Should remove existing "Closed:" labels (only object format ones)
     const removeLabelCalled = octokitStub.rest.issues.removeLabel.called
@@ -147,10 +154,7 @@ describe('run', () => {
   })
 
   it('should not add label when issue is not closed', async () => {
-    coreStub.getInput.withArgs('issue-number', { required: true }).returns('123')
-    coreStub.getInput.withArgs('issue-organization', { required: true }).returns('test-org')
-    coreStub.getInput.withArgs('issue-repo', { required: true }).returns('test-repo')
-    coreStub.getInput.withArgs('token', { required: true }).returns('test-token')
+    const coreStubOutput = generateInputs(coreStub, {issueNumber: '123', issueOrganization: 'test-org', issueRepo: 'test-repo', token: 'test-token'})
 
     // Mock issue as open
     octokitStub.rest.issues.get.resolves({
@@ -162,7 +166,7 @@ describe('run', () => {
       }
     })
 
-    await run(coreStub, githubStub)
+    await run(coreStubOutput, githubStub)
 
     const addLabelsCalled = octokitStub.rest.issues.addLabels.called
     void expect(addLabelsCalled).to.be.false
@@ -171,10 +175,7 @@ describe('run', () => {
   })
 
   it('should not add label when issue is closed but has no closed_at date', async () => {
-    coreStub.getInput.withArgs('issue-number', { required: true }).returns('123')
-    coreStub.getInput.withArgs('issue-organization', { required: true }).returns('test-org')
-    coreStub.getInput.withArgs('issue-repo', { required: true }).returns('test-repo')
-    coreStub.getInput.withArgs('token', { required: true }).returns('test-token')
+    const coreStubOutput = generateInputs(coreStub, {issueNumber: '123', issueOrganization: 'test-org', issueRepo: 'test-repo', token: 'test-token'})
 
     // Mock issue as closed but with no closed_at date
     octokitStub.rest.issues.get.resolves({
@@ -186,7 +187,7 @@ describe('run', () => {
       }
     })
 
-    await run(coreStub, githubStub)
+    await run(coreStubOutput, githubStub)
 
     const addLabelsCalled = octokitStub.rest.issues.addLabels.called
     void expect(addLabelsCalled).to.be.false
