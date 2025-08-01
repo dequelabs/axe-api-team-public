@@ -4,6 +4,11 @@ import * as core from '@actions/core'
 import * as github from '@actions/github'
 import run from './run'
 
+const MOCK_ISSUE = {owner: 'test-org',
+  repo: 'test-repo',
+  issue_number: 123,
+  labels: ['Closed: 2024-01-15']}
+
 describe('run', () => {
   let coreStub: sinon.SinonStubbedInstance<typeof core>
   let githubStub: sinon.SinonStubbedInstance<typeof github>
@@ -56,12 +61,7 @@ describe('run', () => {
     const addLabelsCalled = octokitStub.rest.issues.addLabels.called
     void expect(addLabelsCalled).to.be.true
     const addLabelsArgs = octokitStub.rest.issues.addLabels.firstCall.args[0]
-    void expect(addLabelsArgs).to.deep.include({
-      owner: 'test-org',
-      repo: 'test-repo',
-      issue_number: 123,
-      labels: ['Closed: 2024-01-15']
-    })
+    void expect(addLabelsArgs).to.deep.include(MOCK_ISSUE)
   })
 
   it('should remove existing "Closed:" labels before adding new one', async () => {
@@ -102,12 +102,7 @@ describe('run', () => {
     const addLabelsCalled = octokitStub.rest.issues.addLabels.called
     void expect(addLabelsCalled).to.be.true
     const addLabelsArgs = octokitStub.rest.issues.addLabels.firstCall.args[0]
-    void expect(addLabelsArgs).to.deep.include({
-      owner: 'test-org',
-      repo: 'test-repo',
-      issue_number: 123,
-      labels: ['Closed: 2024-01-15']
-    })
+    void expect(addLabelsArgs).to.deep.include(MOCK_ISSUE)
   })
 
   it('should handle mixed label formats (string and object)', async () => {
@@ -148,12 +143,7 @@ describe('run', () => {
     const addLabelsCalled = octokitStub.rest.issues.addLabels.called
     void expect(addLabelsCalled).to.be.true
     const addLabelsArgs = octokitStub.rest.issues.addLabels.firstCall.args[0]
-    void expect(addLabelsArgs).to.deep.include({
-      owner: 'test-org',
-      repo: 'test-repo',
-      issue_number: 123,
-      labels: ['Closed: 2024-01-15']
-    })
+    void expect(addLabelsArgs).to.deep.include(MOCK_ISSUE)
   })
 
   it('should not add label when issue is not closed', async () => {
