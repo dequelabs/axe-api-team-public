@@ -17,7 +17,7 @@ This action labels issues on close with date they are closed on. If they are ope
 
 ```yaml
 - name: Label Closed Issues with Date
-  uses: ./.github/actions/label-closed-issues-with-date-v1
+  uses: dequelabs/axe-api-team-public/.github/actions/label-closed-issues-with-date-v1@main
   with:
     issue-number: 123
     issue-organization: result-team
