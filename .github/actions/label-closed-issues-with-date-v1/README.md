@@ -16,36 +16,28 @@ This action labels issues on close with date they are closed on. If they are ope
 ### Basic Usage
 
 ```yaml
-- name: Label Closed Issues with Date
-  uses: ./.github/actions/label-closed-issues-with-date-v1
-  with:
-    issue-number: 123
-    issue-organization: result-team
-    issue-repo: my-project
-    token: ${{ secrets.PAT }}
+name: Label Closed Issues with Date
+
+on:
+  issues:
+    types: [closed]
+
+jobs:
+  label-closed-issues:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Label Closed Issues with Date on Close
+        uses: ./.github/actions/label-closed-issues-with-date-v1
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          issue-organization: ${{ github.event.repository.owner.login }}
+          issue-repo: ${{ github.event.repository.name }}
+          token: ${{ secrets.PAT }} 
 ```
 
-### Cross-Repository Usage
-
-This action can be used to check issues from any repository:
-
-```yaml
-- name: Label Closed Issues from Jazzband
-  uses: ./.github/actions/label-closed-issues-with-date-v1
-  with:
-    issue-number: 456
-    issue-organization: jazzband
-    issue-repo: some-repo
-    token: ${{ secrets.PAT }}
-
-- name: Label Closed Issues from Walnut
-  uses: ./.github/actions/label-closed-issues-with-date-v1
-  with:
-    issue-number: 789
-    issue-organization: walnut
-    issue-repo: another-repo
-    token: ${{ secrets.PAT }}
-```
 
 ## How It Works
 
