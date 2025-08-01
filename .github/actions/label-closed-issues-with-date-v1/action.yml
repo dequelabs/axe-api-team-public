@@ -1,0 +1,19 @@
+name: 'Label Closed Issues with Date'
+description: 'Check if an issue meets criteria and label closed issues with date information'
+inputs:
+  issue-number:
+    description: 'The issue number to check'
+    required: true
+  issue-organization:
+    description: 'The organization where the issue is located'
+    required: true
+  issue-repo:
+    description: 'The repository where the issue is located'
+    required: true
+  token:
+    description: 'A GitHub token with the required permissions'
+    required: true
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js' 
