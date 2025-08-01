@@ -6,6 +6,10 @@ export default async function run(
 ): Promise<void> {
   try {
     const issueNumber = parseInt(core.getInput('issue-number', { required: true }))
+    if (isNaN(issueNumber)) {
+      core.setFailed('`issue-number` must be a number')
+      return
+    }
     const issueOrganization = core.getInput('issue-organization', { required: true })
     const issueRepo = core.getInput('issue-repo', { required: true })
     const token = core.getInput('token', { required: true })
