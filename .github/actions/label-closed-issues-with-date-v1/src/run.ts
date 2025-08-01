@@ -68,7 +68,7 @@ export default async function run(
         labels: [dateLabel]
       })
       
-      core.info(`Successfully added date label to issue ${issueNumber}`)
+      core.info(`The label "${labelName}" has been added successfully to the issue ${issueNumber}`)
     } else {
       core.info(`Issue ${issueNumber} is not closed or has no closed_at date`)
     }
