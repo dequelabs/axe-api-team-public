@@ -205,4 +205,15 @@ describe('run', () => {
     const setFailedArgs = coreStub.setFailed.firstCall.args[0]
     void expect(setFailedArgs).to.include('Test error')
   })
+
+  it('should fail when issue-number is not a valid number', async () => {
+    const coreStubOutput = generateInputs(coreStub, {issueNumber: 'invalid-number', issueOrganization: 'test-org', issueRepo: 'test-repo', token: 'test-token'})
+
+    await run(coreStubOutput, githubStub)
+
+    const setFailedCalled = coreStub.setFailed.called
+    void expect(setFailedCalled).to.be.true
+    const setFailedArgs = coreStub.setFailed.firstCall.args[0]
+    void expect(setFailedArgs).to.equal('`issue-number` must be a number')
+  })
 }) 
