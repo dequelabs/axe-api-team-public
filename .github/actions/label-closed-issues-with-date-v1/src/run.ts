@@ -1,9 +1,8 @@
-import type Core from '@actions/core'
-import type Github from '@actions/github'
+import type { Core as CoreType, GitHub as GitHubType } from './types'
 
 export default async function run(
-  core: typeof Core,
-  github: typeof Github
+  core: CoreType,
+  github: GitHubType
 ): Promise<void> {
   try {
     const issueNumber = parseInt(core.getInput('issue-number', { required: true }))
@@ -68,7 +67,7 @@ export default async function run(
         labels: [dateLabel]
       })
       
-      core.info(`The label "${labelName}" has been added successfully to the issue ${issueNumber}`)
+      core.info(`The label "${dateLabel}" has been added successfully to the issue ${issueNumber}`)
     } else {
       core.info(`Issue ${issueNumber} is not closed or has no closed_at date`)
     }
