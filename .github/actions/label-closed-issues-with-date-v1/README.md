@@ -39,6 +39,16 @@ jobs:
 ```
 
 
+### Permissions
+
+This action requires the following permission scopes:
+
+- `repo` - To create the issue within private repositories
+- `workflow` - To access the `GITHUB_TOKEN` secret
+- `write:org` - To add the issue to a project board
+- `read:org` - To read the project board
+- `project` - access to project board
+
 ## How It Works
 
 1. **Issue Check**: Gets the issue details using the provided issue number, organization, and repository
