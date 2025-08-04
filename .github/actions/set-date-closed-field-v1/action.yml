@@ -1,5 +1,5 @@
-name: 'Label Closed Issues with Date'
-description: 'Check if an issue meets criteria and label closed issues with date information'
+name: 'Set DateClosed Field on Issue Close'
+description: 'Update the DateClosed project field when an issue is closed as completed'
 inputs:
   issue-number:
     description: 'The issue number to check'
@@ -9,6 +9,9 @@ inputs:
     required: true
   issue-repo:
     description: 'The repository where the issue is located'
+    required: true
+  project-number:
+    description: 'The project number where the issue is located'
     required: true
   token:
     description: 'A GitHub token with the required permissions'

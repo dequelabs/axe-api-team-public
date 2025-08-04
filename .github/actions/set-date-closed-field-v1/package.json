@@ -1,7 +1,7 @@
 {
-  "name": "label-closed-issues-with-date-v1",
+  "name": "set-date-closed-field-v1",
   "version": "1.0.0",
-  "description": "A GitHub Action to check issue criteria and label closed issues with date information",
+  "description": "A GitHub Action to set the DateClosed field when an issue is closed",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dequelabs/axe-api-team-public.git"
