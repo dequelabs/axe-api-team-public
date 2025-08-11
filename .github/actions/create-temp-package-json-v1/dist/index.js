@@ -24974,7 +24974,9 @@ const path_1 = __nccwpck_require__(1017);
 async function run(core, fileSystem) {
     try {
         const defaultTempPackageName = 'temp-license-check';
-        const workspacePathList = core.getInput('workspace-path-list', { required: true });
+        const workspacePathList = core.getInput('workspace-path-list', {
+            required: true
+        });
         const outputPath = (core.getInput('output-path') || `./${defaultTempPackageName}`).trim();
         const { existsSync, readFileSync, writeFileSync, mkdirSync, symlinkSync, lstatSync } = fileSystem;
         if (!existsSync('./node_modules')) {
