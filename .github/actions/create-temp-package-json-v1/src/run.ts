@@ -1,0 +1,139 @@
+import { join, resolve } from 'path'
+import {
+  readFileSync,
+  writeFileSync,
+  mkdirSync,
+  existsSync,
+  symlinkSync,
+  lstatSync
+} from 'fs'
+import type { Core } from './types'
+
+interface WorkspaceDependencies {
+  [key: string]: string
+}
+
+export default async function run(core: Core) {
+  try {
+    const defaultTempPackageName = 'temp-license-check'
+    const workspacePathList = core.getInput('workspace-path-list', {
+      required: true
+    })
+    const outputPath = (
+      core.getInput('output-path') || `./${defaultTempPackageName}`
+    ).trim()
+
+    if (!existsSync('./node_modules')) {
+      core.setFailed(
+        'The `node_modules` directory not found in the root directory. Please install all dependencies before this action.'
+      )
+      return
+    }
+
+    const workspacePaths = workspacePathList
+      .split(',')
+      .map(path => path.trim())
+      .filter(path => path.length)
+
+    if (!workspacePaths.length) {
+      core.setFailed(
+        'No workspace paths provided. Please specify at least one valid workspace path in the `workspace-path-list` input.'
+      )
+      return
+    }
+
+    core.info(`Provided workspaces: ${JSON.stringify(workspacePaths)}`)
+    // Create output directory
+    mkdirSync(outputPath, { recursive: true })
+
+    let mergedDependencies: WorkspaceDependencies = {}
+
+    for (const workspacePath of workspacePaths) {
+      core.info(`Processing the workspace: ${workspacePath}...`)
+
+      const packageJsonPath = join(workspacePath, 'package.json')
+
+      if (!existsSync(packageJsonPath)) {
+        core.warning(
+          `The "package.json" file is not found in the "${workspacePath}" workspace. Skipping...`
+        )
+        continue
+      }
+
+      try {
+        const packageJsonContent = readFileSync(packageJsonPath, 'utf8')
+
+        if (!packageJsonContent.length) {
+          core.warning(
+            `The "package.json" file in the "${workspacePath}" workspace is empty. Skipping...`
+          )
+          continue
+        }
+
+        const packageData = JSON.parse(packageJsonContent)
+        const dependencies = packageData.dependencies || {}
+
+        mergedDependencies = {
+          ...mergedDependencies,
+          ...dependencies
+        }
+
+        core.info(
+          `The dependencies (${Object.keys(dependencies).length} items) from the "${workspacePath}" workspace are merged successfully.`
+        )
+      } catch (error) {
+        core.warning(
+          `Failed to process "${packageJsonPath}": ${(error as Error).message}`
+        )
+      }
+    }
+
+    core.info(
+      `Total merged dependencies: \n${JSON.stringify(mergedDependencies)}`
+    )
+
+    if (!Object.keys(mergedDependencies).length) {
+      core.setFailed('No production dependencies found in any workspace')
+      return
+    }
+
+    // Create temporary package.json with the production dependencies
+    const tempPackageJson = {
+      name: defaultTempPackageName,
+      dependencies: mergedDependencies
+    }
+    const tempPackageJsonPath = join(outputPath, 'package.json')
+
+    core.info(
+      `Creating temporary "${tempPackageJsonPath}" file with the production dependencies...`
+    )
+
+    writeFileSync(tempPackageJsonPath, JSON.stringify(tempPackageJson, null, 2))
+
+    core.info(`Temporary package.json created successfully`)
+
+    // Create symlink to node_modules
+    const nodeModulesSymlinkPath = join(outputPath, 'node_modules')
+
+    symlinkSync(resolve('./node_modules'), nodeModulesSymlinkPath, 'dir')
+
+    // Verify symlink was created
+    if (!lstatSync(nodeModulesSymlinkPath).isSymbolicLink()) {
+      core.setFailed(
+        `Failed to create symlink to temporary "${nodeModulesSymlinkPath}" directory`
+      )
+      return
+    }
+
+    core.info(
+      `Successfully created temporary "${tempPackageJsonPath}" file with merged dependencies from all workspaces: "${JSON.stringify(workspacePaths)}"`
+    )
+    core.info(
+      `Production dependencies: \n${JSON.stringify(mergedDependencies, null, 2)}`
+    )
+
+    core.setOutput('temp-path', outputPath)
+  } catch (error) {
+    core.setFailed((error as Error).message)
+  }
+}
