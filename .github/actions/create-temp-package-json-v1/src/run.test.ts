@@ -102,7 +102,7 @@ describe('run', () => {
       const writtenPackage = JSON.parse(writeContent)
 
       assert.deepEqual(writtenPackage.dependencies, {
-        lodash: '^4.17.21', // Comes form the first workspace
+        lodash: '^4.17.21', // Comes from the first workspace
         axios: '^2.0.0', // Comes from the second workspace, overrides the first
         express: '^4.18.0' // Comes from the second workspace
       })

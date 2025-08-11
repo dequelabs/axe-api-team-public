@@ -17,7 +17,8 @@ A GitHub Action to create a temporary `package.json` with production dependencie
 
 ## Example usage
 
-Thia action is used in the `license-check` job of the workflow that checks the licenses of NPM packages. It creates a temporary `package.json` file that includes only the production dependencies from the specified workspaces.
+This action is used in the `license-check` job of the workflow that checks the licenses of NPM packages. It creates a temporary `package.json`
+file that includes only the production dependencies from the specified workspaces.
 
 ```yaml
 jobs:
