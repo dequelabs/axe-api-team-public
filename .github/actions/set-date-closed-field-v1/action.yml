@@ -1,0 +1,22 @@
+name: 'Set DateClosed Field on Issue Close'
+description: 'Update the DateClosed project field when an issue is closed as completed'
+inputs:
+  issue-number:
+    description: 'The issue number to check'
+    required: true
+  issue-organization:
+    description: 'The organization where the issue is located'
+    required: true
+  issue-repo:
+    description: 'The repository where the issue is located'
+    required: true
+  project-number:
+    description: 'The project number where the issue is located (should be hardcoded in workflow)'
+    required: true
+  token:
+    description: 'A GitHub token with the required permissions'
+    required: true
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js' 
