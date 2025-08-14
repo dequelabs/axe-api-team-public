@@ -30419,27 +30419,6 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 9663:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports["default"] = getProjectBoardFieldList;
-const exec_1 = __nccwpck_require__(1518);
-async function getProjectBoardFieldList({ projectNumber, owner }) {
-    try {
-        const { stdout: fieldList } = await (0, exec_1.getExecOutput)(`gh project field-list ${projectNumber} --owner ${owner} --format json`);
-        return JSON.parse(fieldList.trim());
-    }
-    catch (error) {
-        throw new Error(`Error getting project field list: ${error.message}`);
-    }
-}
-
-
-/***/ }),
-
 /***/ 1856:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -30490,7 +30469,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports["default"] = run;
-const getProjectBoardFieldList_1 = __importDefault(__nccwpck_require__(9663));
+const exec_1 = __nccwpck_require__(1518);
 const updateDateClosedField_1 = __importDefault(__nccwpck_require__(1000));
 async function run(core, github) {
     try {
@@ -30499,9 +30478,7 @@ async function run(core, github) {
             core.setFailed('`issue-number` must be a number');
             return;
         }
-        const issueOrganization = core.getInput('issue-organization', {
-            required: true
-        });
+        const issueOrganization = core.getInput('issue-organization', { required: true });
         const issueRepo = core.getInput('issue-repo', { required: true });
         const token = core.getInput('token', { required: true });
         const projectNumber = parseInt(core.getInput('project-number', { required: true }));
@@ -30535,7 +30512,8 @@ async function run(core, github) {
             }
             const dateClosedFieldId = await getDateClosedFieldId({
                 owner: issueOrganization,
-                projectNumber
+                projectNumber,
+                token
             });
             if (!dateClosedFieldId) {
                 core.info(`DateClosed field not found in project ${projectNumber}`);
@@ -30560,7 +30538,7 @@ async function run(core, github) {
 }
 async function getProjectItemId({ octokit, owner, repo, issueNumber, projectNumber }) {
     try {
-        const result = (await octokit.graphql(`
+        const result = await octokit.graphql(`
       query getProjectItemId($owner: String!, $repo: String!, $issueNumber: Int!) {
         repository(owner: $owner, name: $repo) {
           issue(number: $issueNumber) {
@@ -30580,7 +30558,7 @@ async function getProjectItemId({ octokit, owner, repo, issueNumber, projectNumb
             owner,
             repo,
             issueNumber
-        }));
+        });
         const projectItem = result.repository.issue.projectItems.nodes.find(node => node.project.number === projectNumber);
         return projectItem
             ? { itemId: projectItem.id, projectId: projectItem.project.id }
@@ -30590,14 +30568,28 @@ async function getProjectItemId({ octokit, owner, repo, issueNumber, projectNumb
         throw new Error(`Failed to get project item ID: ${error.message}`);
     }
 }
-async function getDateClosedFieldId({ owner, projectNumber }) {
+async function getDateClosedFieldId({ owner, projectNumber, token }) {
     try {
-        const fields = await (0, getProjectBoardFieldList_1.default)({ projectNumber, owner });
+        const fields = await getProjectBoardFieldList({ projectNumber, owner, token });
         const dateClosedField = fields.fields.find((field) => field.name === 'DateClosed');
         return dateClosedField?.id || null;
     }
     catch (error) {
         throw new Error(`Failed to get DateClosed field ID: ${error.message}`);
+    }
+}
+async function getProjectBoardFieldList({ projectNumber, owner, token }) {
+    try {
+        const { stdout: fieldList } = await (0, exec_1.getExecOutput)(`gh project field-list ${projectNumber} --owner ${owner} --format json`, [], {
+            env: {
+                ...process.env,
+                GH_TOKEN: token
+            }
+        });
+        return JSON.parse(fieldList.trim());
+    }
+    catch (error) {
+        throw new Error(`Error getting project field list: ${error.message}`);
     }
 }
 

@@ -1,5 +1,5 @@
 import type { Core as CoreType, GitHub as GitHubType } from './types'
-import getProjectBoardFieldList from '../../add-to-board-v1/src/getProjectBoardFieldList'
+import { getExecOutput } from '@actions/exec'
 import updateDateClosedField from './updateDateClosedField'
 
 export default async function run(
@@ -14,6 +14,7 @@ export default async function run(
       core.setFailed('`issue-number` must be a number')
       return
     }
+
     const issueOrganization = core.getInput('issue-organization', {
       required: true
     })
@@ -46,7 +47,7 @@ export default async function run(
       issue.state === 'closed' &&
       issue.state_reason === 'completed'
     ) {
-      const dateString = new Date(issue.closed_at).toISOString().split('T')[0] // Format as YYYY-MM-DD
+      const dateString = new Date(issue.closed_at).toISOString().split('T')[0]
 
       core.info(`Issue is closed. Updating DateClosed field to: ${dateString}`)
 
@@ -64,10 +65,11 @@ export default async function run(
         return
       }
 
-      // Get the DateClosed field ID
+      // Get the DateClosed field ID using existing function
       const dateClosedFieldId = await getDateClosedFieldId({
         owner: issueOrganization,
-        projectNumber
+        projectNumber,
+        token
       })
 
       if (!dateClosedFieldId) {
@@ -174,14 +176,21 @@ async function getProjectItemId({
 interface GetDateClosedFieldIdArgs {
   owner: string
   projectNumber: number
+  token: string
 }
 
 async function getDateClosedFieldId({
   owner,
-  projectNumber
+  projectNumber,
+  token
 }: GetDateClosedFieldIdArgs): Promise<string | null> {
   try {
-    const fields = await getProjectBoardFieldList({ projectNumber, owner })
+    // Use local function that properly handles GH_TOKEN
+    const fields = await getProjectBoardFieldList({
+      projectNumber,
+      owner,
+      token
+    })
     const dateClosedField = fields.fields.find(
       (field: { id: string; name: string; type: string }) =>
         field.name === 'DateClosed'
@@ -191,6 +200,50 @@ async function getDateClosedFieldId({
   } catch (error) {
     throw new Error(
       `Failed to get DateClosed field ID: ${(error as Error).message}`
+    )
+  }
+}
+
+interface GetProjectBoardFieldListArgs {
+  projectNumber: number
+  owner: string
+  token: string
+}
+
+interface ProjectBoardFieldListResponse {
+  fields: Array<{
+    id: string
+    name: string
+    type: string
+    options: Array<{
+      id: string
+      name: string
+    }>
+  }>
+  totalCount: number
+}
+
+async function getProjectBoardFieldList({
+  projectNumber,
+  owner,
+  token
+}: GetProjectBoardFieldListArgs): Promise<ProjectBoardFieldListResponse> {
+  try {
+    const { stdout: fieldList } = await getExecOutput(
+      `gh project field-list ${projectNumber} --owner ${owner} --format json`,
+      [],
+      {
+        env: {
+          ...process.env,
+          GH_TOKEN: token
+        }
+      }
+    )
+
+    return JSON.parse(fieldList.trim()) as ProjectBoardFieldListResponse
+  } catch (error) {
+    throw new Error(
+      `Error getting project field list: ${(error as Error).message}`
     )
   }
 }

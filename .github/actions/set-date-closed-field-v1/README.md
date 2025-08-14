@@ -79,6 +79,70 @@ This action requires the following permission scopes:
 
 **Note**: This action should be configured to only trigger when an issue is closed as completed, not when it's closed as "not planned" or other non-completion reasons. This can be achieved by configuring the workflow trigger appropriately.
 
+## Troubleshooting
+
+### Finding Your Project Number
+
+If you're getting errors about the project not being found, you can find your project number by:
+
+1. **Using GitHub CLI** (if you have it installed):
+
+   ```bash
+   gh project list --owner YOUR_ORG_OR_USERNAME
+   ```
+
+2. **From the GitHub UI**:
+
+   - Go to your GitHub project board
+   - Look at the URL: `https://github.com/orgs/YOUR_ORG/projects/PROJECT_NUMBER`
+   - The PROJECT_NUMBER is what you need
+
+3. **Check project access**:
+   - Make sure the GitHub token has access to the project
+   - Verify the project exists and is accessible
+
+### Verifying the DateClosed Field
+
+To check if the DateClosed field exists in your project:
+
+```bash
+gh project field-list PROJECT_NUMBER --owner YOUR_ORG_OR_USERNAME --format json
+```
+
+Look for a field named `DateClosed` with type `Date`. If it doesn't exist, create it following the setup instructions above.
+
+### Common Error: "Failed to get DateClosed field ID"
+
+This error usually means:
+
+1. The project number is incorrect
+2. The DateClosed field doesn't exist in the project
+3. The GitHub token doesn't have access to the project
+4. The project is in a different organization than expected
+
+### Common Error: "gh: To use GitHub CLI in a GitHub Actions workflow, set the GH_TOKEN environment variable"
+
+This error occurs when the GitHub CLI (`gh`) command doesn't have proper authentication. The action should handle this automatically, but if you see this error:
+
+1. **Check your token permissions**: Make sure your `PAT` token has:
+
+   - `read:org` - To read the project board
+   - `write:org` - To update project fields
+   - `project` - To access project boards
+
+2. **Verify project access**: Ensure the token has access to the specific project you're trying to use
+
+3. **Check project number**: Verify the project number exists and is accessible:
+
+   ```bash
+   gh project list --owner dequelabs
+   ```
+
+4. **Test manually**: Try running the command manually to see the exact error:
+   ```bash
+   gh project field-list 188 --owner dequelabs --format json
+   ```
+
 ## Setup Instructions
 
 ### Step 1: Create the DateClosed Custom Field
