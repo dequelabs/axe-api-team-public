@@ -30478,7 +30478,9 @@ async function run(core, github) {
             core.setFailed('`issue-number` must be a number');
             return;
         }
-        const issueOrganization = core.getInput('issue-organization', { required: true });
+        const issueOrganization = core.getInput('issue-organization', {
+            required: true
+        });
         const issueRepo = core.getInput('issue-repo', { required: true });
         const token = core.getInput('token', { required: true });
         const projectNumber = parseInt(core.getInput('project-number', { required: true }));
@@ -30494,9 +30496,8 @@ async function run(core, github) {
             issue_number: issueNumber
         });
         core.info(`Issue state: ${issue.state}, closed_at: ${issue.closed_at}`);
-        if (issue.closed_at && issue.state === 'closed') {
-            const closedDate = new Date(issue.closed_at);
-            const dateString = closedDate.toISOString().split('T')[0];
+        if (issue.closed_at && issue.state === 'closed' && issue.state_reason === 'completed') {
+            const dateString = new Date(issue.closed_at).toISOString().split('T')[0];
             core.info(`Issue is closed. Updating DateClosed field to: ${dateString}`);
             const projectItemId = await getProjectItemId({
                 octokit,
@@ -30537,7 +30538,7 @@ async function run(core, github) {
 }
 async function getProjectItemId({ octokit, owner, repo, issueNumber, projectNumber }) {
     try {
-        const result = await octokit.graphql(`
+        const result = (await octokit.graphql(`
       query getProjectItemId($owner: String!, $repo: String!, $issueNumber: Int!) {
         repository(owner: $owner, name: $repo) {
           issue(number: $issueNumber) {
@@ -30557,9 +30558,11 @@ async function getProjectItemId({ octokit, owner, repo, issueNumber, projectNumb
             owner,
             repo,
             issueNumber
-        });
-        const projectItem = result.repository.issue.projectItems.nodes.find((node) => node.project.number === projectNumber);
-        return projectItem ? { itemId: projectItem.id, projectId: projectItem.project.id } : null;
+        }));
+        const projectItem = result.repository.issue.projectItems.nodes.find(node => node.project.number === projectNumber);
+        return projectItem
+            ? { itemId: projectItem.id, projectId: projectItem.project.id }
+            : null;
     }
     catch (error) {
         throw new Error(`Failed to get project item ID: ${error.message}`);

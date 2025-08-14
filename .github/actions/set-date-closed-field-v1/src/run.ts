@@ -41,9 +41,12 @@ export default async function run(
 
     core.info(`Issue state: ${issue.state}, closed_at: ${issue.closed_at}`)
 
-    if (issue.closed_at && issue.state === 'closed') {
-      const closedDate = new Date(issue.closed_at)
-      const dateString = closedDate.toISOString().split('T')[0] // Format as YYYY-MM-DD
+    if (
+      issue.closed_at &&
+      issue.state === 'closed' &&
+      issue.state_reason === 'completed'
+    ) {
+      const dateString = new Date(issue.closed_at).toISOString().split('T')[0] // Format as YYYY-MM-DD
 
       core.info(`Issue is closed. Updating DateClosed field to: ${dateString}`)
 
