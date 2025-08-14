@@ -30460,13 +30460,17 @@ const run_1 = __importDefault(__nccwpck_require__(1738));
 /***/ }),
 
 /***/ 1738:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports["default"] = run;
 const exec_1 = __nccwpck_require__(1518);
+const updateDateClosedField_1 = __importDefault(__nccwpck_require__(1000));
 async function run(core, github) {
     try {
         const issueNumber = parseInt(core.getInput('issue-number', { required: true }));
@@ -30514,7 +30518,7 @@ async function run(core, github) {
                 core.info(`DateClosed field not found in project ${projectNumber}`);
                 return;
             }
-            await updateDateClosedField({
+            await (0, updateDateClosedField_1.default)({
                 projectItemId: projectItemId.itemId,
                 fieldId: dateClosedFieldId,
                 date: dateString,
@@ -30577,6 +30581,18 @@ async function getDateClosedFieldId({ owner, projectNumber, token }) {
         throw new Error(`Failed to get DateClosed field ID: ${error.message}`);
     }
 }
+
+
+/***/ }),
+
+/***/ 1000:
+/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = updateDateClosedField;
+const exec_1 = __nccwpck_require__(1518);
 async function updateDateClosedField({ projectItemId, fieldId, date, token, projectId }) {
     try {
         await (0, exec_1.getExecOutput)(`gh project item-edit --id ${projectItemId} --field-id ${fieldId} --date ${date} --project-id ${projectId} --format json`, [], {

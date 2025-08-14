@@ -11,7 +11,7 @@ inputs:
     description: 'The repository where the issue is located'
     required: true
   project-number:
-    description: 'The project number where the issue is located'
+    description: 'The project number where the issue is located (should be hardcoded in workflow)'
     required: true
   token:
     description: 'A GitHub token with the required permissions'

@@ -6,25 +6,24 @@ This action updates the `DateClosed` project field when an issue is closed as co
 
 Before using this action, you must:
 
-1. **Create a custom field in your project**: 
+1. **Create a custom field in your project**:
+
    - Go to your GitHub project board
-   - Add a new custom field named `DateClosed` 
+   - Add a new custom field named `DateClosed`
    - Set the field type to **Date**
    - This field will store the date when issues are closed
 
-2. **Set up environment variables**:
-   - Add `PROJECT_NUMBER` as an environment variable in your GitHub repository settings
-   - Set the value to your project number (e.g., `123`)
+2. **Note**: The project number should be hardcoded in your workflow file, not set as an environment variable
 
 ## Inputs
 
-| Input | Description | Required | Default |
-|-------|-------------|----------|---------|
-| `issue-number` | The issue number to check | Yes | - |
-| `issue-organization` | The organization where the issue is located | Yes | - |
-| `issue-repo` | The repository where the issue is located | Yes | - |
-| `project-number` | The project number where the issue is located | Yes | - |
-| `token` | A GitHub token with the required permissions | Yes | - |
+| Input                | Description                                   | Required | Default |
+| -------------------- | --------------------------------------------- | -------- | ------- |
+| `issue-number`       | The issue number to check                     | Yes      | -       |
+| `issue-organization` | The organization where the issue is located   | Yes      | -       |
+| `issue-repo`         | The repository where the issue is located     | Yes      | -       |
+| `project-number`     | The project number where the issue is located | Yes      | -       |
+| `token`              | A GitHub token with the required permissions  | Yes      | -       |
 
 ## Usage
 
@@ -36,6 +35,8 @@ name: Set DateClosed Field on Issue Close
 on:
   issues:
     types: [closed]
+    # Optional: Add conditions to only trigger on completed issues
+    # This can be configured based on your specific needs
 
 jobs:
   set-date-closed:
@@ -43,22 +44,20 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
+
       - name: Set DateClosed Field on Issue Close
         uses: ./.github/actions/set-date-closed-field-v1
         with:
           issue-number: ${{ github.event.issue.number }}
           issue-organization: ${{ github.event.repository.owner.login }}
           issue-repo: ${{ github.event.repository.name }}
-          project-number: ${{ env.PROJECT_NUMBER }}
-          token: ${{ secrets.PAT }} 
+          project-number: '123'
+          token: ${{ secrets.PAT }}
 ```
 
-### Environment Variables
+### Project Number
 
-Make sure to set the following environment variable in your GitHub repository settings:
-
-- `PROJECT_NUMBER`: The number of your GitHub project board (e.g., `123`)
+The project number should be hardcoded directly in your workflow file. For example, if your project number is 123, use `project-number: '123'` in the action inputs.
 
 ### Permissions
 
@@ -78,6 +77,8 @@ This action requires the following permission scopes:
 4. **DateClosed Field Update**: If the issue is closed and in the project, updates the `DateClosed` field with the close date in YYYY-MM-DD format
 5. **Re-closing**: If an issue is reopened and closed again, the `DateClosed` field is updated to reflect the latest close date
 
+**Note**: This action should be configured to only trigger when an issue is closed as completed, not when it's closed as "not planned" or other non-completion reasons. This can be achieved by configuring the workflow trigger appropriately.
+
 ## Setup Instructions
 
 ### Step 1: Create the DateClosed Custom Field
@@ -89,22 +90,14 @@ This action requires the following permission scopes:
 5. Set the field type to **Date**
 6. Save the field
 
-### Step 2: Set Environment Variable
+### Step 2: Configure the Workflow
 
-1. Go to your GitHub repository settings
-2. Navigate to "Secrets and variables" → "Actions"
-3. Click on "Variables" tab
-4. Add a new variable:
-   - Name: `PROJECT_NUMBER`
-   - Value: Your project number (e.g., `123`)
-5. Save the variable
+Use the workflow example above, making sure to hardcode your project number in the `project-number` input field.
 
-### Step 3: Configure the Workflow
-
-Use the workflow example above, making sure to reference the environment variable: `${{ env.PROJECT_NUMBER }}`
+**Important**: Consider configuring your workflow to only trigger when issues are closed as completed, not when they're closed for other reasons (e.g., "not planned", "duplicate", etc.). This can be done by adding appropriate conditions to your workflow trigger or by using issue labels to distinguish between different types of closure.
 
 ## Requirements
 
 - The project must have a field named `DateClosed` of type Date
 - The issue must be added to the specified project board
-- The GitHub token must have the necessary permissions to read and update project fields 
+- The GitHub token must have the necessary permissions to read and update project fields

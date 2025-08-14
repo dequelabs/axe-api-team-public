@@ -10,20 +10,33 @@ const MOCK_DATE_CLOSED_FIELD_ID = 'field_id_123'
 const MOCK_CLOSED_DATE = '2024-01-15'
 
 interface GenerateInputsArgs {
-  issueNumber: string
-  issueOrganization: string
-  issueRepo: string
-  projectNumber: string
-  token: string
-} 
+  issueNumber?: string
+  issueOrganization?: string
+  issueRepo?: string
+  projectNumber?: string
+  token?: string
+}
 
-const generateInputs = (coreStub: sinon.SinonStubbedInstance<typeof core>, inputs: GenerateInputsArgs) => {
-  coreStub.getInput.withArgs('issue-number', { required: true }).returns(inputs.issueNumber)
-  coreStub.getInput.withArgs('issue-organization', { required: true }).returns(inputs.issueOrganization)
-  coreStub.getInput.withArgs('issue-repo', { required: true }).returns(inputs.issueRepo)
-  coreStub.getInput.withArgs('project-number', { required: true }).returns(inputs.projectNumber)
-  coreStub.getInput.withArgs('token', { required: true }).returns(inputs.token)
-  return coreStub;  
+const generateInputs = (
+  coreStub: sinon.SinonStubbedInstance<typeof core>,
+  inputs?: Partial<GenerateInputsArgs>
+) => {
+  coreStub.getInput
+    .withArgs('issue-number', { required: true })
+    .returns(inputs?.issueNumber ?? '123')
+  coreStub.getInput
+    .withArgs('issue-organization', { required: true })
+    .returns(inputs?.issueOrganization ?? 'test-org')
+  coreStub.getInput
+    .withArgs('issue-repo', { required: true })
+    .returns(inputs?.issueRepo ?? 'test-repo')
+  coreStub.getInput
+    .withArgs('project-number', { required: true })
+    .returns(inputs?.projectNumber ?? '123')
+  coreStub.getInput
+    .withArgs('token', { required: true })
+    .returns(inputs?.token ?? 'test-token')
+  return coreStub
 }
 
 describe('run', () => {
@@ -43,7 +56,7 @@ describe('run', () => {
     coreStub = sinon.stub(core)
     githubStub = sinon.stub(github)
     execStub = sinon.stub(exec)
-    
+
     octokitStub = {
       rest: {
         issues: {
@@ -74,9 +87,11 @@ describe('run', () => {
         }
       })
     }
-    
-    githubStub.getOctokit.returns(octokitStub as unknown as ReturnType<typeof github.getOctokit>)
-    
+
+    githubStub.getOctokit.returns(
+      octokitStub as unknown as ReturnType<typeof github.getOctokit>
+    )
+
     // Mock the exec command for getting field list
     execStub.getExecOutput.resolves({
       stdout: JSON.stringify({
@@ -98,26 +113,20 @@ describe('run', () => {
   })
 
   it('should update DateClosed field when issue is closed', async () => {
-    const coreStubOutput = generateInputs(coreStub, {
-      issueNumber: '123', 
-      issueOrganization: 'test-org', 
-      issueRepo: 'test-repo', 
-      projectNumber: '123',
-      token: 'test-token'
-    })
+    const coreStubOutput = generateInputs(coreStub)
 
     await run(coreStubOutput, githubStub)
 
     const graphqlCalled = octokitStub.graphql.called
     void expect(graphqlCalled).to.be.true
-    
+
     const getExecOutputCalled = execStub.getExecOutput.called
     void expect(getExecOutputCalled).to.be.true
-    
+
     // Check that the field list command was called
     const fieldListCall = execStub.getExecOutput.firstCall
     void expect(fieldListCall.args[0]).to.include('gh project field-list')
-    
+
     // Check that the item-edit command was called to update the date
     const itemEditCall = execStub.getExecOutput.secondCall
     void expect(itemEditCall.args[0]).to.include('gh project item-edit')
@@ -126,13 +135,7 @@ describe('run', () => {
   })
 
   it('should not update field when issue is not closed', async () => {
-    const coreStubOutput = generateInputs(coreStub, {
-      issueNumber: '123', 
-      issueOrganization: 'test-org', 
-      issueRepo: 'test-repo', 
-      projectNumber: '123',
-      token: 'test-token'
-    })
+    const coreStubOutput = generateInputs(coreStub)
 
     // Mock issue as open
     octokitStub.rest.issues.get.resolves({
@@ -153,13 +156,7 @@ describe('run', () => {
   })
 
   it('should not update field when issue is closed but has no closed_at date', async () => {
-    const coreStubOutput = generateInputs(coreStub, {
-      issueNumber: '123', 
-      issueOrganization: 'test-org', 
-      issueRepo: 'test-repo', 
-      projectNumber: '123',
-      token: 'test-token'
-    })
+    const coreStubOutput = generateInputs(coreStub)
 
     // Mock issue as closed but with no closed_at date
     octokitStub.rest.issues.get.resolves({
@@ -180,13 +177,7 @@ describe('run', () => {
   })
 
   it('should handle case when issue is not in project', async () => {
-    const coreStubOutput = generateInputs(coreStub, {
-      issueNumber: '123', 
-      issueOrganization: 'test-org', 
-      issueRepo: 'test-repo', 
-      projectNumber: '123',
-      token: 'test-token'
-    })
+    const coreStubOutput = generateInputs(coreStub)
 
     // Mock issue not in project
     octokitStub.graphql.resolves({
@@ -206,13 +197,7 @@ describe('run', () => {
   })
 
   it('should handle case when DateClosed field is not found', async () => {
-    const coreStubOutput = generateInputs(coreStub, {
-      issueNumber: '123', 
-      issueOrganization: 'test-org', 
-      issueRepo: 'test-repo', 
-      projectNumber: '123',
-      token: 'test-token'
-    })
+    const coreStubOutput = generateInputs(coreStub)
 
     // Mock field list without DateClosed field
     execStub.getExecOutput.resolves({
@@ -248,11 +233,7 @@ describe('run', () => {
 
   it('should fail when issue-number is not a valid number', async () => {
     const coreStubOutput = generateInputs(coreStub, {
-      issueNumber: 'invalid-number', 
-      issueOrganization: 'test-org', 
-      issueRepo: 'test-repo', 
-      projectNumber: '123',
-      token: 'test-token'
+      issueNumber: 'invalid-number'
     })
 
     await run(coreStubOutput, githubStub)
@@ -265,11 +246,7 @@ describe('run', () => {
 
   it('should fail when project-number is not a valid number', async () => {
     const coreStubOutput = generateInputs(coreStub, {
-      issueNumber: '123', 
-      issueOrganization: 'test-org', 
-      issueRepo: 'test-repo', 
-      projectNumber: 'invalid-number',
-      token: 'test-token'
+      projectNumber: 'invalid-number'
     })
 
     await run(coreStubOutput, githubStub)
@@ -279,4 +256,4 @@ describe('run', () => {
     const setFailedArgs = coreStub.setFailed.firstCall.args[0]
     void expect(setFailedArgs).to.equal('`project-number` must be a number')
   })
-}) 
+})
