@@ -21,22 +21,30 @@ const generateInputs = (
   coreStub: sinon.SinonStubbedInstance<typeof core>,
   inputs?: Partial<GenerateInputsArgs>
 ) => {
-  coreStub.getInput
+  const issueNumber = coreStub.getInput
     .withArgs('issue-number', { required: true })
     .returns(inputs?.issueNumber ?? '123')
-  coreStub.getInput
+  const issueOrganization = coreStub.getInput
     .withArgs('issue-organization', { required: true })
     .returns(inputs?.issueOrganization ?? 'test-org')
-  coreStub.getInput
+  const issueRepo = coreStub.getInput
     .withArgs('issue-repo', { required: true })
     .returns(inputs?.issueRepo ?? 'test-repo')
-  coreStub.getInput
+  const projectNumber = coreStub.getInput
     .withArgs('project-number', { required: true })
     .returns(inputs?.projectNumber ?? '123')
-  coreStub.getInput
+  const token = coreStub.getInput
     .withArgs('token', { required: true })
     .returns(inputs?.token ?? 'test-token')
-  return coreStub
+
+  return {
+    issueNumber,
+    issueOrganization,
+    issueRepo,
+    projectNumber,
+    token,
+    coreStub
+  }
 }
 
 describe('run', () => {
@@ -113,7 +121,7 @@ describe('run', () => {
   })
 
   it('should update DateClosed field when issue is closed', async () => {
-    const coreStubOutput = generateInputs(coreStub)
+    const { coreStub: coreStubOutput } = generateInputs(coreStub)
 
     await run(coreStubOutput, githubStub)
 
@@ -135,7 +143,7 @@ describe('run', () => {
   })
 
   it('should not update field when issue is not closed', async () => {
-    const coreStubOutput = generateInputs(coreStub)
+    const { coreStub: coreStubOutput } = generateInputs(coreStub)
 
     // Mock issue as open
     octokitStub.rest.issues.get.resolves({
@@ -156,7 +164,7 @@ describe('run', () => {
   })
 
   it('should not update field when issue is closed but has no closed_at date', async () => {
-    const coreStubOutput = generateInputs(coreStub)
+    const { coreStub: coreStubOutput } = generateInputs(coreStub)
 
     // Mock issue as closed but with no closed_at date
     octokitStub.rest.issues.get.resolves({
@@ -177,7 +185,7 @@ describe('run', () => {
   })
 
   it('should handle case when issue is not in project', async () => {
-    const coreStubOutput = generateInputs(coreStub)
+    const { coreStub: coreStubOutput } = generateInputs(coreStub)
 
     // Mock issue not in project
     octokitStub.graphql.resolves({
@@ -197,7 +205,7 @@ describe('run', () => {
   })
 
   it('should handle case when DateClosed field is not found', async () => {
-    const coreStubOutput = generateInputs(coreStub)
+    const { coreStub: coreStubOutput } = generateInputs(coreStub)
 
     // Mock field list without DateClosed field
     execStub.getExecOutput.resolves({
@@ -232,7 +240,7 @@ describe('run', () => {
   })
 
   it('should fail when issue-number is not a valid number', async () => {
-    const coreStubOutput = generateInputs(coreStub, {
+    const { coreStub: coreStubOutput } = generateInputs(coreStub, {
       issueNumber: 'invalid-number'
     })
 
@@ -245,7 +253,7 @@ describe('run', () => {
   })
 
   it('should fail when project-number is not a valid number', async () => {
-    const coreStubOutput = generateInputs(coreStub, {
+    const { coreStub: coreStubOutput } = generateInputs(coreStub, {
       projectNumber: 'invalid-number'
     })
 
