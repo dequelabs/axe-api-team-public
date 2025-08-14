@@ -1,0 +1,33 @@
+name: 'label-issue-based-on-existing-labels-v1'
+description: 'Labels GitHub issue based on existing labels already present on the issue'
+inputs:
+  token:
+    description: 'A GitHub token with th required permissions'
+    required: true
+  issue-number:
+    description: 'The issue number to process'
+    required: true
+  issue-organization:
+    description: 'The issue organization name (defaults to current repository owner)'
+    required: false
+  issue-repo:
+    description: 'The issue repository name (defaults to current repository name)'
+    required: false
+  trigger-labels:
+    description: 'Comma-separated list of labels that trigger this action when present on an issue'
+    required: true
+  add-labels:
+    description: 'Comma-separated list of labels to add when trigger conditions are met'
+    required: true
+  require-all-triggers:
+    description: 'Whether ALL trigger labels must be present (true) or just ANY (false)'
+    required: false
+    default: 'false'
+
+outputs:
+  actionProceeded:
+    description: 'Whether the action completed successfully and labels were processed'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
