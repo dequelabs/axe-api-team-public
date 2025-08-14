@@ -1,5 +1,5 @@
 import type { Core as CoreType, GitHub as GitHubType } from './types'
-import { getExecOutput } from '@actions/exec'
+import getProjectBoardFieldList from '../../add-to-board-v1/src/getProjectBoardFieldList'
 import updateDateClosedField from './updateDateClosedField'
 
 export default async function run(
@@ -67,8 +67,7 @@ export default async function run(
       // Get the DateClosed field ID
       const dateClosedFieldId = await getDateClosedFieldId({
         owner: issueOrganization,
-        projectNumber,
-        token
+        projectNumber
       })
 
       if (!dateClosedFieldId) {
@@ -175,27 +174,14 @@ async function getProjectItemId({
 interface GetDateClosedFieldIdArgs {
   owner: string
   projectNumber: number
-  token: string
 }
 
 async function getDateClosedFieldId({
   owner,
-  projectNumber,
-  token
+  projectNumber
 }: GetDateClosedFieldIdArgs): Promise<string | null> {
   try {
-    const { stdout } = await getExecOutput(
-      `gh project field-list ${projectNumber} --owner ${owner} --format json`,
-      [],
-      {
-        env: {
-          ...process.env,
-          GH_TOKEN: token
-        }
-      }
-    )
-
-    const fields = JSON.parse(stdout.trim())
+    const fields = await getProjectBoardFieldList({ projectNumber, owner })
     const dateClosedField = fields.fields.find(
       (field: { id: string; name: string; type: string }) =>
         field.name === 'DateClosed'
