@@ -2,7 +2,7 @@ name: 'label-issue-based-on-existing-labels-v1'
 description: 'Labels GitHub issue based on existing labels already present on the issue'
 inputs:
   token:
-    description: 'A GitHub token with th required permissions'
+    description: 'A GitHub token with the required permissions'
     required: true
   issue-number:
     description: 'The issue number to process'
@@ -19,7 +19,7 @@ inputs:
   add-labels:
     description: 'Comma-separated list of labels to add when trigger conditions are met'
     required: true
-  require-all-triggers:
+  require-all-trigger-labels:
     description: 'Whether ALL trigger labels must be present (true) or just ANY (false)'
     required: false
     default: 'false'

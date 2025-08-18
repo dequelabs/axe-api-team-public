@@ -29291,7 +29291,7 @@ async function run(core, github) {
             required: true
         });
         const addLabelsInput = core.getInput('add-labels', { required: true });
-        const requireAllTriggers = core.getBooleanInput('require-all-triggers');
+        const requireAllTriggers = core.getBooleanInput('require-all-trigger-labels');
         if (isNaN(issueNumber)) {
             core.setFailed('issue-number must be an integer');
             return;
@@ -29318,15 +29318,15 @@ async function run(core, github) {
             issueNumber,
             octokit
         });
-        const issueCurrentLabels = issueData.repository.issue.labels.nodes.map(label => label.name);
-        core.info(`Current issue labels: ${JSON.stringify(issueCurrentLabels)}`);
+        const currentLabels = new Set(issueData.repository.issue.labels.nodes.map(label => label.name));
+        core.info(`Current issue labels: ${JSON.stringify(currentLabels)}`);
         let triggerConditionMet = false;
         const conditionType = requireAllTriggers ? 'ALL' : 'ANY';
         if (requireAllTriggers) {
-            triggerConditionMet = triggerLabels.every(label => issueCurrentLabels.includes(label));
+            triggerConditionMet = triggerLabels.every(label => currentLabels.has(label));
         }
         else {
-            triggerConditionMet = triggerLabels.some(label => issueCurrentLabels.includes(label));
+            triggerConditionMet = triggerLabels.some(label => currentLabels.has(label));
         }
         if (!triggerConditionMet) {
             core.info(`Trigger condition not met. Required: ${conditionType} of ${JSON.stringify(triggerLabels)}`);
@@ -29334,7 +29334,7 @@ async function run(core, github) {
             return;
         }
         core.info(`Trigger condition met (${conditionType})! Processing labels...`);
-        const labelsToAdd = addLabels.filter(label => !issueCurrentLabels.includes(label));
+        const labelsToAdd = addLabels.filter(label => !currentLabels.has(label));
         if (labelsToAdd.length === 0) {
             core.info('All specified labels already exist on the issue');
             core.setOutput('actionProceeded', true);
@@ -29345,8 +29345,8 @@ async function run(core, github) {
             owner: issueOrganization,
             per_page: 100
         });
-        const repoExistingLabelNames = repoExistingLabels.map(label => label.name);
-        const labelsToCreate = labelsToAdd.filter(label => !repoExistingLabelNames.includes(label));
+        const existingLabelNames = new Set(repoExistingLabels.map(label => label.name));
+        const labelsToCreate = labelsToAdd.filter(label => !existingLabelNames.has(label));
         if (labelsToCreate.length > 0) {
             core.info(`Creating missing labels: ${JSON.stringify(labelsToCreate)}`);
             const createLabelsPromises = labelsToCreate.map(labelName => octokit.rest.issues.createLabel({

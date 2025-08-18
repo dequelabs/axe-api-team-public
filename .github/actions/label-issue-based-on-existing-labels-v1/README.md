@@ -4,15 +4,15 @@ This action labels GitHub issue based on existing labels already present on the 
 
 ## Inputs
 
-| Name                   | Required | Description                                                               | Default            |
-| ---------------------- | -------- | ------------------------------------------------------------------------- | ------------------ |
-| `token`                | Yes      | A GitHub token with the required permissions                              | NA                 |
-| `issue-number`         | Yes      | The issue number to process                                               | NA                 |
-| `issue-organization`   | No       | The organization/owner of the repository                                  | Current repo owner |
-| `issue-repo`           | No       | The repository name                                                       | Current repo name  |
-| `trigger-labels`       | Yes      | Comma-separated list of labels that trigger this action when present      | NA                 |
-| `add-labels`           | Yes      | Comma-separated list of labels to add when trigger conditions are met     | NA                 |
-| `require-all-triggers` | No       | Whether ALL trigger labels must be present (`true`) or just ANY (`false`) | `false`            |
+| Name                         | Required | Description                                                               | Default            |
+| ---------------------------- | -------- | ------------------------------------------------------------------------- | ------------------ |
+| `token`                      | Yes      | A GitHub token with the required permissions                              | NA                 |
+| `issue-number`               | Yes      | The issue number to process                                               | NA                 |
+| `issue-organization`         | No       | The organization/owner of the repository                                  | Current repo owner |
+| `issue-repo`                 | No       | The repository name                                                       | Current repo name  |
+| `trigger-labels`             | Yes      | Comma-separated list of labels that trigger this action when present      | NA                 |
+| `add-labels`                 | Yes      | Comma-separated list of labels to add when trigger conditions are met     | NA                 |
+| `require-all-trigger-labels` | No       | Whether ALL trigger labels must be present (`true`) or just ANY (`false`) | `false`            |
 
 ## Outputs
 
@@ -55,7 +55,7 @@ For cross-repository usage, use a Personal Access Token (PAT) with `repo` scope.
 ## How it works
 
 1. Fetches current labels on the specified issue using GraphQL
-2. Checks if trigger conditions are met based on `require-all-triggers` setting
+2. Checks if trigger conditions are met based on `require-all-trigger-labels` setting
 3. Automatically creates any missing labels
 4. Adds the specified labels to the issue if conditions are met
 5. Returns `actionProceeded` output indicating success/failure

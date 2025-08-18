@@ -14,7 +14,9 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       required: true
     })
     const addLabelsInput = core.getInput('add-labels', { required: true })
-    const requireAllTriggers = core.getBooleanInput('require-all-triggers')
+    const requireAllTriggers = core.getBooleanInput(
+      'require-all-trigger-labels'
+    )
 
     if (isNaN(issueNumber)) {
       core.setFailed('issue-number must be an integer')
@@ -53,10 +55,10 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       octokit
     })
 
-    const issueCurrentLabels = issueData.repository.issue.labels.nodes.map(
-      label => label.name
+    const currentLabels = new Set(
+      issueData.repository.issue.labels.nodes.map(label => label.name)
     )
-    core.info(`Current issue labels: ${JSON.stringify(issueCurrentLabels)}`)
+    core.info(`Current issue labels: ${JSON.stringify(currentLabels)}`)
 
     let triggerConditionMet = false
     const conditionType = requireAllTriggers ? 'ALL' : 'ANY'
@@ -64,12 +66,12 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     if (requireAllTriggers) {
       // ALL mode: every trigger label must be present
       triggerConditionMet = triggerLabels.every(label =>
-        issueCurrentLabels.includes(label)
+        currentLabels.has(label)
       )
     } else {
       // ANY mode: at least one trigger label must be present
       triggerConditionMet = triggerLabels.some(label =>
-        issueCurrentLabels.includes(label)
+        currentLabels.has(label)
       )
     }
 
@@ -83,9 +85,7 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
 
     core.info(`Trigger condition met (${conditionType})! Processing labels...`)
 
-    const labelsToAdd = addLabels.filter(
-      label => !issueCurrentLabels.includes(label)
-    )
+    const labelsToAdd = addLabels.filter(label => !currentLabels.has(label))
 
     if (labelsToAdd.length === 0) {
       core.info('All specified labels already exist on the issue')
@@ -104,9 +104,11 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     )
 
     // Filter labels to create - only create labels that don't exist in repository
-    const repoExistingLabelNames = repoExistingLabels.map(label => label.name)
+    const existingLabelNames = new Set(
+      repoExistingLabels.map(label => label.name)
+    )
     const labelsToCreate = labelsToAdd.filter(
-      label => !repoExistingLabelNames.includes(label)
+      label => !existingLabelNames.has(label)
     )
 
     if (labelsToCreate.length > 0) {
