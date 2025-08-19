@@ -13,8 +13,6 @@ Before using this action, you must:
    - Set the field type to **Date**
    - This field will store the date when issues are closed
 
-2. **Note**: The project number should be hardcoded in your workflow file, not set as an environment variable
-
 ## Inputs
 
 | Input                | Description                                   | Required | Default |
