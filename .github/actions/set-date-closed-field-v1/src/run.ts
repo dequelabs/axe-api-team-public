@@ -56,8 +56,8 @@ export default async function run(
       core.info(`Issue ${issueNumber} is not closed or has no closed_at date`)
       return
     }
-
-    const dateString = new Date(issue.closed_at).toISOString().split('T')[0]
+    // Outputs as YYYY-MM-DD
+    const dateString = new Date().toISOString().split('T')[0]
 
     core.info(`Issue is closed. Updating DateClosed field to: ${dateString}`)
 
