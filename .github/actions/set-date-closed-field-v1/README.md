@@ -23,13 +23,12 @@ Before using this action, you must:
 | `issue-organization` | The organization where the issue is located   | No       | -       |
 | `issue-repo`         | The repository where the issue is located     | No       | -       |
 | `project-number`     | The project number where the issue is located | Yes      | -       |
-| `token`              | A GitHub token with the required permissions  | Yes      | -       |
 
 ## Usage
 
 ### Basic Usage
 
-```yaml
+````yaml
 name: Set DateClosed Field on Issue Close
 
 on:
@@ -52,22 +51,46 @@ jobs:
           issue-organization: ${{ github.event.repository.owner.login }}
           issue-repo: ${{ github.event.repository.name }}
           project-number: '123'
-          token: ${{ secrets.PAT }}
-```
+        env:
+          # Required for the GH CLI
+          GH_TOKEN: ${{ secrets.PAT }}```
 
 ### Project Number
 
 The project number should be hardcoded directly in your workflow file. For example, if your project number is 123, use `project-number: '123'` in the action inputs.
 
+### Personal Access Token (PAT) Setup
+
+Since this action requires access to project boards, you must set up a Personal Access Token:
+
+1. **Create a PAT**:
+   - Go to GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)
+   - Click "Generate new token (classic)"
+   - Give it a descriptive name (e.g., "Project Board Access")
+   - Select the required scopes: `repo`, `write:org`, `read:org`, `project`
+   - Click "Generate token"
+   - **Copy the token immediately** (you won't see it again)
+
+2. **Add to Repository Secrets**:
+   - Go to your repository → Settings → Secrets and variables → Actions
+   - Click "New repository secret"
+   - Name: `PAT`
+   - Value: Paste your PAT
+   - Click "Add secret"
+
+3. **Use in Workflow**:
+   - Reference it as `${{ secrets.PAT }}` in your workflow
+
 ### Permissions
 
-This action requires the following permission scopes:
+This action requires a **Personal Access Token (PAT)** with the following permission scopes:
 
 - `repo` - To access the issue within private repositories
-- `workflow` - To access the `GITHUB_TOKEN` secret
 - `write:org` - To update project fields
 - `read:org` - To read the project board
-- `project` - access to project board
+- `project` - Access to project board
+
+**Important**: The default `GITHUB_TOKEN` will not work for project operations. You must create a PAT with the required permissions and store it as a repository secret (e.g., `PAT`).
 
 ## How It Works
 
@@ -89,7 +112,7 @@ If you're getting errors about the project not being found, you can find your pr
 
    ```bash
    gh project list --owner YOUR_ORG_OR_USERNAME
-   ```
+````
 
 2. **From the GitHub UI**:
 

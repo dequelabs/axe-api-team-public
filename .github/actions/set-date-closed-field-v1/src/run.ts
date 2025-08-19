@@ -7,6 +7,11 @@ export default async function run(
   github: GitHubType
 ): Promise<void> {
   try {
+    const token = process.env.GH_TOKEN
+    if (!token) {
+      core.setFailed('`GH_TOKEN` is not set')
+      return
+    }
     const { owner, repo } = github.context.repo
 
     const issueOrganization = (core.getInput('issue-organization') || owner)
@@ -21,7 +26,6 @@ export default async function run(
       return
     }
 
-    const token = core.getInput('token', { required: true })
     const projectNumber = parseInt(
       core.getInput('project-number', { required: true })
     )
@@ -178,13 +182,13 @@ async function getProjectItemId({
 interface GetDateClosedFieldIdArgs {
   owner: string
   projectNumber: number
-  token: string
+  token: string | undefined
 }
 
 async function getDateClosedFieldId({
   owner,
   projectNumber,
-  token
+  token = process.env.GH_TOKEN
 }: GetDateClosedFieldIdArgs): Promise<string | null> {
   try {
     // Use local function that properly handles GH_TOKEN
@@ -209,7 +213,7 @@ async function getDateClosedFieldId({
 interface GetProjectBoardFieldListArgs {
   projectNumber: number
   owner: string
-  token: string
+  token: string | undefined
 }
 
 interface ProjectBoardFieldListResponse {
@@ -228,18 +232,20 @@ interface ProjectBoardFieldListResponse {
 async function getProjectBoardFieldList({
   projectNumber,
   owner,
-  token
+  token = process.env.GH_TOKEN
 }: GetProjectBoardFieldListArgs): Promise<ProjectBoardFieldListResponse> {
   try {
     const { stdout: fieldList } = await getExecOutput(
       `gh project field-list ${projectNumber} --owner ${owner} --format json`,
       [],
-      {
-        env: {
-          ...process.env,
-          GH_TOKEN: token
-        }
-      }
+      token
+        ? {
+            env: {
+              ...process.env,
+              GH_TOKEN: token
+            }
+          }
+        : undefined
     )
 
     return JSON.parse(fieldList.trim()) as ProjectBoardFieldListResponse

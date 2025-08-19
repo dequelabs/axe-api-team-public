@@ -30473,15 +30473,21 @@ const exec_1 = __nccwpck_require__(1518);
 const updateDateClosedField_1 = __importDefault(__nccwpck_require__(1000));
 async function run(core, github) {
     try {
+        const token = process.env.GH_TOKEN;
+        if (!token) {
+            core.setFailed('`GH_TOKEN` is not set');
+            return;
+        }
         const { owner, repo } = github.context.repo;
-        const issueOrganization = (core.getInput('issue-organization') || owner).toLowerCase().trim();
+        const issueOrganization = (core.getInput('issue-organization') || owner)
+            .toLowerCase()
+            .trim();
         const issueRepo = (core.getInput('issue-repo') || repo).toLowerCase().trim();
         const issueNumber = parseInt(core.getInput('issue-number', { required: true }));
         if (isNaN(issueNumber)) {
             core.setFailed('`issue-number` must be a number');
             return;
         }
-        const token = core.getInput('token', { required: true });
         const projectNumber = parseInt(core.getInput('project-number', { required: true }));
         if (isNaN(projectNumber)) {
             core.setFailed('`project-number` must be a number');
@@ -30569,7 +30575,7 @@ async function getProjectItemId({ octokit, owner, repo, issueNumber, projectNumb
         throw new Error(`Failed to get project item ID: ${error.message}`);
     }
 }
-async function getDateClosedFieldId({ owner, projectNumber, token }) {
+async function getDateClosedFieldId({ owner, projectNumber, token = process.env.GH_TOKEN }) {
     try {
         const fields = await getProjectBoardFieldList({
             projectNumber,
@@ -30583,14 +30589,14 @@ async function getDateClosedFieldId({ owner, projectNumber, token }) {
         throw new Error(`Failed to get DateClosed field ID: ${error.message}`);
     }
 }
-async function getProjectBoardFieldList({ projectNumber, owner, token }) {
+async function getProjectBoardFieldList({ projectNumber, owner, token = process.env.GH_TOKEN }) {
     try {
-        const { stdout: fieldList } = await (0, exec_1.getExecOutput)(`gh project field-list ${projectNumber} --owner ${owner} --format json`, [], {
+        const { stdout: fieldList } = await (0, exec_1.getExecOutput)(`gh project field-list ${projectNumber} --owner ${owner} --format json`, [], token ? {
             env: {
                 ...process.env,
                 GH_TOKEN: token
             }
-        });
+        } : undefined);
         return JSON.parse(fieldList.trim());
     }
     catch (error) {
@@ -30611,12 +30617,12 @@ exports["default"] = updateDateClosedField;
 const exec_1 = __nccwpck_require__(1518);
 async function updateDateClosedField({ projectItemId, fieldId, date, token, projectId }) {
     try {
-        await (0, exec_1.getExecOutput)(`gh project item-edit --id ${projectItemId} --field-id ${fieldId} --date ${date} --project-id ${projectId} --format json`, [], {
+        await (0, exec_1.getExecOutput)(`gh project item-edit --id ${projectItemId} --field-id ${fieldId} --date ${date} --project-id ${projectId} --format json`, [], token ? {
             env: {
                 ...process.env,
                 GH_TOKEN: token
             }
-        });
+        } : undefined);
     }
     catch (error) {
         throw new Error(`Failed to update DateClosed field: ${error.message}`);
