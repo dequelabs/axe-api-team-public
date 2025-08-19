@@ -2,18 +2,7 @@
 
 This action updates the `DateClosed` project field when an issue is closed as completed. If an issue is reopened and closed again, the `DateClosed` field will reflect the latest date that it was closed.
 
-## Prerequisites
-
-Before using this action, you must:
-
-1. **Create a custom field in your project**:
-
-   - Go to your GitHub project board
-   - Add a new custom field named `DateClosed`
-   - Set the field type to **Date**
-   - This field will store the date when issues are closed
-
-## Inputs
+## Quick Reference
 
 | Input                | Description                                   | Required | Default |
 | -------------------- | --------------------------------------------- | -------- | ------- |
@@ -22,18 +11,56 @@ Before using this action, you must:
 | `issue-repo`         | The repository where the issue is located     | No       | -       |
 | `project-number`     | The project number where the issue is located | Yes      | -       |
 
+**Requirements:**
+
+- Custom `DateClosed` field (Date type) in your project
+- Personal Access Token with `repo`, `read:org`, `write:org`, and `project` scopes
+- Issue must be added to the specified project board
+
+## Setup
+
+### 1. Create the DateClosed Custom Field
+
+1. Navigate to your GitHub project board
+2. Click the "+" icon to add a new field
+3. Select "Custom field"
+4. Name the field `DateClosed` and set type to **Date**
+5. Save the field
+
+### 2. Create Personal Access Token
+
+1. Go to GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)
+2. Click "Generate new token (classic)"
+3. Give it a descriptive name (e.g., "Project Board Access")
+4. Select required scopes: `repo`, `write:org`, `read:org`, `project`
+5. Generate and copy the token immediately
+
+### 3. Add Token to Repository Secrets
+
+1. Go to your repository → Settings → Secrets and variables → Actions
+2. Click "New repository secret"
+3. Name: `PAT`, Value: your token
+4. Click "Add secret"
+
+### 4. Find Your Project Number
+
+**From GitHub UI:** Look at your project URL: `https://github.com/orgs/YOUR_ORG/projects/PROJECT_NUMBER`
+
+**Using GitHub CLI:**
+
+```bash
+gh project list --owner YOUR_ORG_OR_USERNAME
+```
+
 ## Usage
 
-### Basic Usage
-
-````yaml
+```yaml
 name: Set DateClosed Field on Issue Close
 
 on:
   issues:
     types: [closed]
-    # Optional: Add conditions to only trigger on completed issues
-    # This can be configured based on your specific needs
+    # Consider adding conditions to only trigger on completed issues
 
 jobs:
   set-date-closed:
@@ -48,139 +75,52 @@ jobs:
           issue-number: ${{ github.event.issue.number }}
           issue-organization: ${{ github.event.repository.owner.login }}
           issue-repo: ${{ github.event.repository.name }}
-          project-number: '123'
+          project-number: '123' # Replace with your project number
         env:
-          # Required for the GH CLI
-          GH_TOKEN: ${{ secrets.PAT }}```
+          GH_TOKEN: ${{ secrets.PAT }}
+```
 
-### Project Number
-
-The project number should be hardcoded directly in your workflow file. For example, if your project number is 123, use `project-number: '123'` in the action inputs.
-
-### Personal Access Token (PAT) Setup
-
-Since this action requires access to project boards, you must set up a Personal Access Token:
-
-1. **Create a PAT**:
-   - Go to GitHub Settings → Developer settings → Personal access tokens → Tokens (classic)
-   - Click "Generate new token (classic)"
-   - Give it a descriptive name (e.g., "Project Board Access")
-   - Select the required scopes: `repo`, `write:org`, `read:org`, `project`
-   - Click "Generate token"
-   - **Copy the token immediately** (you won't see it again)
-
-2. **Add to Repository Secrets**:
-   - Go to your repository → Settings → Secrets and variables → Actions
-   - Click "New repository secret"
-   - Name: `PAT`
-   - Value: Paste your PAT
-   - Click "Add secret"
-
-3. **Use in Workflow**:
-   - Reference it as `${{ secrets.PAT }}` in your workflow
-
-### Permissions
-
-This action requires a **Personal Access Token (PAT)** with the following permission scopes:
-
-- `repo` - To access the issue within private repositories
-- `write:org` - To update project fields
-- `read:org` - To read the project board
-- `project` - Access to project board
-
-**Important**: The default `GITHUB_TOKEN` will not work for project operations. You must create a PAT with the required permissions and store it as a repository secret (e.g., `PAT`).
+**Important:** The default `GITHUB_TOKEN` will not work for project operations. You must use a PAT as shown above.
 
 ## How It Works
 
-1. **Issue Check**: Gets the issue details using the provided issue number, organization, and repository
-2. **Closed Status Check**: Checks if the issue is closed and has a `closed_at` date
-3. **Project Item Lookup**: Finds the issue in the specified project board
-4. **DateClosed Field Update**: If the issue is closed and in the project, updates the `DateClosed` field with the close date in YYYY-MM-DD format
-5. **Re-closing**: If an issue is reopened and closed again, the `DateClosed` field is updated to reflect the latest close date
-
-**Note**: This action should be configured to only trigger when an issue is closed as completed, not when it's closed as "not planned" or other non-completion reasons. This can be achieved by configuring the workflow trigger appropriately.
+1. **Issue Check** - Gets the issue details using the provided parameters
+2. **Closed Status Check** - Verifies the issue is closed and has a `closed_at` date
+3. **Project Item Lookup** - Finds the issue in the specified project board
+4. **DateClosed Field Update** - Updates the `DateClosed` field with the close date in YYYY-MM-DD format
+5. **Re-closing Support** - If an issue is reopened and closed again, the field reflects the latest close date
 
 ## Troubleshooting
 
-### Finding Your Project Number
+### "Failed to get DateClosed field ID"
 
-If you're getting errors about the project not being found, you can find your project number by:
+**Causes:**
 
-1. **Using GitHub CLI** (if you have it installed):
+- Incorrect project number
+- DateClosed field doesn't exist in the project
+- Token lacks project access
+- Project is in a different organization
 
-   ```bash
-   gh project list --owner YOUR_ORG_OR_USERNAME
-````
+**Solutions:**
 
-2. **From the GitHub UI**:
+1. Verify project number using: `gh project list --owner YOUR_ORG`
+2. Check if DateClosed field exists: `gh project field-list PROJECT_NUMBER --owner YOUR_ORG --format json`
+3. Ensure PAT has all required scopes
+4. Confirm project organization matches your expectations
 
-   - Go to your GitHub project board
-   - Look at the URL: `https://github.com/orgs/YOUR_ORG/projects/PROJECT_NUMBER`
-   - The PROJECT_NUMBER is what you need
+### "gh: To use GitHub CLI in a GitHub Actions workflow, set the GH_TOKEN environment variable"
 
-3. **Check project access**:
-   - Make sure the GitHub token has access to the project
-   - Verify the project exists and is accessible
+**Cause:** Missing or insufficient token permissions
 
-### Verifying the DateClosed Field
+**Solutions:**
 
-To check if the DateClosed field exists in your project:
+1. Verify PAT includes all required scopes: `repo`, `read:org`, `write:org`, `project`
+2. Test token manually: `gh project field-list PROJECT_NUMBER --owner YOUR_ORG --format json`
+3. Ensure token has access to the specific project
 
-```bash
-gh project field-list PROJECT_NUMBER --owner YOUR_ORG_OR_USERNAME --format json
-```
+### General Debugging Tips
 
-Look for a field named `DateClosed` with type `Date`. If it doesn't exist, create it following the setup instructions above.
-
-### Common Error: "Failed to get DateClosed field ID"
-
-This error usually means:
-
-1. The project number is incorrect
-2. The DateClosed field doesn't exist in the project
-3. The GitHub token doesn't have access to the project
-4. The project is in a different organization than expected
-
-### Common Error: "gh: To use GitHub CLI in a GitHub Actions workflow, set the GH_TOKEN environment variable"
-
-This error occurs when the GitHub CLI (`gh`) command doesn't have proper authentication. The action should handle this automatically, but if you see this error:
-
-1. **Check your token permissions**: Make sure your `PAT` token has:
-
-   - `read:org` - To read the project board
-   - `write:org` - To update project fields
-   - `project` - To access project boards
-
-2. **Verify project access**: Ensure the token has access to the specific project you're trying to use
-
-3. **Check project number**: Verify the project number exists and is accessible:
-
-   ```bash
-   gh project list --owner dequelabs
-   ```
-
-4. **Test manually**: Try running the command manually to see the exact error:
-   ```bash
-   gh project field-list 188 --owner dequelabs --format json
-   ```
-
-## Setup Instructions
-
-### Step 1: Create the DateClosed Custom Field
-
-1. Navigate to your GitHub project board
-2. Click on the "+" icon to add a new field
-3. Select "Custom field"
-4. Name the field `DateClosed`
-5. Set the field type to **Date**
-6. Save the field
-
-### Step 2: Configure the Workflow
-
-**Important**: Consider configuring your workflow to only trigger when issues are closed as completed, not when they're closed for other reasons (e.g., "not planned", "duplicate", etc.). This can be done by adding appropriate conditions to your workflow trigger or by using issue labels to distinguish between different types of closure.
-
-## Requirements
-
-- The project must have a field named `DateClosed` of type Date
-- The issue must be added to the specified project board
-- The GitHub token must have the necessary permissions to read and update project fields
+- **Test project access:** Use GitHub CLI commands locally with your PAT to verify access
+- **Check issue location:** Ensure the issue exists in the specified organization/repository
+- **Verify project membership:** Confirm the issue is actually added to the project board
+- **Consider workflow conditions:** Add logic to only trigger on issues closed as "completed" rather than "not planned"
