@@ -7,6 +7,12 @@ export default async function run(
   github: GitHubType
 ): Promise<void> {
   try {
+    const { owner, repo } = github.context.repo
+
+    const issueOrganization = (core.getInput('issue-organization') || owner)
+      .toLowerCase()
+      .trim()
+    const issueRepo = (core.getInput('issue-repo') || repo).toLowerCase().trim()
     const issueNumber = parseInt(
       core.getInput('issue-number', { required: true })
     )
@@ -15,10 +21,6 @@ export default async function run(
       return
     }
 
-    const issueOrganization = core.getInput('issue-organization', {
-      required: true
-    })
-    const issueRepo = core.getInput('issue-repo', { required: true })
     const token = core.getInput('token', { required: true })
     const projectNumber = parseInt(
       core.getInput('project-number', { required: true })

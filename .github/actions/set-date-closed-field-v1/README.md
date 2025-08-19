@@ -20,8 +20,8 @@ Before using this action, you must:
 | Input                | Description                                   | Required | Default |
 | -------------------- | --------------------------------------------- | -------- | ------- |
 | `issue-number`       | The issue number to check                     | Yes      | -       |
-| `issue-organization` | The organization where the issue is located   | Yes      | -       |
-| `issue-repo`         | The repository where the issue is located     | Yes      | -       |
+| `issue-organization` | The organization where the issue is located   | No       | -       |
+| `issue-repo`         | The repository where the issue is located     | No       | -       |
 | `project-number`     | The project number where the issue is located | Yes      | -       |
 | `token`              | A GitHub token with the required permissions  | Yes      | -       |
 

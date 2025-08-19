@@ -30473,13 +30473,14 @@ const exec_1 = __nccwpck_require__(1518);
 const updateDateClosedField_1 = __importDefault(__nccwpck_require__(1000));
 async function run(core, github) {
     try {
+        const { owner, repo } = github.context.repo;
+        const issueOrganization = (core.getInput('issue-organization') || owner).toLowerCase().trim();
+        const issueRepo = (core.getInput('issue-repo') || repo).toLowerCase().trim();
         const issueNumber = parseInt(core.getInput('issue-number', { required: true }));
         if (isNaN(issueNumber)) {
             core.setFailed('`issue-number` must be a number');
             return;
         }
-        const issueOrganization = core.getInput('issue-organization', { required: true });
-        const issueRepo = core.getInput('issue-repo', { required: true });
         const token = core.getInput('token', { required: true });
         const projectNumber = parseInt(core.getInput('project-number', { required: true }));
         if (isNaN(projectNumber)) {
@@ -30538,7 +30539,7 @@ async function run(core, github) {
 }
 async function getProjectItemId({ octokit, owner, repo, issueNumber, projectNumber }) {
     try {
-        const result = await octokit.graphql(`
+        const result = (await octokit.graphql(`
       query getProjectItemId($owner: String!, $repo: String!, $issueNumber: Int!) {
         repository(owner: $owner, name: $repo) {
           issue(number: $issueNumber) {
@@ -30558,7 +30559,7 @@ async function getProjectItemId({ octokit, owner, repo, issueNumber, projectNumb
             owner,
             repo,
             issueNumber
-        });
+        }));
         const projectItem = result.repository.issue.projectItems.nodes.find(node => node.project.number === projectNumber);
         return projectItem
             ? { itemId: projectItem.id, projectId: projectItem.project.id }
@@ -30570,7 +30571,11 @@ async function getProjectItemId({ octokit, owner, repo, issueNumber, projectNumb
 }
 async function getDateClosedFieldId({ owner, projectNumber, token }) {
     try {
-        const fields = await getProjectBoardFieldList({ projectNumber, owner, token });
+        const fields = await getProjectBoardFieldList({
+            projectNumber,
+            owner,
+            token
+        });
         const dateClosedField = fields.fields.find((field) => field.name === 'DateClosed');
         return dateClosedField?.id || null;
     }
