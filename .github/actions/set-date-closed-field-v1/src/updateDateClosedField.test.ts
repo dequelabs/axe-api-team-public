@@ -15,11 +15,13 @@ describe('updateDateClosedField', () => {
   })
 
   it('should update DateClosed field successfully', async () => {
+    // Set up environment variable
+    process.env.GH_TOKEN = 'test-token'
+
     const mockArgs = {
       projectItemId: 'PVTI_lADOAD55W84AVmLazgJbJGI',
       fieldId: 'field_id_123',
       date: '2024-01-15',
-      token: 'test-token',
       projectId: 'project_id_456'
     }
 
@@ -41,11 +43,13 @@ describe('updateDateClosedField', () => {
   })
 
   it('should handle errors gracefully', async () => {
+    // Set up environment variable
+    process.env.GH_TOKEN = 'test-token'
+
     const mockArgs = {
-      projectItemId: 'PVTI_lADOAD55W84AVmLazgJbJGI',
+      projectItemId: 'PVTI_lADOAD55W84AVmLazgJbJGS',
       fieldId: 'field_id_123',
       date: '2024-01-15',
-      token: 'test-token',
       projectId: 'project_id_456'
     }
 
@@ -61,6 +65,28 @@ describe('updateDateClosedField', () => {
         'Failed to update DateClosed field'
       )
       expect((error as Error).message).to.include(errorMessage)
+    }
+  })
+
+  it('should fail when GH_TOKEN is not set', async () => {
+    // Clear environment variable
+    delete process.env.GH_TOKEN
+
+    const mockArgs = {
+      projectItemId: 'PVTI_lADOAD55W84AVmLazgJbJGI',
+      fieldId: 'field_id_123',
+      date: '2024-01-15',
+      projectId: 'project_id_456'
+    }
+
+    try {
+      await updateDateClosedField(mockArgs)
+      expect.fail('Should have thrown an error')
+    } catch (error) {
+      expect(error).to.be.instanceOf(Error)
+      expect((error as Error).message).to.equal(
+        'GH_TOKEN environment variable is required'
+      )
     }
   })
 })

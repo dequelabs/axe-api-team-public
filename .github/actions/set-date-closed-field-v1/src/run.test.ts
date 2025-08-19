@@ -14,7 +14,6 @@ interface GenerateInputsArgs {
   issueOrganization?: string
   issueRepo?: string
   projectNumber?: string
-  token?: string
 }
 
 const generateInputs = (
@@ -33,16 +32,11 @@ const generateInputs = (
   const projectNumber = coreStub.getInput
     .withArgs('project-number', { required: true })
     .returns(inputs?.projectNumber ?? '123')
-  const token = coreStub.getInput
-    .withArgs('token', { required: true })
-    .returns(inputs?.token ?? 'test-token')
-
   return {
     issueNumber,
     issueOrganization,
     issueRepo,
     projectNumber,
-    token,
     coreStub
   }
 }
@@ -61,6 +55,9 @@ describe('run', () => {
   }
 
   beforeEach(() => {
+    // Set up environment variable for tests
+    process.env.GH_TOKEN = 'test-token'
+
     coreStub = sinon.stub(core)
     githubStub = sinon.stub(github)
     execStub = sinon.stub(exec)
@@ -118,6 +115,8 @@ describe('run', () => {
 
   afterEach(() => {
     sinon.restore()
+    // Clean up environment variable
+    delete process.env.GH_TOKEN
   })
 
   it('should update DateClosed field when issue is closed', async () => {

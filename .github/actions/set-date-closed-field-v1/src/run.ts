@@ -78,8 +78,7 @@ export default async function run(
     // Get the DateClosed field ID using existing function
     const dateClosedFieldId = await getDateClosedFieldId({
       owner: issueOrganization,
-      projectNumber,
-      token
+      projectNumber
     })
 
     if (!dateClosedFieldId) {
@@ -92,7 +91,6 @@ export default async function run(
       projectItemId: projectItemId.itemId,
       fieldId: dateClosedFieldId,
       date: dateString,
-      token,
       projectId: projectItemId.projectId
     })
 
@@ -183,20 +181,17 @@ async function getProjectItemId({
 interface GetDateClosedFieldIdArgs {
   owner: string
   projectNumber: number
-  token: string | undefined
 }
 
 async function getDateClosedFieldId({
   owner,
-  projectNumber,
-  token = process.env.GH_TOKEN
+  projectNumber
 }: GetDateClosedFieldIdArgs): Promise<string | null> {
   try {
     // Use local function that properly handles GH_TOKEN
     const fields = await getProjectBoardFieldList({
       projectNumber,
-      owner,
-      token
+      owner
     })
     const dateClosedField = fields.fields.find(
       (field: { id: string; name: string; type: string }) =>
@@ -214,7 +209,6 @@ async function getDateClosedFieldId({
 interface GetProjectBoardFieldListArgs {
   projectNumber: number
   owner: string
-  token: string | undefined
 }
 
 interface ProjectBoardFieldListResponse {
@@ -232,21 +226,22 @@ interface ProjectBoardFieldListResponse {
 
 async function getProjectBoardFieldList({
   projectNumber,
-  owner,
-  token = process.env.GH_TOKEN
+  owner
 }: GetProjectBoardFieldListArgs): Promise<ProjectBoardFieldListResponse> {
   try {
+    if (!process.env.GH_TOKEN) {
+      throw new Error('GH_TOKEN environment variable is required')
+    }
+
     const { stdout: fieldList } = await getExecOutput(
       `gh project field-list ${projectNumber} --owner ${owner} --format json`,
       [],
-      token
-        ? {
-            env: {
-              ...process.env,
-              GH_TOKEN: token
-            }
-          }
-        : undefined
+      {
+        env: {
+          ...process.env,
+          GH_TOKEN: process.env.GH_TOKEN
+        }
+      }
     )
 
     return JSON.parse(fieldList.trim()) as ProjectBoardFieldListResponse

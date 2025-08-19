@@ -30522,8 +30522,7 @@ async function run(core, github) {
         }
         const dateClosedFieldId = await getDateClosedFieldId({
             owner: issueOrganization,
-            projectNumber,
-            token
+            projectNumber
         });
         if (!dateClosedFieldId) {
             core.info(`DateClosed field not found in project ${projectNumber}`);
@@ -30533,7 +30532,6 @@ async function run(core, github) {
             projectItemId: projectItemId.itemId,
             fieldId: dateClosedFieldId,
             date: dateString,
-            token,
             projectId: projectItemId.projectId
         });
         core.info(`The DateClosed field has been updated successfully to ${dateString} for issue ${issueNumber}`);
@@ -30574,12 +30572,11 @@ async function getProjectItemId({ octokit, owner, repo, issueNumber, projectNumb
         throw new Error(`Failed to get project item ID: ${error.message}`);
     }
 }
-async function getDateClosedFieldId({ owner, projectNumber, token = process.env.GH_TOKEN }) {
+async function getDateClosedFieldId({ owner, projectNumber }) {
     try {
         const fields = await getProjectBoardFieldList({
             projectNumber,
-            owner,
-            token
+            owner
         });
         const dateClosedField = fields.fields.find((field) => field.name === 'DateClosed');
         return dateClosedField?.id || null;
@@ -30588,16 +30585,17 @@ async function getDateClosedFieldId({ owner, projectNumber, token = process.env.
         throw new Error(`Failed to get DateClosed field ID: ${error.message}`);
     }
 }
-async function getProjectBoardFieldList({ projectNumber, owner, token = process.env.GH_TOKEN }) {
+async function getProjectBoardFieldList({ projectNumber, owner }) {
     try {
-        const { stdout: fieldList } = await (0, exec_1.getExecOutput)(`gh project field-list ${projectNumber} --owner ${owner} --format json`, [], token
-            ? {
-                env: {
-                    ...process.env,
-                    GH_TOKEN: token
-                }
+        if (!process.env.GH_TOKEN) {
+            throw new Error('GH_TOKEN environment variable is required');
+        }
+        const { stdout: fieldList } = await (0, exec_1.getExecOutput)(`gh project field-list ${projectNumber} --owner ${owner} --format json`, [], {
+            env: {
+                ...process.env,
+                GH_TOKEN: process.env.GH_TOKEN
             }
-            : undefined);
+        });
         return JSON.parse(fieldList.trim());
     }
     catch (error) {
@@ -30616,16 +30614,17 @@ async function getProjectBoardFieldList({ projectNumber, owner, token = process.
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports["default"] = updateDateClosedField;
 const exec_1 = __nccwpck_require__(1518);
-async function updateDateClosedField({ projectItemId, fieldId, date, token, projectId }) {
+async function updateDateClosedField({ projectItemId, fieldId, date, projectId }) {
     try {
-        await (0, exec_1.getExecOutput)(`gh project item-edit --id ${projectItemId} --field-id ${fieldId} --date ${date} --project-id ${projectId} --format json`, [], token
-            ? {
-                env: {
-                    ...process.env,
-                    GH_TOKEN: token
-                }
+        if (!process.env.GH_TOKEN) {
+            throw new Error('GH_TOKEN environment variable is required');
+        }
+        await (0, exec_1.getExecOutput)(`gh project item-edit --id ${projectItemId} --field-id ${fieldId} --date ${date} --project-id ${projectId} --format json`, [], {
+            env: {
+                ...process.env,
+                GH_TOKEN: process.env.GH_TOKEN
             }
-            : undefined);
+        });
     }
     catch (error) {
         throw new Error(`Failed to update DateClosed field: ${error.message}`);

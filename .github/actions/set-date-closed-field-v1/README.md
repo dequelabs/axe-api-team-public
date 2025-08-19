@@ -14,7 +14,7 @@ This action updates the `DateClosed` project field when an issue is closed as co
 **Requirements:**
 
 - Custom `DateClosed` field (Date type) in your project
-- Personal Access Token with `repo`, `read:org`, `write:org`, and `project` scopes
+- `GH_TOKEN` environment variable set to a Personal Access Token with `repo`, `read:org`, `write:org`, and `project` scopes
 - Issue must be added to the specified project board
 
 ## Setup
@@ -41,6 +41,8 @@ This action updates the `DateClosed` project field when an issue is closed as co
 2. Click "New repository secret"
 3. Name: `PAT`, Value: your token
 4. Click "Add secret"
+
+**Note**: The action now uses the `GH_TOKEN` environment variable instead of a token input parameter.
 
 ### 4. Find Your Project Number
 
