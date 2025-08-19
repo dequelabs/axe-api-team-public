@@ -30501,43 +30501,42 @@ async function run(core, github) {
             issue_number: issueNumber
         });
         core.info(`Issue state: ${issue.state}, closed_at: ${issue.closed_at}`);
-        if (issue.closed_at &&
-            issue.state === 'closed' &&
-            issue.state_reason === 'completed') {
-            const dateString = new Date(issue.closed_at).toISOString().split('T')[0];
-            core.info(`Issue is closed. Updating DateClosed field to: ${dateString}`);
-            const projectItemId = await getProjectItemId({
-                octokit,
-                owner: issueOrganization,
-                repo: issueRepo,
-                issueNumber,
-                projectNumber
-            });
-            if (!projectItemId) {
-                core.info(`Issue ${issueNumber} is not in project ${projectNumber}`);
-                return;
-            }
-            const dateClosedFieldId = await getDateClosedFieldId({
-                owner: issueOrganization,
-                projectNumber,
-                token
-            });
-            if (!dateClosedFieldId) {
-                core.info(`DateClosed field not found in project ${projectNumber}`);
-                return;
-            }
-            await (0, updateDateClosedField_1.default)({
-                projectItemId: projectItemId.itemId,
-                fieldId: dateClosedFieldId,
-                date: dateString,
-                token,
-                projectId: projectItemId.projectId
-            });
-            core.info(`The DateClosed field has been updated successfully to ${dateString} for issue ${issueNumber}`);
-        }
-        else {
+        if (!issue.closed_at ||
+            issue.state !== 'closed' ||
+            issue.state_reason !== 'completed') {
             core.info(`Issue ${issueNumber} is not closed or has no closed_at date`);
+            return;
         }
+        const dateString = new Date(issue.closed_at).toISOString().split('T')[0];
+        core.info(`Issue is closed. Updating DateClosed field to: ${dateString}`);
+        const projectItemId = await getProjectItemId({
+            octokit,
+            owner: issueOrganization,
+            repo: issueRepo,
+            issueNumber,
+            projectNumber
+        });
+        if (!projectItemId) {
+            core.info(`Issue ${issueNumber} is not in project ${projectNumber}`);
+            return;
+        }
+        const dateClosedFieldId = await getDateClosedFieldId({
+            owner: issueOrganization,
+            projectNumber,
+            token
+        });
+        if (!dateClosedFieldId) {
+            core.info(`DateClosed field not found in project ${projectNumber}`);
+            return;
+        }
+        await (0, updateDateClosedField_1.default)({
+            projectItemId: projectItemId.itemId,
+            fieldId: dateClosedFieldId,
+            date: dateString,
+            token,
+            projectId: projectItemId.projectId
+        });
+        core.info(`The DateClosed field has been updated successfully to ${dateString} for issue ${issueNumber}`);
     }
     catch (error) {
         core.setFailed(`Action failed: ${error instanceof Error ? error.message : String(error)}`);
@@ -30591,12 +30590,14 @@ async function getDateClosedFieldId({ owner, projectNumber, token = process.env.
 }
 async function getProjectBoardFieldList({ projectNumber, owner, token = process.env.GH_TOKEN }) {
     try {
-        const { stdout: fieldList } = await (0, exec_1.getExecOutput)(`gh project field-list ${projectNumber} --owner ${owner} --format json`, [], token ? {
-            env: {
-                ...process.env,
-                GH_TOKEN: token
+        const { stdout: fieldList } = await (0, exec_1.getExecOutput)(`gh project field-list ${projectNumber} --owner ${owner} --format json`, [], token
+            ? {
+                env: {
+                    ...process.env,
+                    GH_TOKEN: token
+                }
             }
-        } : undefined);
+            : undefined);
         return JSON.parse(fieldList.trim());
     }
     catch (error) {
@@ -30617,12 +30618,14 @@ exports["default"] = updateDateClosedField;
 const exec_1 = __nccwpck_require__(1518);
 async function updateDateClosedField({ projectItemId, fieldId, date, token, projectId }) {
     try {
-        await (0, exec_1.getExecOutput)(`gh project item-edit --id ${projectItemId} --field-id ${fieldId} --date ${date} --project-id ${projectId} --format json`, [], token ? {
-            env: {
-                ...process.env,
-                GH_TOKEN: token
+        await (0, exec_1.getExecOutput)(`gh project item-edit --id ${projectItemId} --field-id ${fieldId} --date ${date} --project-id ${projectId} --format json`, [], token
+            ? {
+                env: {
+                    ...process.env,
+                    GH_TOKEN: token
+                }
             }
-        } : undefined);
+            : undefined);
     }
     catch (error) {
         throw new Error(`Failed to update DateClosed field: ${error.message}`);

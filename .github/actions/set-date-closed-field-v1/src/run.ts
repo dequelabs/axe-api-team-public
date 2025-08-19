@@ -49,55 +49,56 @@ export default async function run(
     core.info(`Issue state: ${issue.state}, closed_at: ${issue.closed_at}`)
 
     if (
-      issue.closed_at &&
-      issue.state === 'closed' &&
-      issue.state_reason === 'completed'
+      !issue.closed_at ||
+      issue.state !== 'closed' ||
+      issue.state_reason !== 'completed'
     ) {
-      const dateString = new Date(issue.closed_at).toISOString().split('T')[0]
-
-      core.info(`Issue is closed. Updating DateClosed field to: ${dateString}`)
-
-      // Get project item ID for the issue
-      const projectItemId = await getProjectItemId({
-        octokit,
-        owner: issueOrganization,
-        repo: issueRepo,
-        issueNumber,
-        projectNumber
-      })
-
-      if (!projectItemId) {
-        core.info(`Issue ${issueNumber} is not in project ${projectNumber}`)
-        return
-      }
-
-      // Get the DateClosed field ID using existing function
-      const dateClosedFieldId = await getDateClosedFieldId({
-        owner: issueOrganization,
-        projectNumber,
-        token
-      })
-
-      if (!dateClosedFieldId) {
-        core.info(`DateClosed field not found in project ${projectNumber}`)
-        return
-      }
-
-      // Update the DateClosed field
-      await updateDateClosedField({
-        projectItemId: projectItemId.itemId,
-        fieldId: dateClosedFieldId,
-        date: dateString,
-        token,
-        projectId: projectItemId.projectId
-      })
-
-      core.info(
-        `The DateClosed field has been updated successfully to ${dateString} for issue ${issueNumber}`
-      )
-    } else {
       core.info(`Issue ${issueNumber} is not closed or has no closed_at date`)
+      return
     }
+
+    const dateString = new Date(issue.closed_at).toISOString().split('T')[0]
+
+    core.info(`Issue is closed. Updating DateClosed field to: ${dateString}`)
+
+    // Get project item ID for the issue
+    const projectItemId = await getProjectItemId({
+      octokit,
+      owner: issueOrganization,
+      repo: issueRepo,
+      issueNumber,
+      projectNumber
+    })
+
+    if (!projectItemId) {
+      core.info(`Issue ${issueNumber} is not in project ${projectNumber}`)
+      return
+    }
+
+    // Get the DateClosed field ID using existing function
+    const dateClosedFieldId = await getDateClosedFieldId({
+      owner: issueOrganization,
+      projectNumber,
+      token
+    })
+
+    if (!dateClosedFieldId) {
+      core.info(`DateClosed field not found in project ${projectNumber}`)
+      return
+    }
+
+    // Update the DateClosed field
+    await updateDateClosedField({
+      projectItemId: projectItemId.itemId,
+      fieldId: dateClosedFieldId,
+      date: dateString,
+      token,
+      projectId: projectItemId.projectId
+    })
+
+    core.info(
+      `The DateClosed field has been updated successfully to ${dateString} for issue ${issueNumber}`
+    )
   } catch (error) {
     core.setFailed(
       `Action failed: ${error instanceof Error ? error.message : String(error)}`
