@@ -70,7 +70,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set DateClosed Field on Issue Close
-        uses: ./.github/actions/set-date-closed-field-v1
+        uses: dequelabs/axe-api-team-public/.github/actions/set-date-closed-field-v1@main
         with:
           issue-number: ${{ github.event.issue.number }}
           issue-organization: ${{ github.event.repository.owner.login }}
