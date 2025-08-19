@@ -177,8 +177,6 @@ This error occurs when the GitHub CLI (`gh`) command doesn't have proper authent
 
 ### Step 2: Configure the Workflow
 
-Use the workflow example above, making sure to hardcode your project number in the `project-number` input field.
-
 **Important**: Consider configuring your workflow to only trigger when issues are closed as completed, not when they're closed for other reasons (e.g., "not planned", "duplicate", etc.). This can be done by adding appropriate conditions to your workflow trigger or by using issue labels to distinguish between different types of closure.
 
 ## Requirements
