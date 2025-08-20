@@ -229,10 +229,6 @@ async function getProjectBoardFieldList({
   owner
 }: GetProjectBoardFieldListArgs): Promise<ProjectBoardFieldListResponse> {
   try {
-    if (!process.env.GH_TOKEN) {
-      throw new Error('GH_TOKEN environment variable is required')
-    }
-
     const { stdout: fieldList } = await getExecOutput(
       `gh project field-list ${projectNumber} --owner ${owner} --format json`,
       [],

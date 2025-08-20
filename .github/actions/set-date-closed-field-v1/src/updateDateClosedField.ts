@@ -14,10 +14,6 @@ export default async function updateDateClosedField({
   projectId
 }: UpdateDateClosedFieldArgs): Promise<void> {
   try {
-    if (!process.env.GH_TOKEN) {
-      throw new Error('GH_TOKEN environment variable is required')
-    }
-
     await getExecOutput(
       `gh project item-edit --id ${projectItemId} --field-id ${fieldId} --date ${date} --project-id ${projectId} --format json`,
       [],
