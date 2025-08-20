@@ -8,6 +8,18 @@ inputs:
   slack-webhook:
     description: A Slack channel webhook URL where the message will be sent
     required: true
+  slack-channel:
+    description: A Slack channel where the message will be sent
+    required: false
+    default: not-existing-channel # Default value should not be used, as the channel should be set in the workflow file
+  release-issue-project-number:
+    description: The project number where the release issue is created
+    required: false
+    default: '1000' # Default to a non-existent project number to avoid errors if not set
+  release-issue-column-name:
+    description: The column name where the release issue is moved to
+    required: false
+    default: QAToDo # Default value should not be used, as the column name should be set in the workflow file
 
 runs:
   using: 'composite'
@@ -46,12 +58,12 @@ runs:
       run: gh issue comment ${{ steps.get-release-issue.outputs.issue-url }} --body "$BODY"
       env:
         BODY: "Please use the release candidate build: ${{ steps.set-build-name.outputs.build-name }}"
-      # Move an issue to the "QAToDo" column on the board project #188
+      # Move an issue to the `release-issue-column-name` column on the board project `release-issue-project-number`
     - uses: dequelabs/axe-api-team-public/.github/actions/add-to-board-v1@main
       with:
         issue-urls: ${{ steps.get-release-issue.outputs.issue-url }}
-        project-number: 188
-        column-name: QAToDo
+        project-number: ${{ inputs.release-issue-project-number }}
+        column-name: ${{ inputs.release-issue-column-name }}
     - name: Slack notification
       uses: rtCamp/action-slack-notify@b24d75fe0e728a4bf9fc42ee217caa686d141ee8 # tag=v2.2.1
       env:
@@ -61,5 +73,5 @@ runs:
           *Build:* ${{ steps.set-build-name.outputs.build-name }}
         SLACK_COLOR: ${{ job.status }}
         MSG_MINIMAL: 'true'
-        SLACK_CHANNEL: results-team-dev
+        SLACK_CHANNEL: ${{ inputs.slack-channel }}
         SLACK_WEBHOOK: ${{ inputs.slack-webhook }}
