@@ -1,6 +1,9 @@
 name: 'Set DateClosed Field on Issue Close'
 description: 'Update the DateClosed project field when an issue is closed as completed'
 inputs:
+  token:
+    description: 'Token used for the GH CLI to close and move issue(s) to the correct column. See README for required permissions'
+    required: true
   issue-number:
     description: 'The issue number to check'
     required: true

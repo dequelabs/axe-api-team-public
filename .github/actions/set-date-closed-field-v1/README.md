@@ -78,6 +78,7 @@ jobs:
           issue-organization: ${{ github.event.repository.owner.login }}
           issue-repo: ${{ github.event.repository.name }}
           project-number: '123' # Replace with your project number
+          token: ${{ secrets.PAT }}
         env:
           GH_TOKEN: ${{ secrets.PAT }}
 ```

@@ -7,7 +7,7 @@ export default async function run(
   github: GitHubType
 ): Promise<void> {
   try {
-    const token = process.env.GH_TOKEN
+    const token = core.getInput('token')
     if (!token) {
       core.setFailed('`GH_TOKEN` is not set')
       return

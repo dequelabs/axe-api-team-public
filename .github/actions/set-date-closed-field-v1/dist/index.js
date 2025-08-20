@@ -30473,7 +30473,7 @@ const exec_1 = __nccwpck_require__(1518);
 const updateDateClosedField_1 = __importDefault(__nccwpck_require__(1000));
 async function run(core, github) {
     try {
-        const token = process.env.GH_TOKEN;
+        const token = core.getInput('token');
         if (!token) {
             core.setFailed('`GH_TOKEN` is not set');
             return;
