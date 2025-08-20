@@ -15,14 +15,7 @@ export default async function updateDateClosedField({
 }: UpdateDateClosedFieldArgs): Promise<void> {
   try {
     await getExecOutput(
-      `gh project item-edit --id ${projectItemId} --field-id ${fieldId} --date ${date} --project-id ${projectId} --format json`,
-      [],
-      {
-        env: {
-          ...process.env,
-          GH_TOKEN: process.env.GH_TOKEN
-        }
-      }
+      `gh project item-edit --id ${projectItemId} --field-id ${fieldId} --date ${date} --project-id ${projectId} --format json`
     )
   } catch (error) {
     throw new Error(
