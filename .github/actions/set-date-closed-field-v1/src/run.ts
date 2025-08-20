@@ -230,14 +230,7 @@ async function getProjectBoardFieldList({
 }: GetProjectBoardFieldListArgs): Promise<ProjectBoardFieldListResponse> {
   try {
     const { stdout: fieldList } = await getExecOutput(
-      `gh project field-list ${projectNumber} --owner ${owner} --format json`,
-      [],
-      {
-        env: {
-          ...process.env,
-          GH_TOKEN: process.env.GH_TOKEN
-        }
-      }
+      `gh project field-list ${projectNumber} --owner ${owner} --format json`
     )
 
     return JSON.parse(fieldList.trim()) as ProjectBoardFieldListResponse
