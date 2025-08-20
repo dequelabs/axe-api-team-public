@@ -6,10 +6,10 @@ inputs:
     required: true
   issue-organization:
     description: 'The organization where the issue is located'
-    required: true
+    required: false
   issue-repo:
     description: 'The repository where the issue is located'
-    required: true
+    required: false
   project-number:
     description: 'The project number where the issue is located (should be hardcoded in workflow)'
     required: true
