@@ -7,23 +7,50 @@ inputs:
     required: false
   slack-webhook:
     description: A Slack channel webhook URL where the message will be sent
-    required: true
+    required: false
   slack-channel:
     description: A Slack channel where the message will be sent
     required: false
-    default: not-existing-channel # Default value should not be used, as the channel should be set in the workflow file
   release-issue-project-number:
     description: The project number where the release issue is created
-    required: false
-    default: '1000' # Default to a non-existent project number to avoid errors if not set
+    required: true
   release-issue-column-name:
-    description: The column name where the release issue is moved to
-    required: false
-    default: QAToDo # Default value should not be used, as the column name should be set in the workflow file
+    description: The column name where the release issue is moved to (e.g. "QAToDo")
+    required: true
 
 runs:
   using: 'composite'
   steps:
+    - name: Validate required inputs
+      shell: bash
+      env:
+        INPUTS_JSON: ${{ toJSON(inputs) }}
+      run: |
+        echo "Validating required inputs..."
+
+        # Get all required inputs from this action.yml file
+        required_inputs=$(yq eval '.inputs | to_entries | .[] | select(.value.required == true) | .key' ${{ github.action_path }}/action.yml)
+
+        missing_inputs=()
+
+        # Check each required input
+        for input in $required_inputs; do
+          value=$(echo "$INPUTS_JSON" | jq -r --arg key "$input" '.[$key] // empty')
+
+          if [ -z "$value" ] || [ "$value" = "null" ]; then
+            echo "::error::Required input '$input' is missing"
+            missing_inputs+=("$input")
+          else
+            echo "✓ Required input '$input' is present"
+          fi
+        done
+
+        if [ ${#missing_inputs[@]} -gt 0 ]; then
+          exit 1
+        fi
+
+        echo "All required inputs are present"
+
     - uses: dequelabs/axe-api-team-public/.github/actions/get-package-version-v1@main
       id: get-package-version
     - uses: dequelabs/axe-api-team-public/.github/actions/get-release-issue-v1@main
@@ -65,6 +92,7 @@ runs:
         project-number: ${{ inputs.release-issue-project-number }}
         column-name: ${{ inputs.release-issue-column-name }}
     - name: Slack notification
+      if: inputs.slack-channel != '' && inputs.slack-webhook != ''
       uses: rtCamp/action-slack-notify@b24d75fe0e728a4bf9fc42ee217caa686d141ee8 # tag=v2.2.1
       env:
         SLACK_TITLE: 'RC: "${{ steps.set-build-name.outputs.build-name }}" is ready for QA:'

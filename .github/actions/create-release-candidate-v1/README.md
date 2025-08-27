@@ -15,12 +15,12 @@ A GitHub Action to create a release candidate.
 | `docs-repo`                    | No       | The name of the repo where the release notes live                                                                                                                                                                               | `null`                   |
 | `docs-labels`                  | No       | Labels for release notes issue. Comma-delimited list of labels (e.x. "release,PRIORITY: high")                                                                                                                                  | NA                       |
 | `docs-issue-assignees`         | No       | Assignees for the release notes issue.                                                                                                                                                                                          | NA                       |
-| `docs-issue-project-number`    | No       | Project number for the release notes issue.                                                                                                                                                                                     | `1000`                   |
-| `docs-issue-column-name`       | No       | Column name for the release notes issue.                                                                                                                                                                                        | `Todo`                   |
+| `docs-issue-project-number`    | Yes      | Project number for the release notes issue.                                                                                                                                                                                     | NA                       |
+| `docs-issue-column-name`       | Yes      | Column name for the release notes issue (e.g. "Todo").                                                                                                                                                                          | NA                       |
 | `release-issue-assignees`      | No       | Assignees for the release issue.                                                                                                                                                                                                | NA                       |
 | `release-issue-labels`         | No       | Labels for the release issue. Comma-delimited list of labels (e.x. "release,PRIORITY: high").                                                                                                                                   | `PRIORITY: high,release` |
-| `release-issue-project-number` | No       | Project number for the release issue.                                                                                                                                                                                           | `1000`                   |
-| `release-issue-column-name`    | No       | Column name for the release issue.                                                                                                                                                                                              | `New`                    |
+| `release-issue-project-number` | Yes      | Project number for the release issue.                                                                                                                                                                                           | NA                       |
+| `release-issue-column-name`    | Yes      | Column name for the release issue (e.g. "New").                                                                                                                                                                                 | NA                       |
 
 ## Example usage
 
@@ -38,10 +38,13 @@ jobs:
           token: ${{ secrets.PAT }}
           base: 'main'
           head: 'develop'
-          version-locked: 'false'
           release-script-path: './prepare_release.sh'
           docs-repo: 'my-docs-repo'
           docs-labels: 'release,PRIORITY: high'
+          docs-issue-project-number: '1000'
+          docs-issue-column-name: 'Todo'
+          release-issue-project-number: '2000'
+          release-issue-column-name: 'New'
         env:
           GH_TOKEN: ${{ secrets.PAT }}
 ```
