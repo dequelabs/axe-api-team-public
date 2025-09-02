@@ -23,16 +23,23 @@ export default async function debugProjectConnection({
         issue(number: $number) {
           id
           title
-          projectV2Items(first: 20) {
-            nodes {
-              id
-              project {
+            projectsV2(first: 20) {
+              nodes {
                 id
                 number
                 title
               }
             }
-          }
+            projectItems(first: 20) {
+              nodes {
+                id
+                project {
+                  id
+                  number
+                  title
+                }
+              }
+            }
         }
       }
     }
