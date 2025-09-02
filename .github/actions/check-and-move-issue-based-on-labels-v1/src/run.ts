@@ -6,8 +6,8 @@ import getProjectBoardFieldList from '../../add-to-board-v1/src/getProjectBoardF
 import getIssueLabels, {
   GetIssueLabelsResult,
   LabelNode,
-  ProjectV2ItemNode,
-  getIssueProjectsViaRest
+  ProjectV2ItemNode
+  // getIssueProjectsViaRest
 } from './getIssueLabels'
 
 export default async function run(core: Core, github: GitHub): Promise<void> {
@@ -56,13 +56,13 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     }
 
     const octokit: ReturnType<typeof getOctokit> = github.getOctokit(token)
-    const issuesNodeRest = await getIssueProjectsViaRest({
-      issueOwner: issueOrganization,
-      issueRepo,
-      issueNumber,
-      octokit
-    })
-    console.log('~~~~~~~~~~ - issuesNodeRest~~~~~~~~~~\n', issuesNodeRest)
+    // const issuesNodeRest = await getIssueProjectsViaRest({
+    //   issueOwner: issueOrganization,
+    //   issueRepo,
+    //   issueNumber,
+    //   octokit
+    // })
+    // console.log('~~~~~~~~~~ - issuesNodeRest~~~~~~~~~~\n', issuesNodeRest)
     const issuesNode: GetIssueLabelsResult = await getIssueLabels({
       issueOwner: issueOrganization,
       issueRepo,
