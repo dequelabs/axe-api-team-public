@@ -30618,6 +30618,7 @@ const moveIssueToColumn_1 = __importDefault(__nccwpck_require__(5831));
 const getProjectBoardID_1 = __importDefault(__nccwpck_require__(6966));
 const getProjectBoardFieldList_1 = __importDefault(__nccwpck_require__(9663));
 const getIssueLabels_1 = __importDefault(__nccwpck_require__(2706));
+const getIssueProjectInfo_1 = __importDefault(__nccwpck_require__(9641));
 async function run(core, github) {
     try {
         const token = core.getInput('token', { required: true });
@@ -30654,6 +30655,13 @@ async function run(core, github) {
             return;
         }
         const octokit = github.getOctokit(token);
+        const issueProject = await (0, getIssueProjectInfo_1.default)({
+            owner: issueOrganization,
+            repo: issueRepo,
+            issueNumber,
+            octokit
+        });
+        console.log('~~~~~~~~~~ - issueProject~~~~~~~~~~\n', JSON.stringify(issueProject));
         const issuesNode = await (0, getIssueLabels_1.default)({
             issueOwner: issueOrganization,
             issueRepo,
@@ -30754,6 +30762,55 @@ async function run(core, github) {
     }
     catch (error) {
         core.setFailed(error.message);
+    }
+}
+
+
+/***/ }),
+
+/***/ 9641:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = getIssueProjectInfo;
+async function getIssueProjectInfo({ owner, repo, issueNumber, octokit }) {
+    try {
+        return octokit.graphql(`
+      query getIssueProjectInfo($owner: String!, $repo: String!, $issueNumber: Int!) {
+        repository(owner: $owner, name: $repo) {
+          issue(number: $issueNumber) {
+            projectItems(first: 5) {
+              nodes {
+                id
+                type
+                # An issue can have multiple boards assigned to it
+                # get the number of the board e.g. 66
+                # so we can check that along with the "fieldValueByName" field
+                project {
+                  number
+                }
+                # Status = Done, Dev Done etc
+                # Get the column assigned to the ticket
+                fieldValueByName(name:"Status") {
+                  ... on ProjectV2ItemFieldSingleSelectValue {
+                    name
+                  }            
+                }
+              }
+            }
+          }
+        }
+      }
+      `, {
+            owner,
+            repo,
+            issueNumber
+        });
+    }
+    catch (error) {
+        throw new Error(`Failed to get project info for issue ${issueNumber}: ${error.message}`);
     }
 }
 

@@ -7,8 +7,8 @@ import getIssueLabels, {
   GetIssueLabelsResult,
   LabelNode,
   ProjectV2ItemNode
-  // getIssueProjectsViaRest
 } from './getIssueLabels'
+import getIssueProjectInfo from 'label-and-move-released-issues-v1/src/getIssueProjectInfo'
 
 export default async function run(core: Core, github: GitHub): Promise<void> {
   try {
@@ -56,13 +56,17 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     }
 
     const octokit: ReturnType<typeof getOctokit> = github.getOctokit(token)
-    // const issuesNodeRest = await getIssueProjectsViaRest({
-    //   issueOwner: issueOrganization,
-    //   issueRepo,
-    //   issueNumber,
-    //   octokit
-    // })
-    // console.log('~~~~~~~~~~ - issuesNodeRest~~~~~~~~~~\n', issuesNodeRest)
+    const issueProject = await getIssueProjectInfo({
+      owner: issueOrganization,
+      repo: issueRepo,
+      issueNumber,
+      octokit
+    })
+    console.log(
+      '~~~~~~~~~~ - issueProject~~~~~~~~~~\n',
+      JSON.stringify(issueProject)
+    )
+
     const issuesNode: GetIssueLabelsResult = await getIssueLabels({
       issueOwner: issueOrganization,
       issueRepo,
