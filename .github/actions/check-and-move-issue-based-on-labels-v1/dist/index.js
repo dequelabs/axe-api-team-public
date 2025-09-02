@@ -30526,15 +30526,15 @@ async function debugProjectConnection({ issueOwner, issueRepo, issueNumber, octo
     const issueId = issueResult.repository.issue.id;
     console.log(`✅ Issue ID: ${issueId}`);
     console.log(`📋 Issue Title: ${issueResult.repository.issue.title}`);
-    console.log(`📊 ProjectV2Items count: ${issueResult.repository.issue.projectV2Items.nodes.length}`);
-    if (issueResult.repository.issue.projectV2Items.nodes.length > 0) {
-        console.log('\n✅ Found projects via projectV2Items:');
-        issueResult.repository.issue.projectV2Items.nodes.forEach((item) => {
+    console.log(`📊 ProjectV2Items count: ${issueResult.repository.issue.projectsV2.nodes.length}`);
+    if (issueResult.repository.issue.projectsV2.nodes.length > 0) {
+        console.log('\n✅ Found projects via projectsV2:');
+        issueResult.repository.issue.projectsV2.nodes.forEach((item) => {
             console.log(`  - Project #${item.project.number}: ${item.project.title}`);
         });
         return;
     }
-    console.log('\n⚠️ No projects found via projectV2Items. Trying alternative methods...\n');
+    console.log('\n⚠️ No projects found via projectsV2. Trying alternative methods...\n');
     console.log('🔍 Searching organization projects...');
     try {
         const orgProjectsQuery = `
