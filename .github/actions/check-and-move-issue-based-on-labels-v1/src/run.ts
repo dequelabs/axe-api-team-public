@@ -6,7 +6,8 @@ import getProjectBoardFieldList from '../../add-to-board-v1/src/getProjectBoardF
 import getIssueLabels, {
   GetIssueLabelsResult,
   LabelNode,
-  projectItemsNode
+  ProjectV2ItemNode,
+  getIssueProjectsViaRest
 } from './getIssueLabels'
 
 export default async function run(core: Core, github: GitHub): Promise<void> {
@@ -55,6 +56,13 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     }
 
     const octokit: ReturnType<typeof getOctokit> = github.getOctokit(token)
+    const issuesNodeRest = await getIssueProjectsViaRest({
+      issueOwner: issueOrganization,
+      issueRepo,
+      issueNumber,
+      octokit
+    })
+    console.log('~~~~~~~~~~ - issuesNodeRest~~~~~~~~~~\n', issuesNodeRest)
     const issuesNode: GetIssueLabelsResult = await getIssueLabels({
       issueOwner: issueOrganization,
       issueRepo,
@@ -66,9 +74,9 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       '~~~~~~~~~~ - issuesNode~~~~~~~~~~\n',
       JSON.stringify(issuesNode)
     )
-    const issueNode: projectItemsNode | undefined =
+    const issueNode: ProjectV2ItemNode | undefined =
       issuesNode.repository.issue.projectItems.nodes.find(
-        (item: projectItemsNode) => item.project.number === projectNumber
+        (item: ProjectV2ItemNode) => item.project.number === projectNumber
       )
 
     if (!issueNode) {

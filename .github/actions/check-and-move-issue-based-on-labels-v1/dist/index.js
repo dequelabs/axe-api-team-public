@@ -30489,35 +30489,75 @@ async function moveIssueToColumn({ issueCardID, fieldID, fieldColumnID, projectI
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports["default"] = getIssueLabels;
+exports.getIssueProjectsViaRest = getIssueProjectsViaRest;
 async function getIssueLabels({ issueOwner, issueRepo, issueNumber, octokit }) {
     try {
-        return octokit.graphql(`
-      query {
-        repository(owner: "${issueOwner}", name: "${issueRepo}") {
-          issue(number: ${issueNumber}) {
+        const result = await octokit.graphql(`
+      query($owner: String!, $repo: String!, $number: Int!) {
+        repository(owner: $owner, name: $repo) {
+          issue(number: $number) {
             id
             number
             url
-            labels(first: 20) {
+            labels(first: 100) {
               nodes {
                 name
               }
             }
-            projectItems(first: 10) {
+            projectsV2(first: 20) {
+              nodes {
+                id
+                number
+                title
+              }
+            }
+            projectItems(first: 20) {
               nodes {
                 id
                 project {
+                  id
                   number
+                  title
                 }
               }
             }
           }
         }
       }
-    `);
+      `, {
+            owner: issueOwner,
+            repo: issueRepo,
+            number: issueNumber
+        });
+        console.log('~~~~~~~~~~GraphQL Response: - ~~~~~~~~~~\n');
+        console.log(JSON.stringify(result, null, 2));
+        return result;
     }
     catch (error) {
-        throw new Error(`Failed to get the issue's labels "https://github.com/${issueOwner}/${issueRepo}/issues/${issueNumber}": ${error.message}`);
+        console.log('~~~~~~~~~~GraphQL Response: - ~~~~~~~~~~\n');
+        console.error(error);
+        throw new Error(`Failed to get the issue's labels and projects for "https://github.com/${issueOwner}/${issueRepo}/issues/${issueNumber}": ${error.message}`);
+    }
+}
+async function getIssueProjectsViaRest({ issueOwner, issueRepo, issueNumber, octokit }) {
+    try {
+        const { data: issue } = await octokit.rest.issues.get({
+            owner: issueOwner,
+            repo: issueRepo,
+            issue_number: issueNumber
+        });
+        const { data: projects } = await octokit.rest.projects.listForRepo({
+            owner: issueOwner,
+            repo: issueRepo,
+            state: 'open'
+        });
+        console.log('~~~~~~~~~~getIssueProjectsViaRest - issue~~~~~~~~~~\n', JSON.stringify(issue, null, 2));
+        console.log('~~~~~~~~~~getIssueProjectsViaRest - projects~~~~~~~~~~\n', JSON.stringify(projects, null, 2));
+        return { issue, projects };
+    }
+    catch (error) {
+        console.error('REST API Error:', error);
+        throw error;
     }
 }
 
@@ -30569,6 +30609,29 @@ const run_1 = __importDefault(__nccwpck_require__(1738));
 
 "use strict";
 
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -30577,7 +30640,7 @@ exports["default"] = run;
 const moveIssueToColumn_1 = __importDefault(__nccwpck_require__(5831));
 const getProjectBoardID_1 = __importDefault(__nccwpck_require__(6966));
 const getProjectBoardFieldList_1 = __importDefault(__nccwpck_require__(9663));
-const getIssueLabels_1 = __importDefault(__nccwpck_require__(2706));
+const getIssueLabels_1 = __importStar(__nccwpck_require__(2706));
 async function run(core, github) {
     try {
         const token = core.getInput('token', { required: true });
@@ -30614,6 +30677,13 @@ async function run(core, github) {
             return;
         }
         const octokit = github.getOctokit(token);
+        const issuesNodeRest = await (0, getIssueLabels_1.getIssueProjectsViaRest)({
+            issueOwner: issueOrganization,
+            issueRepo,
+            issueNumber,
+            octokit
+        });
+        console.log('~~~~~~~~~~ - issuesNodeRest~~~~~~~~~~\n', issuesNodeRest);
         const issuesNode = await (0, getIssueLabels_1.default)({
             issueOwner: issueOrganization,
             issueRepo,
