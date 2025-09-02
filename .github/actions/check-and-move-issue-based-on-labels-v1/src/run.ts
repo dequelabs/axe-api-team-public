@@ -62,6 +62,10 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
       octokit
     })
     const issueUrl: string = issuesNode.repository.issue.url
+    console.log(
+      '~~~~~~~~~~ - issuesNode~~~~~~~~~~\n',
+      JSON.stringify(issuesNode)
+    )
     const issueNode: projectItemsNode | undefined =
       issuesNode.repository.issue.projectItems.nodes.find(
         (item: projectItemsNode) => item.project.number === projectNumber

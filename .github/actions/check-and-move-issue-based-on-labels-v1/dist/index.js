@@ -30621,6 +30621,7 @@ async function run(core, github) {
             octokit
         });
         const issueUrl = issuesNode.repository.issue.url;
+        console.log('~~~~~~~~~~ - issuesNode~~~~~~~~~~\n', JSON.stringify(issuesNode));
         const issueNode = issuesNode.repository.issue.projectItems.nodes.find((item) => item.project.number === projectNumber);
         if (!issueNode) {
             core.setFailed(`The issue "${issueUrl}" is not found in the project board "${projectNumber}"`);
