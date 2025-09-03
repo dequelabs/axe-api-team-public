@@ -13,44 +13,14 @@ inputs:
     required: false
   release-issue-project-number:
     description: The project number where the release issue is created
-    required: true
+    required: false
   release-issue-column-name:
     description: The column name where the release issue is moved to (e.g. "QAToDo")
-    required: true
+    required: false
 
 runs:
   using: 'composite'
   steps:
-    - name: Validate required inputs
-      shell: bash
-      env:
-        INPUTS_JSON: ${{ toJSON(inputs) }}
-      run: |
-        echo "Validating required inputs..."
-
-        # Get all required inputs from this action.yml file
-        required_inputs=$(yq eval '.inputs | to_entries | .[] | select(.value.required == true) | .key' ${{ github.action_path }}/action.yml)
-
-        missing_inputs=()
-
-        # Check each required input
-        for input in $required_inputs; do
-          value=$(echo "$INPUTS_JSON" | jq -r --arg key "$input" '.[$key] // empty')
-
-          if [ -z "$value" ] || [ "$value" = "null" ]; then
-            echo "::error::Required input '$input' is missing"
-            missing_inputs+=("$input")
-          else
-            echo "✓ Required input '$input' is present"
-          fi
-        done
-
-        if [ ${#missing_inputs[@]} -gt 0 ]; then
-          exit 1
-        fi
-
-        echo "All required inputs are present"
-
     - uses: dequelabs/axe-api-team-public/.github/actions/get-package-version-v1@main
       id: get-package-version
     - uses: dequelabs/axe-api-team-public/.github/actions/get-release-issue-v1@main
@@ -87,6 +57,7 @@ runs:
         BODY: "Please use the release candidate build: ${{ steps.set-build-name.outputs.build-name }}"
       # Move an issue to the `release-issue-column-name` column on the board project `release-issue-project-number`
     - uses: dequelabs/axe-api-team-public/.github/actions/add-to-board-v1@main
+      if: inputs.release-issue-project-number != '' && inputs.release-issue-column-name != ''
       with:
         issue-urls: ${{ steps.get-release-issue.outputs.issue-url }}
         project-number: ${{ inputs.release-issue-project-number }}

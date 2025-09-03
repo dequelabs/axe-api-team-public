@@ -34,23 +34,22 @@ inputs:
     required: false
   docs-issue-project-number:
     description: 'Project number for the release notes issue'
-    required: true
+    required: false
   docs-issue-column-name:
     description: 'Column name for the release notes issue (e.g. "Todo")'
-    required: true
+    required: false
   release-issue-assignees:
     description: 'Assignees for the release issue'
     required: false
   release-issue-labels:
     description: 'Labels for the release issue. Comma-delimited list of labels (e.x. "release,PRIORITY: high")'
     required: false
-    default: 'PRIORITY: high,release'
   release-issue-project-number:
     description: 'Project number for the release issue'
-    required: true
+    required: false
   release-issue-column-name:
     description: 'Column name for the release issue (e.g. "New")'
-    required: true
+    required: false
 
 runs:
   using: 'composite'
@@ -205,7 +204,7 @@ runs:
         labels: 'release'
 
     - name: Create release notes issue
-      if: ${{ inputs.docs-repo != 'null' }}
+      if: ${{ inputs.docs-repo != 'null' && inputs.docs-repo != '' && inputs.docs-issue-project-number != '' && inputs.docs-issue-column-name != '' }}
       uses: dequelabs/axe-api-team-public/.github/actions/create-project-issue-v1@main
       id: create_release_notes_issue
       with:
@@ -222,6 +221,7 @@ runs:
           Release Notes are needed for ${{ github.repository }} v${{ steps.get_bumped_version_number.outputs.version }}. Please make sure this issue is closed when the PR is merged.
 
     - name: Create release issue
+      if: ${{ inputs.release-issue-project-number != '' && inputs.release-issue-column-name != '' }}
       uses: dequelabs/axe-api-team-public/.github/actions/create-project-issue-v1@main
       id: create_release_issue
       with:
@@ -246,7 +246,7 @@ runs:
           ### Links
           - [X] Release candidate PR: ${{ steps.create_pull_request.outputs.pull-request-url }}
           - [ ] Release PR:
-          - [X] Docs Issue: ${{ steps.create_release_notes_issue.outputs.issue_url }}
+          ${{ steps.create_release_notes_issue.outputs.issue_url && '- [X] Docs Issue: ' || '' }}${{ steps.create_release_notes_issue.outputs.issue_url || '' }}
           - [ ] Change Management Form:
           - [ ] Notes:
           ```
