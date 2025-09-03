@@ -54,36 +54,6 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - name: Validate required inputs
-      shell: bash
-      env:
-        INPUTS_JSON: ${{ toJSON(inputs) }}
-      run: |
-        echo "Validating required inputs..."
-        
-        # Get all required inputs from this action.yml file
-        required_inputs=$(yq eval '.inputs | to_entries | .[] | select(.value.required == true) | .key' ${{ github.action_path }}/action.yml)
-        
-        missing_inputs=()
-        
-        # Check each required input
-        for input in $required_inputs; do
-          value=$(echo "$INPUTS_JSON" | jq -r --arg key "$input" '.[$key] // empty')
-        
-          if [ -z "$value" ] || [ "$value" = "null" ]; then
-            echo "::error::Required input '$input' is missing"
-            missing_inputs+=("$input")
-          else
-            echo "✓ Required input '$input' is present"
-          fi
-        done
-        
-        if [ ${#missing_inputs[@]} -gt 0 ]; then
-          exit 1
-        fi
-        
-        echo "All required inputs are present"
-
     - name: Checkout repository
       if: ${{ inputs.should-checkout == 'true' }}
       uses: actions/checkout@v4
