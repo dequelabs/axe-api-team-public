@@ -4,13 +4,13 @@ A GitHub Action that lets the QA team know a release candidate is ready for QA
 
 ## Inputs
 
-| Name                           | Required | Description                                                            | Default                      |
-| ------------------------------ | -------- | ---------------------------------------------------------------------- | ---------------------------- |
-| `sha-rc`                       | No       | 8 characters SHA of the release commit from the release branch         | git rev-parse --short=8 HEAD |
-| `slack-webhook`                | No       | A Slack channel webhook URL where the message will be sent if provided | NA                           |
-| `slack-channel`                | No       | A Slack channel where the message will be sent if provided             | NA                           |
-| `release-issue-project-number` | No       | The project number where the release issue is created                  | NA                           |
-| `release-issue-column-name`    | No       | The column name where the release issue is moved to (e.g. "QAToDo")    | NA                           |
+| Name                           | Required | Description                                                                                       | Default                      |
+| ------------------------------ | -------- | ------------------------------------------------------------------------------------------------- | ---------------------------- |
+| `sha-rc`                       | No       | 8 characters SHA of the release commit from the release branch                                    | git rev-parse --short=8 HEAD |
+| `slack-webhook`                | No       | A Slack channel webhook URL where the message will be sent if provided                            | NA                           |
+| `slack-channel`                | No       | A Slack channel where the message will be sent if provided                                        | NA                           |
+| `release-issue-project-number` | No       | GitHub Project number that the release issue will be added to                                     | NA                           |
+| `release-issue-column-name`    | No       | The column name within the GitHub Project that the release issue will be added to (e.g. "QAToDo") | NA                           |
 
 ## Example usage
 

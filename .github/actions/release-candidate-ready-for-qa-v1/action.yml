@@ -12,10 +12,10 @@ inputs:
     description: A Slack channel where the message will be sent
     required: false
   release-issue-project-number:
-    description: The project number where the release issue is created
+    description: GitHub Project number that the release issue will be added to
     required: false
   release-issue-column-name:
-    description: The column name where the release issue is moved to (e.g. "QAToDo")
+    description: The column name within the GitHub Project that the release issue will be added to (e.g. "QAToDo")
     required: false
 
 runs:
