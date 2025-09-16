@@ -47,7 +47,7 @@ runs:
         github-token: ${{ inputs.token }}
 
     - name: Generate commit list
-      if: ${{ !steps.is_release_in_progress.outputs.in_progress }}
+      if: ${{ !steps.is_release_in_progress.outputs.is-release-in-progress }}
       uses: dequelabs/axe-api-team-public/.github/actions/generate-commit-list-v1@main
       id: generate_commit_list
       with:
@@ -55,7 +55,7 @@ runs:
         head: ${{ inputs.head }}
 
     - name: Has releasable commits
-      if: ${{ !steps.is_release_in_progress.outputs.in_progress }}
+      if: ${{ !steps.is_release_in_progress.outputs.is-release-in-progress }}
       uses: dequelabs/axe-api-team-public/.github/actions/has-auto-releasable-commits-v1@main
       id: has_releasable_commits
       with:
@@ -64,9 +64,9 @@ runs:
 
     - name: Cancel release if a release is already in progress or there are no releasable commits
       shell: bash
-      if: ${{ steps.is_release_in_progress.outputs.in_progress == 'true' || steps.has_releasable_commits.outputs.should_release == 'false' }}
+      if: ${{ steps.is_release_in_progress.outputs.is-release-in-progress == 'true' || steps.has_releasable_commits.outputs.should_release == 'false' }}
       run: |
-        echo "Release is in progress: ${{ steps.is_release_in_progress.outputs.in_progress }}"
+        echo "Release is in progress: ${{ steps.is_release_in_progress.outputs.is-release-in-progress }}"
         echo "Should release: ${{ steps.has_releasable_commits.outputs.should_release }}"
         gh run cancel ${{ github.run_id }}
         gh run watch ${{ github.run_id }}
