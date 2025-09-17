@@ -32,7 +32,7 @@ runs:
 
     - name: Cancel release if a release is already in progress
       shell: bash
-      if: ${{ steps.is_release_in_progress.outputs.in_progress == 'true' }}
+      if: ${{ steps.is_release_in_progress.outputs.is-release-in-progress == 'true' }}
       run: |
         echo "A release is already in progress. Cancelling this release."
         gh run cancel ${{ github.run_id }}
