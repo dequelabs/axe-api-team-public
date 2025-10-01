@@ -43,7 +43,7 @@
     "husky": "^9.1.7",
     "ignore": "^6.0.2",
     "lint-staged": "^15.2.7",
-    "mocha": "^10.5.2",
+    "mocha": "^11.7.3",
     "nyc": "^17.1.0",
     "prettier": "^3.6.2",
     "proxyquire": "^2.1.3",
