@@ -28,7 +28,7 @@
     "@octokit/types": "^15.0.0",
     "@types/chai": "^4.3.11",
     "@types/conventional-commits-parser": "^5.0.0",
-    "@types/mocha": "^10.0.7",
+    "@types/mocha": "^10.0.10",
     "@types/proxyquire": "^1.3.31",
     "@types/semver": "^7.7.1",
     "@types/sinon": "^17.0.4",
