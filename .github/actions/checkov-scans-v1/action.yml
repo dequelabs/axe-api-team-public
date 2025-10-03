@@ -20,7 +20,7 @@ runs:
   using: 'composite'
   steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so follow-up steps can access it
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     # The checkov scan
     - name: Run Prisma Cloud
       id: prisma-cloud
