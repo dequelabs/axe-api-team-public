@@ -44,7 +44,7 @@ outputs:
 runs:
   using: 'composite'
   steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - name: Create project issue
       uses: dacbd/create-issue-action@ba4d1c45cccf9c483f2720cefb40e437f0ee6f7d # tag=v1
       id: create_issue
