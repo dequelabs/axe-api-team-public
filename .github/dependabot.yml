@@ -4,10 +4,11 @@ updates:
   - package-ecosystem: 'github-actions'
     directories:
       - '/'
+      # dependabot only checks for action.yml files in the root directory so we need to add a globstar to all our action directories so dependabot will update them correctly
+      # @see https://docs.github.com/en/code-security/dependabot/working-with-dependabot/dependabot-options-reference#directories-or-directory--
       - '/.github/actions/**/*'
     schedule:
-      interval: 'cron'
-      cronjob: '30 17 * * *'
+      interval: 'monthly'
     open-pull-requests-limit: 10
     commit-message:
       prefix: 'chore'
