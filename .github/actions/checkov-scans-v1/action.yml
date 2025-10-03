@@ -24,7 +24,7 @@ runs:
     # The checkov scan
     - name: Run Prisma Cloud
       id: prisma-cloud
-      uses: bridgecrewio/checkov-action@8b268e1e4d7e52a78ba9d86e2489fb09b8a340c3 # tag=v12.2690.0
+      uses: bridgecrewio/checkov-action@4f9f1bef9f759c19c966f39c0638ea427d776f4d # tag=v12.3060.0
       with:
         api-key: ${{ inputs.prisma-access-key }}::${{ inputs.prisma-secret-key }}
         # CLI output to the console and md file

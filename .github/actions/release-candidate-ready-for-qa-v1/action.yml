@@ -64,7 +64,7 @@ runs:
         column-name: ${{ inputs.release-issue-column-name }}
     - name: Slack notification
       if: inputs.slack-channel != '' && inputs.slack-webhook != ''
-      uses: rtCamp/action-slack-notify@b24d75fe0e728a4bf9fc42ee217caa686d141ee8 # tag=v2.2.1
+      uses: rtCamp/action-slack-notify@e31e87e03dd19038e411e38ae27cbad084a90661 # tag=v2.3.3
       env:
         SLACK_TITLE: 'RC: "${{ steps.set-build-name.outputs.build-name }}" is ready for QA:'
         SLACK_MESSAGE: |
