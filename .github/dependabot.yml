@@ -5,6 +5,9 @@ updates:
     directories:
       - '/'
       - '/.github/actions/**/*'
+    schedule:
+      interval: 'cron'
+      cronjob: '*/5 * * * *'
     open-pull-requests-limit: 10
     commit-message:
       prefix: 'chore'
