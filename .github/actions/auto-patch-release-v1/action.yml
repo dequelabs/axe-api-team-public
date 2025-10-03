@@ -115,7 +115,7 @@ runs:
         DEFAULT_BRANCH: ${{ inputs.default-branch }}
 
     - name: Create Docs issue
-      uses: dacbd/create-issue-action@ba4d1c45cccf9c483f2720cefb40e437f0ee6f7d # tag=v1
+      uses: dacbd/create-issue-action@cdb57ab6ff8862aa09fee2be6ba77a59581921c2 # tag=v1
       id: new-docs-issue
       with:
         token: ${{ inputs.project_token }}
@@ -130,7 +130,7 @@ runs:
           ${{ steps.commit-list.outputs.commits }}
 
     - name: Create QA issue
-      uses: dacbd/create-issue-action@ba4d1c45cccf9c483f2720cefb40e437f0ee6f7d # tag=v1
+      uses: dacbd/create-issue-action@cdb57ab6ff8862aa09fee2be6ba77a59581921c2 # tag=v1
       id: new-issue
       with:
         token: ${{ inputs.token }}
