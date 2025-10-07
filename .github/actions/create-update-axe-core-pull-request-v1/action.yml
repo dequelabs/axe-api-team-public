@@ -25,7 +25,7 @@ runs:
       if: ${{ inputs.should-setup-node == 'true' }}
       uses: actions/setup-node@v5
       with:
-        node-version: 18
+        node-version: 22
     - id: update-axe-core
       uses: dequelabs/axe-api-team-public/.github/actions/update-axe-core-v1@main
     - name: Open PR
