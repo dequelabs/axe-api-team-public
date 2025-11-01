@@ -23,7 +23,7 @@ runs:
       uses: actions/checkout@v5
     - name: Setup Node
       if: ${{ inputs.should-setup-node == 'true' }}
-      uses: actions/setup-node@v5
+      uses: actions/setup-node@v6
       with:
         node-version: 22
     - id: update-axe-core
