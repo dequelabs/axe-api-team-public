@@ -20,7 +20,7 @@ runs:
   steps:
     - name: Checkout repository
       if: ${{ inputs.should-checkout == 'true' }}
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
     - name: Setup Node
       if: ${{ inputs.should-setup-node == 'true' }}
       uses: actions/setup-node@v6
