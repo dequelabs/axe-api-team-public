@@ -168,7 +168,7 @@ runs:
         RELEASE_BRANCH: ${{ inputs.release-branch }}
     - name: Create pull request
       id: new-pr
-      uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e # tag=v5
+      uses: peter-evans/create-pull-request@84ae59a2cdc2258d6fa0732dd66352dddae2a412 # tag=v5
       with:
         token: ${{ inputs.token }}
         branch: release
