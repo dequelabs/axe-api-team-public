@@ -38,7 +38,7 @@
     "conventional-commits-parser": "^5.0.0",
     "dedent": "^1.7.0",
     "eslint": "^9.39.1",
-    "glob": "^11.0.3",
+    "glob": "^13.0.0",
     "globals": "^16.5.0",
     "husky": "^9.1.7",
     "ignore": "^7.0.5",
