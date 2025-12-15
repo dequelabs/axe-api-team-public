@@ -56,7 +56,7 @@ runs:
   steps:
     - name: Checkout repository
       if: ${{ inputs.should-checkout == 'true' }}
-      uses: actions/checkout@v5
+      uses: actions/checkout@v6
       with:
         # Fetch all history
         fetch-depth: 0
