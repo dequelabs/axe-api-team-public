@@ -54,4 +54,8 @@ describe('isValidFooter', () => {
   it('ignores case', () => {
     assert.isTrue(isValidFooter('closes: '))
   })
+
+  it('ignores leading whitespace', () => {
+    assert.isTrue(isValidFooter('    closes: '))
+  })
 })
