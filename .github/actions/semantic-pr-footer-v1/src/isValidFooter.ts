@@ -26,5 +26,6 @@ const validFooterPrefixRegex = new RegExp(
 )
 const validFooterRegex = new RegExp(`^(${validFooters.join('|')})`, 'i')
 export default function isValidFooter(footer: string): boolean {
+  footer = footer.trimStart()
   return validFooterRegex.test(footer) || validFooterPrefixRegex.test(footer)
 }
