@@ -29,5 +29,5 @@ outputs:
     description: 'Whether the action completed successfully and labels were processed'
 
 runs:
-  using: 'node20'
+  using: 'node24'
   main: 'dist/index.js'
