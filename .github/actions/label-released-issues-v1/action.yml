@@ -22,5 +22,5 @@ outputs:
     description: 'The issues URLs that are related to the release'
 
 runs:
-  using: 'node20'
+  using: 'node24'
   main: 'dist/index.js'

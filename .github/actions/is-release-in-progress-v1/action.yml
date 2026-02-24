@@ -8,5 +8,5 @@ outputs:
   is-release-in-progress:
     description: 'True if an open RC or a release PR already exists'
 runs:
-  using: 'node20'
+  using: 'node24'
   main: 'dist/index.js'

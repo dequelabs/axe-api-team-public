@@ -33,10 +33,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
       - id: update
         uses: dequelabs/axe-api-team-public/.github/actions/update-axe-core-v1@main
 ```

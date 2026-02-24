@@ -11,5 +11,5 @@ inputs:
     description: 'Name of column to add to'
     default: 'New'
 runs:
-  using: 'node20'
+  using: 'node24'
   main: 'dist/index.js'
