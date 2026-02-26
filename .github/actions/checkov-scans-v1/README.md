@@ -30,5 +30,5 @@ jobs:
         with:
           prisma-access-key: ${{ secrets.PRISMA_ACCESS_KEY }}
           prisma-secret-key: ${{ secrets.PRISMA_SECRET_KEY }}
-          prisma-api-url: ${{ secrets.PRISMA_URL }}
+          prisma-api-url: https://api4.prismacloud.io/ # See https://knowledgebase.paloaltonetworks.com/KCSArticleDetail?id=kA14u0000004MUCCA2
 ```
