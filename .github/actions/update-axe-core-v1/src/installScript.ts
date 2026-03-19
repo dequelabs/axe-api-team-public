@@ -1,5 +1,5 @@
 interface InstallScriptParams {
-  packageManager: 'npm' | 'yarn'
+  packageManager: 'npm' | 'yarn' | 'pnpm'
   pinStrategy: string
   latestAxeCoreVersion: string
   dependencyGroup: 'dependencies' | 'devDependencies'
@@ -16,7 +16,8 @@ export default function ({
   if (packageManager === 'npm') {
     const dependencyTypeArgs = dependencyGroup === 'dependencies' ? [] : ['-D']
     return ['i', ...dependencyTypeArgs, newAxeVersion]
-  } else if (packageManager === 'yarn') {
+  // yarn and pnpm share the same `add` command and `-D` flag
+  } else if (packageManager === 'yarn' || packageManager === 'pnpm') {
     const dependencyTypeArgs = dependencyGroup === 'dependencies' ? [] : ['-D']
     return ['add', ...dependencyTypeArgs, newAxeVersion]
   }

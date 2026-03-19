@@ -33864,6 +33864,9 @@ async function getPackageManager(dirPath) {
     if (await exists(path_1.default.join(dirPath, 'yarn.lock'))) {
         return 'yarn';
     }
+    if (await exists(path_1.default.join(dirPath, 'pnpm-lock.yaml'))) {
+        return 'pnpm';
+    }
     return undefined;
 }
 async function exists(filePath) {
@@ -33942,7 +33945,7 @@ function default_1({ packageManager, pinStrategy, latestAxeCoreVersion, dependen
         const dependencyTypeArgs = dependencyGroup === 'dependencies' ? [] : ['-D'];
         return ['i', ...dependencyTypeArgs, newAxeVersion];
     }
-    else if (packageManager === 'yarn') {
+    else if (packageManager === 'yarn' || packageManager === 'pnpm') {
         const dependencyTypeArgs = dependencyGroup === 'dependencies' ? [] : ['-D'];
         return ['add', ...dependencyTypeArgs, newAxeVersion];
     }
