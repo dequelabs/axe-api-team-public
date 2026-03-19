@@ -230,6 +230,19 @@ describe('run', () => {
       )
     })
 
+    it('installs axe-core using pnpm in package directory', async () => {
+      const core = { info, setOutput }
+      const dirPath = path.join(cwd, 'packages', 'exact-pin')
+      getPackageManagerStub.withArgs('./').returns('pnpm')
+      await run(core as unknown as Core, getPackageManagerStub, dirPath)
+
+      assert.isTrue(
+        getExecOutputStub.calledWith('pnpm', ['add', sinon.match.any], {
+          cwd: dirPath
+        })
+      )
+    })
+
     it('uses package level package manager over root level', async () => {
       const core = { info, setOutput }
       const dirPath = path.join(cwd, 'packages', 'exact-pin')

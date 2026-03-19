@@ -13,6 +13,10 @@ export default async function getPackageManager(
     return 'yarn'
   }
 
+  if (await exists(path.join(dirPath, 'pnpm-lock.yaml'))) {
+    return 'pnpm'
+  }
+
   return undefined
 }
 

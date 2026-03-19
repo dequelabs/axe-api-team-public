@@ -2,7 +2,7 @@
 
 A GitHub action to create a PR that updates axe-core to the latest stable version. It noops if no update is available.
 
-- It updates `package.json`, `yarn.lock`, and `package-lock.json`.
+- It updates `package.json`, `yarn.lock`, `package-lock.json`, and `pnpm-lock.yaml`.
 - It is compatible with both workspaces and non-workspaces monorepos.
 - It handles dependencies and devDependencies.
 - It maintains whatever pinning strategy was already in place (`~`, `^`, or `=`).
