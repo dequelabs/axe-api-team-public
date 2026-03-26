@@ -10,7 +10,7 @@ export default async function run(
   try {
     const token = core.getInput('token')
     if (!token) {
-      core.setFailed('`GH_TOKEN` is not set')
+      core.setFailed('`token` input is not set')
       return
     }
 
@@ -38,9 +38,11 @@ export default async function run(
       return
     }
 
-    const dateFieldName = (
-      core.getInput('date-field-name') || 'DateClosed'
-    ).trim()
+    const rawDateFieldInput = core.getInput('date-field-name')
+    const dateFieldName =
+      rawDateFieldInput && rawDateFieldInput.trim()
+        ? rawDateFieldInput.trim()
+        : 'DateClosed'
 
     const issueUrl = `https://github.com/${issueOrganization}/${issueRepo}/issues/${issueNumber}`
     core.info(

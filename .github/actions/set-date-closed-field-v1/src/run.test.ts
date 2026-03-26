@@ -339,7 +339,7 @@ describe('run', () => {
 
     void expect(coreStub.setFailed.calledOnce).to.be.true
     void expect(coreStub.setFailed.firstCall.args[0]).to.equal(
-      '`GH_TOKEN` is not set'
+      '`token` input is not set'
     )
   })
 

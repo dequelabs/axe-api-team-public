@@ -57618,7 +57618,7 @@ async function getFieldIdByName({ octokit, owner, projectNumber, fieldName }) {
             projectNumber,
             owner
         });
-        const targetField = fields.find((field) => field.name === fieldName);
+        const targetField = fields.find((field) => field.name.trim() === fieldName);
         return targetField?.id || null;
     }
     catch (error) {
@@ -57803,7 +57803,7 @@ async function run(core, github) {
     try {
         const token = core.getInput('token');
         if (!token) {
-            core.setFailed('`GH_TOKEN` is not set');
+            core.setFailed('`token` input is not set');
             return;
         }
         const { owner, repo } = github.context.repo;
@@ -57821,7 +57821,10 @@ async function run(core, github) {
             core.setFailed('`project-number` must be a number');
             return;
         }
-        const dateFieldName = (core.getInput('date-field-name') || 'DateClosed').trim();
+        const rawDateFieldInput = core.getInput('date-field-name');
+        const dateFieldName = rawDateFieldInput && rawDateFieldInput.trim()
+            ? rawDateFieldInput.trim()
+            : 'DateClosed';
         const issueUrl = `https://github.com/${issueOrganization}/${issueRepo}/issues/${issueNumber}`;
         core.info(`Checking the issue ${issueUrl} for project ${projectNumber} and the field name ${dateFieldName}`);
         const octokit = github.getOctokit(token);

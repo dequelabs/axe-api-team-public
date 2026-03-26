@@ -21,7 +21,7 @@ export default async function getFieldIdByName({
       owner
     })
     const targetField = fields.find(
-      (field: { id: string; name: string }) => field.name === fieldName
+      (field: { id: string; name: string }) => field.name.trim() === fieldName
     )
 
     return targetField?.id || null
