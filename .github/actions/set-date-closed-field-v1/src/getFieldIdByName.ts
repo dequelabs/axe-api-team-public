@@ -1,19 +1,19 @@
 import { getOctokit } from '@actions/github'
 import getProjectBoardFieldList from './getProjectBoardFieldList'
 
-interface GetDateClosedFieldIdArgs {
+interface GetFieldIdByNameArgs {
   octokit: ReturnType<typeof getOctokit>
   owner: string
   projectNumber: number
   fieldName: string
 }
 
-export default async function getDateClosedFieldId({
+export default async function getFieldIdByName({
   octokit,
   owner,
   projectNumber,
   fieldName
-}: GetDateClosedFieldIdArgs): Promise<string | null> {
+}: GetFieldIdByNameArgs): Promise<string | null> {
   try {
     const fields = await getProjectBoardFieldList({
       octokit,

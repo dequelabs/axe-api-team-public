@@ -1,7 +1,7 @@
 import type { Core as CoreType, GitHub as GitHubType } from './types'
 import getProjectItemId from './getProjectItemId'
-import getDateClosedFieldId from './getDateClosedFieldId'
-import updateDateClosedField from './updateDateClosedField'
+import getFieldIdByName from './getFieldIdByName'
+import updateDateField from './updateDateField'
 
 export default async function run(
   core: CoreType,
@@ -90,7 +90,7 @@ export default async function run(
     }
 
     // Get the date field ID by name
-    const dateFieldId = await getDateClosedFieldId({
+    const dateFieldId = await getFieldIdByName({
       octokit,
       owner: issueOrganization,
       projectNumber,
@@ -105,7 +105,8 @@ export default async function run(
     }
 
     // Update the date field
-    await updateDateClosedField({
+    await updateDateField({
+      octokit,
       projectItemId: projectItemId.itemId,
       fieldId: dateFieldId,
       date: dateString,

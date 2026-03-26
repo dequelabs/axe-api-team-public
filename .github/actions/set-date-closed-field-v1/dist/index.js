@@ -57600,7 +57600,7 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
-/***/ 9198:
+/***/ 6328:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
@@ -57609,9 +57609,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports["default"] = getDateClosedFieldId;
+exports["default"] = getFieldIdByName;
 const getProjectBoardFieldList_1 = __importDefault(__nccwpck_require__(6726));
-async function getDateClosedFieldId({ octokit, owner, projectNumber, fieldName }) {
+async function getFieldIdByName({ octokit, owner, projectNumber, fieldName }) {
     try {
         const fields = await (0, getProjectBoardFieldList_1.default)({
             octokit,
@@ -57797,8 +57797,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports["default"] = run;
 const getProjectItemId_1 = __importDefault(__nccwpck_require__(7796));
-const getDateClosedFieldId_1 = __importDefault(__nccwpck_require__(9198));
-const updateDateClosedField_1 = __importDefault(__nccwpck_require__(1532));
+const getFieldIdByName_1 = __importDefault(__nccwpck_require__(6328));
+const updateDateField_1 = __importDefault(__nccwpck_require__(2672));
 async function run(core, github) {
     try {
         const token = core.getInput('token');
@@ -57850,7 +57850,7 @@ async function run(core, github) {
             core.info(`Issue ${issueUrl} is not in project ${projectNumber}`);
             return;
         }
-        const dateFieldId = await (0, getDateClosedFieldId_1.default)({
+        const dateFieldId = await (0, getFieldIdByName_1.default)({
             octokit,
             owner: issueOrganization,
             projectNumber,
@@ -57860,7 +57860,8 @@ async function run(core, github) {
             core.setFailed(`"${dateFieldName}" field not found in project ${projectNumber}`);
             return;
         }
-        await (0, updateDateClosedField_1.default)({
+        await (0, updateDateField_1.default)({
+            octokit,
             projectItemId: projectItemId.itemId,
             fieldId: dateFieldId,
             date: dateString,
@@ -57876,20 +57877,39 @@ async function run(core, github) {
 
 /***/ }),
 
-/***/ 1532:
-/***/ ((__unused_webpack_module, exports, __nccwpck_require__) => {
+/***/ 2672:
+/***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports["default"] = updateDateClosedField;
-const exec_1 = __nccwpck_require__(2426);
-async function updateDateClosedField({ projectItemId, fieldId, date, projectId }) {
+exports["default"] = updateDateField;
+async function updateDateField({ octokit, projectItemId, fieldId, date, projectId }) {
     try {
-        await (0, exec_1.getExecOutput)(`gh project item-edit --id ${projectItemId} --field-id ${fieldId} --date ${date} --project-id ${projectId} --format json`);
+        await octokit.graphql(`
+      mutation updateDateField($projectId: ID!, $itemId: ID!, $fieldId: ID!, $date: Date!) {
+        updateProjectV2ItemFieldValue(
+          input: {
+            projectId: $projectId
+            itemId: $itemId
+            fieldId: $fieldId
+            value: { date: $date }
+          }
+        ) {
+          projectV2Item {
+            id
+          }
+        }
+      }
+      `, {
+            projectId,
+            itemId: projectItemId,
+            fieldId,
+            date
+        });
     }
     catch (error) {
-        throw new Error(`Failed to update DateClosed field: ${error.message}`);
+        throw new Error(`Failed to update date field: ${error.message}`);
     }
 }
 

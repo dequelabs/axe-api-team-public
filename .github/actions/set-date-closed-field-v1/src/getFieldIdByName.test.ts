@@ -2,7 +2,7 @@ import 'mocha'
 import sinon from 'sinon'
 import { assert } from 'chai'
 import { getOctokit } from '@actions/github'
-import getDateClosedFieldId from './getDateClosedFieldId'
+import getFieldIdByName from './getFieldIdByName'
 import * as getProjectBoardFieldListModule from './getProjectBoardFieldList'
 
 const owner = 'test-org'
@@ -15,7 +15,7 @@ const MOCK_FIELDS = [
   { id: 'PVTF_field4', name: 'Priority' }
 ]
 
-describe('getDateClosedFieldId', () => {
+describe('getFieldIdByName', () => {
   let octokit: ReturnType<typeof getOctokit>
   let getProjectBoardFieldListStub: sinon.SinonStub
 
@@ -32,7 +32,7 @@ describe('getDateClosedFieldId', () => {
   it('should return field ID when field is found', async () => {
     getProjectBoardFieldListStub.resolves(MOCK_FIELDS)
 
-    const result = await getDateClosedFieldId({
+    const result = await getFieldIdByName({
       octokit,
       owner,
       projectNumber,
@@ -45,7 +45,7 @@ describe('getDateClosedFieldId', () => {
   it('should return field ID for a custom field name', async () => {
     getProjectBoardFieldListStub.resolves(MOCK_FIELDS)
 
-    const result = await getDateClosedFieldId({
+    const result = await getFieldIdByName({
       octokit,
       owner,
       projectNumber,
@@ -58,7 +58,7 @@ describe('getDateClosedFieldId', () => {
   it('should return null when field is not found', async () => {
     getProjectBoardFieldListStub.resolves(MOCK_FIELDS)
 
-    const result = await getDateClosedFieldId({
+    const result = await getFieldIdByName({
       octokit,
       owner,
       projectNumber,
@@ -71,7 +71,7 @@ describe('getDateClosedFieldId', () => {
   it('should return null when fields list is empty', async () => {
     getProjectBoardFieldListStub.resolves([])
 
-    const result = await getDateClosedFieldId({
+    const result = await getFieldIdByName({
       octokit,
       owner,
       projectNumber,
@@ -87,7 +87,7 @@ describe('getDateClosedFieldId', () => {
     getProjectBoardFieldListStub.rejects(new Error(errorMessage))
 
     try {
-      await getDateClosedFieldId({
+      await getFieldIdByName({
         octokit,
         owner,
         projectNumber,

@@ -2,7 +2,6 @@ import { expect } from 'chai'
 import * as sinon from 'sinon'
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import * as exec from '@actions/exec'
 import run from './run'
 
 const MOCK_PROJECT_ITEM_ID = 'PVTI_lADOAD55W84AVmLazgJbJGI'
@@ -44,9 +43,16 @@ const FIELDS_RESPONSE = {
   }
 }
 
+const UPDATE_FIELD_RESPONSE = {
+  updateProjectV2ItemFieldValue: {
+    projectV2Item: {
+      id: MOCK_PROJECT_ITEM_ID
+    }
+  }
+}
+
 describe('run', () => {
   let coreStub: sinon.SinonStubbedInstance<typeof core>
-  let execStub: sinon.SinonStubbedInstance<typeof exec>
   let octokitStub: {
     rest: {
       issues: {
@@ -59,7 +65,6 @@ describe('run', () => {
 
   beforeEach(() => {
     coreStub = sinon.stub(core)
-    execStub = sinon.stub(exec)
 
     mockGitHub = {
       context: {
@@ -92,17 +97,12 @@ describe('run', () => {
     octokitStub.graphql.onCall(0).resolves(PROJECT_ITEM_RESPONSE)
     // Second graphql call: getProjectBoardFieldList
     octokitStub.graphql.onCall(1).resolves(FIELDS_RESPONSE)
+    // Third graphql call: updateDateField
+    octokitStub.graphql.onCall(2).resolves(UPDATE_FIELD_RESPONSE)
 
     mockGitHub.getOctokit.returns(
       octokitStub as unknown as ReturnType<typeof github.getOctokit>
     )
-
-    // Mock the exec command for updating the field (updateDateClosedField still uses exec)
-    execStub.getExecOutput.resolves({
-      stdout: '{}',
-      stderr: '',
-      exitCode: 0
-    })
   })
 
   afterEach(() => {
@@ -123,16 +123,14 @@ describe('run', () => {
 
     await run(coreStub, mockGitHub)
 
-    void expect(octokitStub.graphql.calledTwice).to.be.true
-    void expect(execStub.getExecOutput.calledOnce).to.be.true
+    void expect(octokitStub.graphql.calledThrice).to.be.true
 
-    // Check that the item-edit command was called to update the date
-    const itemEditCall = execStub.getExecOutput.firstCall
-    void expect(itemEditCall.args[0]).to.include('gh project item-edit')
-    void expect(itemEditCall.args[0]).to.include('--date 2024-01-15')
-    void expect(itemEditCall.args[0]).to.include(MOCK_PROJECT_ITEM_ID)
-    void expect(itemEditCall.args[0]).to.include(MOCK_DATE_CLOSED_FIELD_ID)
-    void expect(itemEditCall.args[0]).to.include(MOCK_PROJECT_ID)
+    // Check that the update mutation was called with correct args
+    const updateCallArgs = octokitStub.graphql.thirdCall.args[1]
+    void expect(updateCallArgs.itemId).to.equal(MOCK_PROJECT_ITEM_ID)
+    void expect(updateCallArgs.fieldId).to.equal(MOCK_DATE_CLOSED_FIELD_ID)
+    void expect(updateCallArgs.date).to.equal('2024-01-15')
+    void expect(updateCallArgs.projectId).to.equal(MOCK_PROJECT_ID)
   })
 
   it('should use custom date-field-name input', async () => {
@@ -167,9 +165,9 @@ describe('run', () => {
 
     await run(coreStub, mockGitHub)
 
-    void expect(execStub.getExecOutput.calledOnce).to.be.true
-    const itemEditCall = execStub.getExecOutput.firstCall
-    void expect(itemEditCall.args[0]).to.include(customFieldId)
+    void expect(octokitStub.graphql.calledThrice).to.be.true
+    const updateCallArgs = octokitStub.graphql.thirdCall.args[1]
+    void expect(updateCallArgs.fieldId).to.equal(customFieldId)
   })
 
   it('should default date-field-name to DateClosed when not provided', async () => {
@@ -186,9 +184,9 @@ describe('run', () => {
 
     await run(coreStub, mockGitHub)
 
-    void expect(execStub.getExecOutput.calledOnce).to.be.true
-    const itemEditCall = execStub.getExecOutput.firstCall
-    void expect(itemEditCall.args[0]).to.include(MOCK_DATE_CLOSED_FIELD_ID)
+    void expect(octokitStub.graphql.calledThrice).to.be.true
+    const updateCallArgs = octokitStub.graphql.thirdCall.args[1]
+    void expect(updateCallArgs.fieldId).to.equal(MOCK_DATE_CLOSED_FIELD_ID)
   })
 
   it('should not update field when issue is not closed', async () => {
@@ -216,7 +214,6 @@ describe('run', () => {
     await run(coreStub, mockGitHub)
 
     void expect(octokitStub.graphql.called).to.be.false
-    void expect(execStub.getExecOutput.called).to.be.false
   })
 
   it('should not update field when issue is closed but not completed', async () => {
@@ -244,7 +241,6 @@ describe('run', () => {
     await run(coreStub, mockGitHub)
 
     void expect(octokitStub.graphql.called).to.be.false
-    void expect(execStub.getExecOutput.called).to.be.false
   })
 
   it('should not update field when issue is closed but has no closed_at date', async () => {
@@ -272,7 +268,6 @@ describe('run', () => {
     await run(coreStub, mockGitHub)
 
     void expect(octokitStub.graphql.called).to.be.false
-    void expect(execStub.getExecOutput.called).to.be.false
   })
 
   it('should handle case when issue is not in project', async () => {
@@ -299,9 +294,8 @@ describe('run', () => {
 
     await run(coreStub, mockGitHub)
 
-    // Only one graphql call (getProjectItemId), no field list or exec calls
+    // Only one graphql call (getProjectItemId), no field list or update calls
     void expect(octokitStub.graphql.calledOnce).to.be.true
-    void expect(execStub.getExecOutput.called).to.be.false
   })
 
   it('should setFailed when date field is not found in project', async () => {
@@ -334,7 +328,8 @@ describe('run', () => {
     void expect(coreStub.setFailed.firstCall.args[0]).to.include(
       '"DateClosed" field not found'
     )
-    void expect(execStub.getExecOutput.called).to.be.false
+    // Only two graphql calls (getProjectItemId + getFieldIdByName), no update call
+    void expect(octokitStub.graphql.calledTwice).to.be.true
   })
 
   it('should fail when token is not provided', async () => {
@@ -402,7 +397,6 @@ describe('run', () => {
 
     await run(coreStub, mockGitHub)
 
-    void expect(octokitStub.graphql.calledTwice).to.be.true
-    void expect(execStub.getExecOutput.calledOnce).to.be.true
+    void expect(octokitStub.graphql.calledThrice).to.be.true
   })
 })
