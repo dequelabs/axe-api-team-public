@@ -1,7 +1,7 @@
 {
   "name": "set-date-closed-field-v1",
   "version": "1.0.0",
-  "description": "A GitHub Action to set the DateClosed field when an issue is closed",
+  "description": "A GitHub Action to set the closed date field when an issue is closed",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dequelabs/axe-api-team-public.git"
@@ -9,7 +9,7 @@
   "author": "",
   "license": "MPL-2.0",
   "bugs": {
-    "url": "https://github.com/dequelabs/axe-api-team-public/issues"
+    "url": "https://github.com/dequelabs/axe-api-team-public//issues"
   },
   "homepage": "https://github.com/dequelabs/axe-api-team-public#readme",
   "scripts": {
@@ -20,8 +20,7 @@
     "fmt": "prettier --write \"src/**/*.{js,ts,tsx,json,md,css,html}\"",
     "lint": "eslint \"src/**/*.{js,ts,tsx}\""
   },
-  "dependencies": {
-  },
+  "dependencies": {},
   "nyc": {
     "checkCoverage": true,
     "extension": [
@@ -42,4 +41,4 @@
     ]
   },
   "devDependencies": {}
-} 
+}

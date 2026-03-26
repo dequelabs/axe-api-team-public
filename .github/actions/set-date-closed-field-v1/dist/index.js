@@ -57600,6 +57600,142 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 9198:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = getDateClosedFieldId;
+const getProjectBoardFieldList_1 = __importDefault(__nccwpck_require__(6726));
+async function getDateClosedFieldId({ octokit, owner, projectNumber, fieldName }) {
+    try {
+        const fields = await (0, getProjectBoardFieldList_1.default)({
+            octokit,
+            projectNumber,
+            owner
+        });
+        const targetField = fields.find((field) => field.name === fieldName);
+        return targetField?.id || null;
+    }
+    catch (error) {
+        throw new Error(`Failed to get "${fieldName}" field ID: ${error.message}`);
+    }
+}
+
+
+/***/ }),
+
+/***/ 6726:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = getProjectBoardFieldList;
+async function getProjectBoardFieldList({ octokit, projectNumber, owner, cursor = null, allFields = [] }) {
+    try {
+        const result = (await octokit.graphql(`
+      query getProjectFields($owner: String!, $projectNumber: Int!, $cursor: String) {
+        organization(login: $owner) {
+          projectV2(number: $projectNumber) {
+            fields(first: 20, after: $cursor) {
+              pageInfo {
+                hasNextPage
+                endCursor
+              }
+              nodes {
+                ... on ProjectV2Field {
+                  id
+                  name
+                }
+                ... on ProjectV2SingleSelectField {
+                  id
+                  name
+                }
+                ... on ProjectV2IterationField {
+                  id
+                  name
+                }
+              }
+            }
+          }
+        }
+      }
+      `, {
+            owner,
+            projectNumber,
+            cursor
+        }));
+        const { hasNextPage, endCursor } = result.organization.projectV2.fields.pageInfo;
+        const fields = result.organization.projectV2.fields.nodes;
+        allFields = allFields.concat(fields);
+        if (hasNextPage) {
+            return getProjectBoardFieldList({
+                octokit,
+                projectNumber,
+                owner,
+                cursor: endCursor,
+                allFields
+            });
+        }
+        return allFields;
+    }
+    catch (error) {
+        throw new Error(`Error getting project field list: ${error.message}`);
+    }
+}
+
+
+/***/ }),
+
+/***/ 7796:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports["default"] = getProjectItemId;
+async function getProjectItemId({ octokit, owner, repo, issueNumber, projectNumber }) {
+    try {
+        const result = (await octokit.graphql(`
+      query getProjectItemId($owner: String!, $repo: String!, $issueNumber: Int!) {
+        repository(owner: $owner, name: $repo) {
+          issue(number: $issueNumber) {
+            # An issue is rarely in more than 1-3 projects, so 10 is a safe limit without pagination
+            projectItems(first: 10) {
+              nodes {
+                id
+                project {
+                  number
+                  id
+                }
+              }
+            }
+          }
+        }
+      }
+    `, {
+            owner,
+            repo,
+            issueNumber
+        }));
+        const projectItem = result.repository.issue.projectItems.nodes.find(node => node.project.number === projectNumber);
+        return projectItem
+            ? { itemId: projectItem.id, projectId: projectItem.project.id }
+            : null;
+    }
+    catch (error) {
+        throw new Error(`Failed to get project item ID: ${error.message}`);
+    }
+}
+
+
+/***/ }),
+
 /***/ 1719:
 /***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
@@ -57660,7 +57796,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports["default"] = run;
-const exec_1 = __nccwpck_require__(2426);
+const getProjectItemId_1 = __importDefault(__nccwpck_require__(7796));
+const getDateClosedFieldId_1 = __importDefault(__nccwpck_require__(9198));
 const updateDateClosedField_1 = __importDefault(__nccwpck_require__(1532));
 async function run(core, github) {
     try {
@@ -57684,23 +57821,25 @@ async function run(core, github) {
             core.setFailed('`project-number` must be a number');
             return;
         }
-        core.info(`Checking issue ${issueNumber} in ${issueOrganization}/${issueRepo} for project ${projectNumber}`);
+        const dateFieldName = (core.getInput('date-field-name') || 'DateClosed').trim();
+        const issueUrl = `https://github.com/${issueOrganization}/${issueRepo}/issues/${issueNumber}`;
+        core.info(`Checking the issue ${issueUrl} for project ${projectNumber} and the field name ${dateFieldName}`);
         const octokit = github.getOctokit(token);
         const { data: issue } = await octokit.rest.issues.get({
             owner: issueOrganization,
             repo: issueRepo,
             issue_number: issueNumber
         });
-        core.info(`Issue state: ${issue.state}, closed_at: ${issue.closed_at}`);
+        core.info(`Issue state: "${issue.state}", state reason: "${issue.state_reason}", closed_at: "${issue.closed_at}"`);
         if (!issue.closed_at ||
             issue.state !== 'closed' ||
             issue.state_reason !== 'completed') {
-            core.info(`Issue ${issueNumber} is not closed or has no closed_at date`);
+            core.info(`Issue ${issueUrl} is not closed or has no closed_at date`);
             return;
         }
-        const dateString = new Date().toISOString().split('T')[0];
-        core.info(`Issue is closed. Updating DateClosed field to: ${dateString}`);
-        const projectItemId = await getProjectItemId({
+        const dateString = new Date(issue.closed_at).toISOString().split('T')[0];
+        core.info(`Issue is closed. Updating "${dateFieldName}" field to: ${dateString}`);
+        const projectItemId = await (0, getProjectItemId_1.default)({
             octokit,
             owner: issueOrganization,
             repo: issueRepo,
@@ -57708,81 +57847,29 @@ async function run(core, github) {
             projectNumber
         });
         if (!projectItemId) {
-            core.info(`Issue ${issueNumber} is not in project ${projectNumber}`);
+            core.info(`Issue ${issueUrl} is not in project ${projectNumber}`);
             return;
         }
-        const dateClosedFieldId = await getDateClosedFieldId({
+        const dateFieldId = await (0, getDateClosedFieldId_1.default)({
+            octokit,
             owner: issueOrganization,
-            projectNumber
+            projectNumber,
+            fieldName: dateFieldName
         });
-        if (!dateClosedFieldId) {
-            core.info(`DateClosed field not found in project ${projectNumber}`);
+        if (!dateFieldId) {
+            core.setFailed(`"${dateFieldName}" field not found in project ${projectNumber}`);
             return;
         }
         await (0, updateDateClosedField_1.default)({
             projectItemId: projectItemId.itemId,
-            fieldId: dateClosedFieldId,
+            fieldId: dateFieldId,
             date: dateString,
             projectId: projectItemId.projectId
         });
-        core.info(`The DateClosed field has been updated successfully to ${dateString} for issue ${issueNumber}`);
+        core.info(`The "${dateFieldName}" field has been updated successfully to ${dateString} for issue ${issueUrl}`);
     }
     catch (error) {
         core.setFailed(`Action failed: ${error instanceof Error ? error.message : String(error)}`);
-    }
-}
-async function getProjectItemId({ octokit, owner, repo, issueNumber, projectNumber }) {
-    try {
-        const result = (await octokit.graphql(`
-      query getProjectItemId($owner: String!, $repo: String!, $issueNumber: Int!) {
-        repository(owner: $owner, name: $repo) {
-          issue(number: $issueNumber) {
-            projectItems(first: 10) {
-              nodes {
-                id
-                project {
-                  number
-                  id
-                }
-              }
-            }
-          }
-        }
-      }
-    `, {
-            owner,
-            repo,
-            issueNumber
-        }));
-        const projectItem = result.repository.issue.projectItems.nodes.find(node => node.project.number === projectNumber);
-        return projectItem
-            ? { itemId: projectItem.id, projectId: projectItem.project.id }
-            : null;
-    }
-    catch (error) {
-        throw new Error(`Failed to get project item ID: ${error.message}`);
-    }
-}
-async function getDateClosedFieldId({ owner, projectNumber }) {
-    try {
-        const fields = await getProjectBoardFieldList({
-            projectNumber,
-            owner
-        });
-        const dateClosedField = fields.fields.find((field) => field.name === 'DateClosed');
-        return dateClosedField?.id || null;
-    }
-    catch (error) {
-        throw new Error(`Failed to get DateClosed field ID: ${error.message}`);
-    }
-}
-async function getProjectBoardFieldList({ projectNumber, owner }) {
-    try {
-        const { stdout: fieldList } = await (0, exec_1.getExecOutput)(`gh project field-list ${projectNumber} --owner ${owner} --format json`);
-        return JSON.parse(fieldList.trim());
-    }
-    catch (error) {
-        throw new Error(`Error getting project field list: ${error.message}`);
     }
 }
 
