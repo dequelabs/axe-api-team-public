@@ -2,16 +2,57 @@ import { expect } from 'chai'
 import * as sinon from 'sinon'
 import * as core from '@actions/core'
 import * as github from '@actions/github'
-import * as exec from '@actions/exec'
 import run from './run'
 
 const MOCK_PROJECT_ITEM_ID = 'PVTI_lADOAD55W84AVmLazgJbJGI'
 const MOCK_PROJECT_ID = 'PVT_123'
 const MOCK_DATE_CLOSED_FIELD_ID = 'field_id_123'
 
+const PROJECT_ITEM_RESPONSE = {
+  repository: {
+    issue: {
+      projectItems: {
+        nodes: [
+          {
+            id: MOCK_PROJECT_ITEM_ID,
+            project: {
+              number: 123,
+              id: MOCK_PROJECT_ID
+            }
+          }
+        ]
+      }
+    }
+  }
+}
+
+const FIELDS_RESPONSE = {
+  organization: {
+    projectV2: {
+      fields: {
+        pageInfo: {
+          hasNextPage: false,
+          endCursor: null
+        },
+        nodes: [
+          { id: 'field_id_status', name: 'Status' },
+          { id: MOCK_DATE_CLOSED_FIELD_ID, name: 'DateClosed' }
+        ]
+      }
+    }
+  }
+}
+
+const UPDATE_FIELD_RESPONSE = {
+  updateProjectV2ItemFieldValue: {
+    projectV2Item: {
+      id: MOCK_PROJECT_ITEM_ID
+    }
+  }
+}
+
 describe('run', () => {
   let coreStub: sinon.SinonStubbedInstance<typeof core>
-  let execStub: sinon.SinonStubbedInstance<typeof exec>
   let octokitStub: {
     rest: {
       issues: {
@@ -24,7 +65,6 @@ describe('run', () => {
 
   beforeEach(() => {
     coreStub = sinon.stub(core)
-    execStub = sinon.stub(exec)
 
     mockGitHub = {
       context: {
@@ -50,66 +90,19 @@ describe('run', () => {
           })
         }
       },
-      graphql: sinon.stub().resolves({
-        repository: {
-          issue: {
-            projectItems: {
-              nodes: [
-                {
-                  id: MOCK_PROJECT_ITEM_ID,
-                  project: {
-                    number: 123,
-                    id: MOCK_PROJECT_ID
-                  }
-                }
-              ]
-            }
-          }
-        }
-      })
+      graphql: sinon.stub()
     }
+
+    // First graphql call: getProjectItemId
+    octokitStub.graphql.onCall(0).resolves(PROJECT_ITEM_RESPONSE)
+    // Second graphql call: getProjectBoardFieldList
+    octokitStub.graphql.onCall(1).resolves(FIELDS_RESPONSE)
+    // Third graphql call: updateDateField
+    octokitStub.graphql.onCall(2).resolves(UPDATE_FIELD_RESPONSE)
 
     mockGitHub.getOctokit.returns(
       octokitStub as unknown as ReturnType<typeof github.getOctokit>
     )
-
-    // Mock the exec command for getting field list
-    execStub.getExecOutput.resolves({
-      stdout: JSON.stringify({
-        fields: [
-          {
-            id: MOCK_DATE_CLOSED_FIELD_ID,
-            name: 'DateClosed',
-            type: 'Date'
-          }
-        ]
-      }),
-      stderr: '',
-      exitCode: 0
-    })
-
-    // Mock the exec command for updating the field
-    execStub.getExecOutput
-      .onFirstCall()
-      .resolves({
-        stdout: JSON.stringify({
-          fields: [
-            {
-              id: MOCK_DATE_CLOSED_FIELD_ID,
-              name: 'DateClosed',
-              type: 'Date'
-            }
-          ]
-        }),
-        stderr: '',
-        exitCode: 0
-      })
-      .onSecondCall()
-      .resolves({
-        stdout: '{}',
-        stderr: '',
-        exitCode: 0
-      })
   })
 
   afterEach(() => {
@@ -117,7 +110,6 @@ describe('run', () => {
   })
 
   it('should update DateClosed field when issue is closed and completed', async () => {
-    // Set up mocks for this test
     coreStub.getInput.withArgs('token').returns('test-token')
     coreStub.getInput
       .withArgs('issue-number', { required: true })
@@ -127,30 +119,24 @@ describe('run', () => {
     coreStub.getInput
       .withArgs('project-number', { required: true })
       .returns('123')
+    coreStub.getInput.withArgs('date-field-name').returns('DateClosed')
 
     await run(coreStub, mockGitHub)
 
-    const graphqlCalled = octokitStub.graphql.called
-    void expect(graphqlCalled).to.be.true
+    void expect(octokitStub.graphql.calledThrice).to.be.true
 
-    const getExecOutputCalled = execStub.getExecOutput.called
-    void expect(getExecOutputCalled).to.be.true
-
-    // Check that the field list command was called
-    const fieldListCall = execStub.getExecOutput.firstCall
-    void expect(fieldListCall.args[0]).to.include('gh project field-list')
-
-    // Check that the item-edit command was called to update the date
-    const itemEditCall = execStub.getExecOutput.secondCall
-    void expect(itemEditCall.args[0]).to.include('gh project item-edit')
-    void expect(itemEditCall.args[0]).to.include('--date')
-    void expect(itemEditCall.args[0]).to.include(MOCK_PROJECT_ITEM_ID)
-    void expect(itemEditCall.args[0]).to.include(MOCK_DATE_CLOSED_FIELD_ID)
-    void expect(itemEditCall.args[0]).to.include(MOCK_PROJECT_ID)
+    // Check that the update mutation was called with correct args
+    const updateCallArgs = octokitStub.graphql.thirdCall.args[1]
+    void expect(updateCallArgs.itemId).to.equal(MOCK_PROJECT_ITEM_ID)
+    void expect(updateCallArgs.fieldId).to.equal(MOCK_DATE_CLOSED_FIELD_ID)
+    void expect(updateCallArgs.date).to.equal('2024-01-15')
+    void expect(updateCallArgs.projectId).to.equal(MOCK_PROJECT_ID)
   })
 
-  it('should not update field when issue is not closed', async () => {
-    // Set up mocks for this test
+  it('should use custom date-field-name input', async () => {
+    const customFieldName = 'MyDateField'
+    const customFieldId = 'field_id_custom'
+
     coreStub.getInput.withArgs('token').returns('test-token')
     coreStub.getInput
       .withArgs('issue-number', { required: true })
@@ -160,8 +146,61 @@ describe('run', () => {
     coreStub.getInput
       .withArgs('project-number', { required: true })
       .returns('123')
+    coreStub.getInput.withArgs('date-field-name').returns(customFieldName)
 
-    // Mock issue as open
+    // Override fields response with custom field
+    octokitStub.graphql.onCall(1).resolves({
+      organization: {
+        projectV2: {
+          fields: {
+            pageInfo: { hasNextPage: false, endCursor: null },
+            nodes: [
+              { id: 'field_id_status', name: 'Status' },
+              { id: customFieldId, name: customFieldName }
+            ]
+          }
+        }
+      }
+    })
+
+    await run(coreStub, mockGitHub)
+
+    void expect(octokitStub.graphql.calledThrice).to.be.true
+    const updateCallArgs = octokitStub.graphql.thirdCall.args[1]
+    void expect(updateCallArgs.fieldId).to.equal(customFieldId)
+  })
+
+  it('should default date-field-name to DateClosed when not provided', async () => {
+    coreStub.getInput.withArgs('token').returns('test-token')
+    coreStub.getInput
+      .withArgs('issue-number', { required: true })
+      .returns('123')
+    coreStub.getInput.withArgs('issue-organization').returns('test-org')
+    coreStub.getInput.withArgs('issue-repo').returns('test-repo')
+    coreStub.getInput
+      .withArgs('project-number', { required: true })
+      .returns('123')
+    coreStub.getInput.withArgs('date-field-name').returns('')
+
+    await run(coreStub, mockGitHub)
+
+    void expect(octokitStub.graphql.calledThrice).to.be.true
+    const updateCallArgs = octokitStub.graphql.thirdCall.args[1]
+    void expect(updateCallArgs.fieldId).to.equal(MOCK_DATE_CLOSED_FIELD_ID)
+  })
+
+  it('should not update field when issue is not closed', async () => {
+    coreStub.getInput.withArgs('token').returns('test-token')
+    coreStub.getInput
+      .withArgs('issue-number', { required: true })
+      .returns('123')
+    coreStub.getInput.withArgs('issue-organization').returns('test-org')
+    coreStub.getInput.withArgs('issue-repo').returns('test-repo')
+    coreStub.getInput
+      .withArgs('project-number', { required: true })
+      .returns('123')
+    coreStub.getInput.withArgs('date-field-name').returns('')
+
     octokitStub.rest.issues.get.resolves({
       data: {
         state: 'open',
@@ -174,14 +213,10 @@ describe('run', () => {
 
     await run(coreStub, mockGitHub)
 
-    const graphqlCalled = octokitStub.graphql.called
-    void expect(graphqlCalled).to.be.false
-    const getExecOutputCalled = execStub.getExecOutput.called
-    void expect(getExecOutputCalled).to.be.false
+    void expect(octokitStub.graphql.called).to.be.false
   })
 
   it('should not update field when issue is closed but not completed', async () => {
-    // Set up mocks for this test
     coreStub.getInput.withArgs('token').returns('test-token')
     coreStub.getInput
       .withArgs('issue-number', { required: true })
@@ -191,8 +226,8 @@ describe('run', () => {
     coreStub.getInput
       .withArgs('project-number', { required: true })
       .returns('123')
+    coreStub.getInput.withArgs('date-field-name').returns('')
 
-    // Mock issue as closed but not completed
     octokitStub.rest.issues.get.resolves({
       data: {
         state: 'closed',
@@ -205,14 +240,10 @@ describe('run', () => {
 
     await run(coreStub, mockGitHub)
 
-    const graphqlCalled = octokitStub.graphql.called
-    void expect(graphqlCalled).to.be.false
-    const getExecOutputCalled = execStub.getExecOutput.called
-    void expect(getExecOutputCalled).to.be.false
+    void expect(octokitStub.graphql.called).to.be.false
   })
 
   it('should not update field when issue is closed but has no closed_at date', async () => {
-    // Set up mocks for this test
     coreStub.getInput.withArgs('token').returns('test-token')
     coreStub.getInput
       .withArgs('issue-number', { required: true })
@@ -222,8 +253,8 @@ describe('run', () => {
     coreStub.getInput
       .withArgs('project-number', { required: true })
       .returns('123')
+    coreStub.getInput.withArgs('date-field-name').returns('')
 
-    // Mock issue as closed but with no closed_at date
     octokitStub.rest.issues.get.resolves({
       data: {
         state: 'closed',
@@ -236,14 +267,10 @@ describe('run', () => {
 
     await run(coreStub, mockGitHub)
 
-    const graphqlCalled = octokitStub.graphql.called
-    void expect(graphqlCalled).to.be.false
-    const getExecOutputCalled = execStub.getExecOutput.called
-    void expect(getExecOutputCalled).to.be.false
+    void expect(octokitStub.graphql.called).to.be.false
   })
 
   it('should handle case when issue is not in project', async () => {
-    // Set up mocks for this test
     coreStub.getInput.withArgs('token').returns('test-token')
     coreStub.getInput
       .withArgs('issue-number', { required: true })
@@ -253,9 +280,9 @@ describe('run', () => {
     coreStub.getInput
       .withArgs('project-number', { required: true })
       .returns('123')
+    coreStub.getInput.withArgs('date-field-name').returns('')
 
-    // Mock issue not in project
-    octokitStub.graphql.resolves({
+    octokitStub.graphql.onCall(0).resolves({
       repository: {
         issue: {
           projectItems: {
@@ -267,12 +294,11 @@ describe('run', () => {
 
     await run(coreStub, mockGitHub)
 
-    const getExecOutputCalled = execStub.getExecOutput.called
-    void expect(getExecOutputCalled).to.be.false
+    // Only one graphql call (getProjectItemId), no field list or update calls
+    void expect(octokitStub.graphql.calledOnce).to.be.true
   })
 
-  it('should handle case when DateClosed field is not found', async () => {
-    // Set up mocks for this test
+  it('should setFailed when date field is not found in project', async () => {
     coreStub.getInput.withArgs('token').returns('test-token')
     coreStub.getInput
       .withArgs('issue-number', { required: true })
@@ -282,31 +308,28 @@ describe('run', () => {
     coreStub.getInput
       .withArgs('project-number', { required: true })
       .returns('123')
+    coreStub.getInput.withArgs('date-field-name').returns('DateClosed')
 
-    // Reset the mock for this specific test
-    execStub.getExecOutput.reset()
-
-    // Mock field list without DateClosed field
-    execStub.getExecOutput.resolves({
-      stdout: JSON.stringify({
-        fields: [
-          {
-            id: 'field_id_456',
-            name: 'Status',
-            type: 'SingleSelect'
+    // Override fields response without DateClosed
+    octokitStub.graphql.onCall(1).resolves({
+      organization: {
+        projectV2: {
+          fields: {
+            pageInfo: { hasNextPage: false, endCursor: null },
+            nodes: [{ id: 'field_id_status', name: 'Status' }]
           }
-        ]
-      }),
-      stderr: '',
-      exitCode: 0
+        }
+      }
     })
 
     await run(coreStub, mockGitHub)
 
-    // The function should call getExecOutput once for field list, but not for item edit
-    // since the DateClosed field is not found
-    const getExecOutputCallCount = execStub.getExecOutput.callCount
-    void expect(getExecOutputCallCount).to.equal(1)
+    void expect(coreStub.setFailed.calledOnce).to.be.true
+    void expect(coreStub.setFailed.firstCall.args[0]).to.include(
+      '"DateClosed" field not found'
+    )
+    // Only two graphql calls (getProjectItemId + getFieldIdByName), no update call
+    void expect(octokitStub.graphql.calledTwice).to.be.true
   })
 
   it('should fail when token is not provided', async () => {
@@ -314,10 +337,10 @@ describe('run', () => {
 
     await run(coreStub, mockGitHub)
 
-    const setFailedCalled = coreStub.setFailed.called
-    void expect(setFailedCalled).to.be.true
-    const setFailedArgs = coreStub.setFailed.firstCall.args[0]
-    void expect(setFailedArgs).to.equal('`GH_TOKEN` is not set')
+    void expect(coreStub.setFailed.calledOnce).to.be.true
+    void expect(coreStub.setFailed.firstCall.args[0]).to.equal(
+      '`token` input is not set'
+    )
   })
 
   it('should handle errors gracefully', async () => {
@@ -325,10 +348,8 @@ describe('run', () => {
 
     await run(coreStub, mockGitHub)
 
-    const setFailedCalled = coreStub.setFailed.called
-    void expect(setFailedCalled).to.be.true
-    const setFailedArgs = coreStub.setFailed.firstCall.args[0]
-    void expect(setFailedArgs).to.include('Test error')
+    void expect(coreStub.setFailed.calledOnce).to.be.true
+    void expect(coreStub.setFailed.firstCall.args[0]).to.include('Test error')
   })
 
   it('should fail when issue-number is not a valid number', async () => {
@@ -339,10 +360,10 @@ describe('run', () => {
 
     await run(coreStub, mockGitHub)
 
-    const setFailedCalled = coreStub.setFailed.called
-    void expect(setFailedCalled).to.be.true
-    const setFailedArgs = coreStub.setFailed.firstCall.args[0]
-    void expect(setFailedArgs).to.equal('`issue-number` must be a number')
+    void expect(coreStub.setFailed.calledOnce).to.be.true
+    void expect(coreStub.setFailed.firstCall.args[0]).to.equal(
+      '`issue-number` must be a number'
+    )
   })
 
   it('should fail when project-number is not a valid number', async () => {
@@ -356,10 +377,10 @@ describe('run', () => {
 
     await run(coreStub, mockGitHub)
 
-    const setFailedCalled = coreStub.setFailed.called
-    void expect(setFailedCalled).to.be.true
-    const setFailedArgs = coreStub.setFailed.firstCall.args[0]
-    void expect(setFailedArgs).to.equal('`project-number` must be a number')
+    void expect(coreStub.setFailed.calledOnce).to.be.true
+    void expect(coreStub.setFailed.firstCall.args[0]).to.equal(
+      '`project-number` must be a number'
+    )
   })
 
   it('should use default organization and repo from context when not provided', async () => {
@@ -372,12 +393,10 @@ describe('run', () => {
     coreStub.getInput
       .withArgs('project-number', { required: true })
       .returns('123')
+    coreStub.getInput.withArgs('date-field-name').returns('')
 
     await run(coreStub, mockGitHub)
 
-    const graphqlCalled = octokitStub.graphql.called
-    void expect(graphqlCalled).to.be.true
-    const getExecOutputCalled = execStub.getExecOutput.called
-    void expect(getExecOutputCalled).to.be.true
+    void expect(octokitStub.graphql.calledThrice).to.be.true
   })
 })

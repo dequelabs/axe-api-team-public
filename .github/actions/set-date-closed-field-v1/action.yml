@@ -1,5 +1,5 @@
-name: 'Set DateClosed Field on Issue Close'
-description: 'Update the DateClosed project field when an issue is closed as completed'
+name: 'Set Closed Date Field on Issue Action'
+description: 'Update a date project field (default: DateClosed) when an issue is closed as completed'
 inputs:
   token:
     description: 'Token used for the GH CLI to close and move issue(s) to the correct column. See README for required permissions'
@@ -16,7 +16,11 @@ inputs:
   project-number:
     description: 'The project number where the issue is located (should be hardcoded in workflow)'
     required: true
+  date-field-name:
+    description: 'The name of the date field to update the issue close date'
+    required: false
+    default: 'DateClosed'
 
 runs:
   using: 'node24'
-  main: 'dist/index.js' 
+  main: 'dist/index.js'
