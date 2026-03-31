@@ -16,7 +16,7 @@ This action updates a date project field (default: `DateClosed`) when an issue i
 **Requirements:**
 
 - A custom date field (Date type) in your project (default name: `DateClosed`)
-- `GH_TOKEN` environment variable set to a Personal Access Token with `repo`, `read:org`, `write:org`, and `project` scopes
+- A Personal Access Token with `repo`, `read:org`, `write:org`, and `project` scopes
 - Issue must be added to the specified project board
 
 ## Setup
@@ -43,8 +43,6 @@ This action updates a date project field (default: `DateClosed`) when an issue i
 2. Click "New repository secret"
 3. Name: `PAT`, Value: your token
 4. Click "Add secret"
-
-**Note**: The action now uses the `GH_TOKEN` environment variable instead of a token input parameter.
 
 ### 4. Find Your Project Number
 
@@ -82,8 +80,6 @@ jobs:
           project-number: '123' # Replace with your project number
           date-field-name: 'MyCustomDateField'
           token: ${{ secrets.PAT }}
-        env:
-          GH_TOKEN: ${{ secrets.PAT }}
 ```
 
 **Important:** The default `GITHUB_TOKEN` will not work for project operations. You must use a PAT as shown above.
@@ -113,16 +109,6 @@ jobs:
 2. Check if the field exists: `gh project field-list PROJECT_NUMBER --owner YOUR_ORG --format json`
 3. Ensure PAT has all required scopes
 4. Confirm project organization matches your expectations
-
-### "gh: To use GitHub CLI in a GitHub Actions workflow, set the GH_TOKEN environment variable"
-
-**Cause:** Missing or insufficient token permissions
-
-**Solutions:**
-
-1. Verify PAT includes all required scopes: `repo`, `read:org`, `write:org`, `project`
-2. Test token manually: `gh project field-list PROJECT_NUMBER --owner YOUR_ORG --format json`
-3. Ensure token has access to the specific project
 
 ### General Debugging Tips
 
