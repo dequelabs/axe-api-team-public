@@ -51,7 +51,7 @@ inputs:
     description: 'The column name within the GitHub Project that the release issue will be added to (e.g. "New")'
     required: false
   version-package-path:
-    description: 'The path to the package.json or lerna.json file that contains the version number to be released.'
+    description: 'The path to the package.json or lerna.json file that contains the version number to be released'
     required: false
 
 runs:
