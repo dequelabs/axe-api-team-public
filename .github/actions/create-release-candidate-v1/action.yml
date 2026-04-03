@@ -121,7 +121,7 @@ runs:
             version="$(jq -r '.version' "$VERSION_PACKAGE_PATH")"
             echo "version=$version" >> "$GITHUB_OUTPUT"
           else
-            echo "version-package-path was provided but file does not exist: $VERSION_PACKAGE_PATH"
+            echo "version-package-path was provided but file does not exist: $VERSION_PACKAGE_PATH" >&2
             exit 1
           fi
         elif [ -f "lerna.json" ]; then
