@@ -110,16 +110,18 @@ runs:
     - name: Get bumped version number
       shell: bash
       id: get_bumped_version_number
+      env:
+        VERSION_PACKAGE_PATH: ${{ inputs.version-package-path }}
       run: |
         # Get the version number from the prepare_release shell script and set it as an output
         # Monorepos have a lerna.json file that contains the updated version number
         # Non-monorepos, or non-npm repos, have a package.json file that contains the updated version number
-        if [ -n "${{ inputs.version-package-path }}" ]; then
-          if [ -f "${{ inputs.version-package-path }}" ]; then
-            version="$(jq -r '.version' "${{ inputs.version-package-path }}")"
+        if [ -n "$VERSION_PACKAGE_PATH" ]; then
+          if [ -f "$VERSION_PACKAGE_PATH" ]; then
+            version="$(jq -r '.version' "$VERSION_PACKAGE_PATH")"
             echo "version=$version" >> "$GITHUB_OUTPUT"
           else
-            echo "version-package-path was provided but file does not exist: ${{ inputs.version-package-path }}"
+            echo "version-package-path was provided but file does not exist: $VERSION_PACKAGE_PATH"
             exit 1
           fi
         elif [ -f "lerna.json" ]; then
