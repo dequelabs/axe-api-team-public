@@ -50,6 +50,9 @@ inputs:
   release-issue-column-name:
     description: 'The column name within the GitHub Project that the release issue will be added to (e.g. "New")'
     required: false
+  version-package-path:
+    description: 'The path to the package.json or lerna.json file that contains the version number to be released.'
+    required: false
 
 runs:
   using: 'composite'
@@ -111,10 +114,17 @@ runs:
         # Get the version number from the prepare_release shell script and set it as an output
         # Monorepos have a lerna.json file that contains the updated version number
         # Non-monorepos, or non-npm repos, have a package.json file that contains the updated version number
-        if [ -f "lerna.json" ]; then
-          echo "version=$(cat lerna.json | jq -r '.version')" >> $GITHUB_OUTPUT
+        if [ -n "${{ inputs.version-package-path }}" ]; then
+          if [ -f "${{ inputs.version-package-path }}" ]; then
+            echo "version=$(jq -r '.version' "${{ inputs.version-package-path }}")" >> $GITHUB_OUTPUT
+          else
+            echo "version-package-path was provided but file does not exist: ${{ inputs.version-package-path }}"
+            exit 1
+          fi
+        elif [ -f "lerna.json" ]; then
+          echo "version=$(jq -r '.version' lerna.json)" >> $GITHUB_OUTPUT
         else
-          echo "version=$(cat package.json | jq -r '.version')" >> $GITHUB_OUTPUT
+          echo "version=$(jq -r '.version' package.json)" >> $GITHUB_OUTPUT
         fi
 
     # https://github.com/dequelabs/axe-core-npm/blob/62fd241fb3748ca8ce4adb30d7976947ccaa18ee/.github/workflows/create-release.yml#L32-L57
