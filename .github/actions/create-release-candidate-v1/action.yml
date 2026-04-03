@@ -116,7 +116,8 @@ runs:
         # Non-monorepos, or non-npm repos, have a package.json file that contains the updated version number
         if [ -n "${{ inputs.version-package-path }}" ]; then
           if [ -f "${{ inputs.version-package-path }}" ]; then
-            echo "version=$(jq -r '.version' "${{ inputs.version-package-path }}")" >> $GITHUB_OUTPUT
+            version="$(jq -r '.version' "${{ inputs.version-package-path }}")"
+            echo "version=$version" >> "$GITHUB_OUTPUT"
           else
             echo "version-package-path was provided but file does not exist: ${{ inputs.version-package-path }}"
             exit 1
