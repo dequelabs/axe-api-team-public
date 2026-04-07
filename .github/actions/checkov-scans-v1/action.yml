@@ -23,9 +23,10 @@ runs:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
     # Checkov's sca_package scanner doesn't support pnpm-lock.yaml, so convert it
     - name: Convert pnpm-lock.yaml to package-lock.json
+      id: convert-pnpm-lock
       if: hashFiles('pnpm-lock.yaml') != '' && hashFiles('package-lock.json') == ''
       shell: bash
-      run: npx --yes pnpm-lock-to-npm-lock@1.0.0 pnpm-lock.yaml
+      run: node $GITHUB_ACTION_PATH/dist/index.js pnpm-lock.yaml
     # The checkov scan
     - name: Run Prisma Cloud
       id: prisma-cloud
@@ -38,3 +39,8 @@ runs:
         soft_fail_on: LOW
       env:
         PRISMA_API_URL: ${{ inputs.prisma-api-url }}
+    # Clean up the generated package-lock.json so it doesn't affect later steps
+    - name: Remove generated package-lock.json
+      if: always() && steps.convert-pnpm-lock.outcome != 'skipped'
+      shell: bash
+      run: rm -f package-lock.json
