@@ -1,9 +1,17 @@
 import { execFileSync } from 'child_process'
-import { readFileSync, writeFileSync, unlinkSync, existsSync } from 'fs'
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'fs'
 import { expect } from 'chai'
-import { resolve } from 'path'
+import { join, resolve } from 'path'
+import { tmpdir } from 'os'
 
 const script = resolve(__dirname, 'index.ts')
+const nodeModules = resolve(__dirname, '..', '..', '..', '..', 'node_modules')
+const tsconfig = resolve(__dirname, '..', 'tsconfig.json')
+const childEnv = {
+  ...process.env,
+  NODE_PATH: nodeModules,
+  TS_NODE_PROJECT: tsconfig
+}
 const fixtureContent = `lockfileVersion: '6.0'
 
 settings:
@@ -23,26 +31,25 @@ packages:
 `
 
 describe('index', () => {
-  const fixturePath = resolve(__dirname, 'test-pnpm-lock.yaml')
-  const outputPath = resolve(__dirname, 'package-lock.json')
+  let tmpDir: string
 
   beforeEach(() => {
-    writeFileSync(fixturePath, fixtureContent)
+    tmpDir = mkdtempSync(join(tmpdir(), 'checkov-scans-test-'))
+    writeFileSync(join(tmpDir, 'pnpm-lock.yaml'), fixtureContent)
   })
 
   afterEach(() => {
-    if (existsSync(fixturePath)) unlinkSync(fixturePath)
-    if (existsSync(outputPath)) unlinkSync(outputPath)
+    rmSync(tmpDir, { recursive: true, force: true })
   })
 
   it('converts pnpm-lock.yaml to package-lock.json', () => {
     execFileSync(
       process.execPath,
-      ['-r', 'ts-node/register', script, 'test-pnpm-lock.yaml'],
-      { cwd: __dirname }
+      ['-r', 'ts-node/register', script, 'pnpm-lock.yaml'],
+      { cwd: tmpDir, env: childEnv }
     )
 
-    expect(existsSync(outputPath)).to.equal(true)
+    const outputPath = join(tmpDir, 'package-lock.json')
     const lockfile = JSON.parse(readFileSync(outputPath, 'utf8'))
     expect(lockfile).to.have.property('lockfileVersion')
     expect(lockfile).to.have.property('packages')
@@ -51,8 +58,9 @@ describe('index', () => {
   it('exits with code 1 when no path is provided', () => {
     try {
       execFileSync(process.execPath, ['-r', 'ts-node/register', script], {
-        cwd: __dirname,
-        stdio: 'pipe'
+        cwd: tmpDir,
+        stdio: 'pipe',
+        env: childEnv
       })
       expect.fail('should have thrown')
     } catch (err: unknown) {
@@ -65,7 +73,7 @@ describe('index', () => {
       execFileSync(
         process.execPath,
         ['-r', 'ts-node/register', script, 'nonexistent.yaml'],
-        { cwd: __dirname, stdio: 'pipe' }
+        { cwd: tmpDir, stdio: 'pipe', env: childEnv }
       )
       expect.fail('should have thrown')
     } catch (err: unknown) {
