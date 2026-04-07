@@ -41,6 +41,6 @@ runs:
         PRISMA_API_URL: ${{ inputs.prisma-api-url }}
     # Clean up the generated package-lock.json so it doesn't affect later steps
     - name: Remove generated package-lock.json
-      if: steps.convert-pnpm-lock.outcome == 'success'
+      if: always() && steps.convert-pnpm-lock.outcome == 'success'
       shell: bash
       run: rm -f package-lock.json
