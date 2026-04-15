@@ -12,6 +12,9 @@ inputs:
     description: The directory containing the database migrations e.g. src/database/migrations
   env-file-path:
     description: The path to the `.env` file e.g. src/service/sample.env
+  version-package-path:
+    description: 'The path to the package.json or lerna.json file that contains the version number to be released'
+    required: false
 
 runs:
   using: 'composite'
@@ -41,13 +44,24 @@ runs:
     - name: Get release version
       id: get_release_version
       shell: bash
+      env:
+        VERSION_PACKAGE_PATH: ${{ inputs.version-package-path }}
       run: |
+        # Get the version number from the prepare_release shell script and set it as an output
         # Monorepos have a lerna.json file that contains the updated version number
         # Non-monorepos, or non-npm repos, have a package.json file that contains the updated version number
-        if [ -f "lerna.json" ]; then
-          echo "RELEASE_VERSION=$(cat lerna.json | jq -r '.version')" >> $GITHUB_OUTPUT
+        if [ -n "$VERSION_PACKAGE_PATH" ]; then
+          if [ -f "$VERSION_PACKAGE_PATH" ]; then
+            version="$(jq -r '.version' "$VERSION_PACKAGE_PATH")"
+            echo "RELEASE_VERSION=$version" >> "$GITHUB_OUTPUT"
+          else
+            echo "version-package-path was provided but file does not exist: $VERSION_PACKAGE_PATH" >&2
+            exit 1
+          fi
+        elif [ -f "lerna.json" ]; then
+          echo "RELEASE_VERSION=$(jq -r '.version' lerna.json)" >> $GITHUB_OUTPUT
         else
-          echo "RELEASE_VERSION=$(cat package.json | jq -r '.version')" >> $GITHUB_OUTPUT
+          echo "RELEASE_VERSION=$(jq -r '.version' package.json)" >> $GITHUB_OUTPUT
         fi
 
     - name: Get CHANGELOG changes
