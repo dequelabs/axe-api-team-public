@@ -52,16 +52,20 @@ runs:
         if [ -n "$VERSION_PACKAGE_PATH" ]; then
           if [ -f "$VERSION_PACKAGE_PATH" ]; then
             version="$(jq -r '.version' "$VERSION_PACKAGE_PATH")"
-            echo "RELEASE_VERSION=$version" >> "$GITHUB_OUTPUT"
           else
             echo "version-package-path was provided but file does not exist: $VERSION_PACKAGE_PATH" >&2
             exit 1
           fi
         elif [ -f "lerna.json" ]; then
-          echo "RELEASE_VERSION=$(jq -r '.version' lerna.json)" >> $GITHUB_OUTPUT
+          version="$(jq -r '.version' lerna.json)"
         else
-          echo "RELEASE_VERSION=$(jq -r '.version' package.json)" >> $GITHUB_OUTPUT
+          version="$(jq -r '.version' package.json)"
         fi
+        if [ -z "$version" ] || [ "$version" = "null" ]; then
+          echo "Could not extract a valid version from the package file" >&2
+          exit 1
+        fi
+        echo "RELEASE_VERSION=$version" >> "$GITHUB_OUTPUT"
 
     - name: Get CHANGELOG changes
       shell: bash
