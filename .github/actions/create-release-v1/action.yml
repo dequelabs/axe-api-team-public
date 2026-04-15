@@ -62,7 +62,7 @@ runs:
           version="$(jq -r '.version' package.json)"
         fi
         if [ -z "$version" ] || [ "$version" = "null" ]; then
-          echo "Could not extract a valid version from the package file" >&2
+          echo "Could not extract a valid version from the version property of the package file" >&2
           exit 1
         fi
         echo "RELEASE_VERSION=$version" >> "$GITHUB_OUTPUT"
