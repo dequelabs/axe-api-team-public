@@ -47,7 +47,6 @@ runs:
       env:
         VERSION_PACKAGE_PATH: ${{ inputs.version-package-path }}
       run: |
-        # Get the version number from the prepare_release shell script and set it as an output
         # Monorepos have a lerna.json file that contains the updated version number
         # Non-monorepos, or non-npm repos, have a package.json file that contains the updated version number
         if [ -n "$VERSION_PACKAGE_PATH" ]; then
