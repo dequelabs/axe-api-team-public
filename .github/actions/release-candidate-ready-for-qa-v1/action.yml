@@ -17,6 +17,10 @@ inputs:
   release-issue-column-name:
     description: The column name within the GitHub Project that the release issue will be added to (e.g. "QAToDo")
     required: false
+  send-slack-notification:
+    description: Whether to send the built-in Slack notification. Set to "false" to opt out (e.g. when notifications are handled by another workflow).
+    required: false
+    default: 'true'
 
 runs:
   using: 'composite'
@@ -63,7 +67,7 @@ runs:
         project-number: ${{ inputs.release-issue-project-number }}
         column-name: ${{ inputs.release-issue-column-name }}
     - name: Slack notification
-      if: inputs.slack-channel != '' && inputs.slack-webhook != ''
+      if: inputs.send-slack-notification == 'true' && inputs.slack-channel != '' && inputs.slack-webhook != ''
       uses: rtCamp/action-slack-notify@e31e87e03dd19038e411e38ae27cbad084a90661 # tag=v2.3.3
       env:
         SLACK_TITLE: 'RC: "${{ steps.set-build-name.outputs.build-name }}" is ready for QA:'
