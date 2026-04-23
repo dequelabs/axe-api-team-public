@@ -16,7 +16,7 @@ export default function ({
   if (packageManager === 'npm') {
     const dependencyTypeArgs = dependencyGroup === 'dependencies' ? [] : ['-D']
     return ['i', ...dependencyTypeArgs, newAxeVersion]
-  // yarn and pnpm share the same `add` command and `-D` flag
+    // yarn and pnpm share the same `add` command and `-D` flag
   } else if (packageManager === 'yarn' || packageManager === 'pnpm') {
     const dependencyTypeArgs = dependencyGroup === 'dependencies' ? [] : ['-D']
     return ['add', ...dependencyTypeArgs, newAxeVersion]

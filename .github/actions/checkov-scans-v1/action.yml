@@ -1,5 +1,5 @@
 name: checkov-scans
-description: Checkov scans cloud infrastructure configurations to find misconfigurations before they're deployed and sends a result to Prisma Cloud.
+description: Temporarily a no-op while a replacement for Prisma Cloud is set up. Inputs are kept for interface compatibility but unused.
 
 inputs:
   prisma-access-key:
@@ -19,28 +19,6 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    # Checks-out your repository under $GITHUB_WORKSPACE, so follow-up steps can access it
-    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-    # Checkov's sca_package scanner doesn't support pnpm-lock.yaml, so convert it
-    - name: Convert pnpm-lock.yaml to package-lock.json
-      id: convert-pnpm-lock
-      if: hashFiles('pnpm-lock.yaml') != '' && hashFiles('package-lock.json') == ''
+    - name: Skip checkov scan
       shell: bash
-      run: node $GITHUB_ACTION_PATH/dist/index.js pnpm-lock.yaml
-    # The checkov scan
-    - name: Run Prisma Cloud
-      id: prisma-cloud
-      uses: bridgecrewio/checkov-action@02a4c5d6a02367e5ea493c34c26b094302fd3f61 # tag=v12.3075.0
-      with:
-        api-key: ${{ inputs.prisma-access-key }}::${{ inputs.prisma-secret-key }}
-        # CLI output to the console and md file
-        output_format: cli
-        framework: ${{ inputs.frameworks }}
-        soft_fail_on: LOW
-      env:
-        PRISMA_API_URL: ${{ inputs.prisma-api-url }}
-    # Clean up the generated package-lock.json so it doesn't affect later steps
-    - name: Remove generated package-lock.json
-      if: always() && steps.convert-pnpm-lock.outcome != 'skipped'
-      shell: bash
-      run: rm -f package-lock.json
+      run: echo "checkov-scans-v1 is temporarily a no-op while a replacement for Prisma Cloud is set up."
