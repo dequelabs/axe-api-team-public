@@ -1,5 +1,5 @@
 name: checkov-scans
-description: Checkov scans cloud infrastructure configurations to find misconfigurations before they're deployed and sends a result to Prisma Cloud.
+description: Temporarily a no-op while a replacement for Prisma Cloud is set up. Inputs are kept for interface compatibility but unused.
 
 inputs:
   prisma-access-key:
@@ -19,17 +19,6 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    # Checks-out your repository under $GITHUB_WORKSPACE, so follow-up steps can access it
-    - uses: actions/checkout@v4
-    # The checkov scan
-    - name: Run Prisma Cloud
-      id: prisma-cloud
-      uses: bridgecrewio/checkov-action@8b268e1e4d7e52a78ba9d86e2489fb09b8a340c3 # tag=v12.2690.0
-      with:
-        api-key: ${{ inputs.prisma-access-key }}::${{ inputs.prisma-secret-key }}
-        # CLI output to the console and md file
-        output_format: cli
-        framework: ${{ inputs.frameworks }}
-        soft_fail_on: LOW
-      env:
-        PRISMA_API_URL: ${{ inputs.prisma-api-url }}
+    - name: Skip checkov scan
+      shell: bash
+      run: echo "checkov-scans-v1 is temporarily a no-op while a replacement for Prisma Cloud is set up."

@@ -1,5 +1,7 @@
 # checkov-scans-v1
 
+> **Note:** This action is temporarily a no-op while a replacement for Prisma Cloud is set up. Inputs are kept for interface compatibility but are currently unused. Existing callers will continue to work without changes.
+
 A GitHub Action to run [Checkov scans](https://github.com/bridgecrewio/checkov-action/tree/v12#readme) and a result will be shown in Prisma Cloud.
 
 ## Inputs
