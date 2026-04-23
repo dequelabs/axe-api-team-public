@@ -138,12 +138,15 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
           core.info(`\nThe issue ${issueNumber} has been closed successfully.`)
         }
 
-        const labels = await octokit.rest.issues.listLabelsForRepo({
-          repo: issueRepo,
-          owner: issueOwner
-        })
-
-        const hasLabel = labels.data.some(label => label.name === LABEL)
+        const labels = await octokit.paginate(
+          octokit.rest.issues.listLabelsForRepo,
+          {
+            repo: issueRepo,
+            owner: issueOwner,
+            per_page: 100
+          }
+        )
+        const hasLabel = labels.some(label => label.name === LABEL)
 
         if (!hasLabel) {
           core.info(

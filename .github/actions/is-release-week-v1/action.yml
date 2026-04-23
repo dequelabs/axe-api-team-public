@@ -9,5 +9,5 @@ outputs:
   isReleaseWeek:
     description: 'True if the week of year matches the `oddWeek` input, False otherwise'
 runs:
-  using: 'node20'
+  using: 'node24'
   main: 'dist/index.js'

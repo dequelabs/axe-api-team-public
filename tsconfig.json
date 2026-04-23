@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "target": "es2020",
+    "target": "es2024",
     "module": "commonjs",
-    "lib": ["dom", "es2020"],
+    "lib": ["dom", "es2024"],
     "declaration": true,
     "outDir": "dist",
     "noImplicitReturns": true,

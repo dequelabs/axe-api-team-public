@@ -19,5 +19,5 @@ outputs:
     description: 'Comma separated list of new env vars'
 
 runs:
-  using: 'node20'
+  using: 'node24'
   main: 'dist/index.js'

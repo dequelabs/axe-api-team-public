@@ -2,7 +2,7 @@
 
 A GitHub action to create a PR that updates axe-core to the latest stable version. It noops if no update is available.
 
-- It updates `package.json`, `yarn.lock`, and `package-lock.json`.
+- It updates `package.json`, `yarn.lock`, `package-lock.json`, and `pnpm-lock.yaml`.
 - It is compatible with both workspaces and non-workspaces monorepos.
 - It handles dependencies and devDependencies.
 - It maintains whatever pinning strategy was already in place (`~`, `^`, or `=`).
@@ -13,12 +13,12 @@ This action can be replaced with dependabot config once [dependabot-core#1778](h
 
 ## Inputs
 
-| Name    | Required | Description                                                                                                             | Default   |
-| ------- | -------- | ----------------------------------------------------------------------------------------------------------------------- | --------- |
-| `token` | Yes      | `GITHUB_TOKEN` (permissions `contents: write` and `pull-requests: write`) or a repo scoped Personal Access Token (PAT). | NA        |
-| `base`  | No       | The branch the pull request will be merged into                                                                         | `develop` |
-| `should-checkout`  | No       | Whether or not the action should checkout the repository                                                                           | `true` |
-| `should-setup-node`  | No       | Whether or not the action should setup node on behalf of the consumer                                                                         | `true` |
+| Name                | Required | Description                                                                                                             | Default   |
+| ------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------- | --------- |
+| `token`             | Yes      | `GITHUB_TOKEN` (permissions `contents: write` and `pull-requests: write`) or a repo scoped Personal Access Token (PAT). | NA        |
+| `base`              | No       | The branch the pull request will be merged into                                                                         | `develop` |
+| `should-checkout`   | No       | Whether or not the action should checkout the repository                                                                | `true`    |
+| `should-setup-node` | No       | Whether or not the action should setup node on behalf of the consumer                                                   | `true`    |
 
 ## Example usage
 

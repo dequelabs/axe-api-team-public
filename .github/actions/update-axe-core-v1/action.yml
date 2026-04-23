@@ -7,5 +7,5 @@ outputs:
     description: 'The version that axe-core was updated to'
 
 runs:
-  using: 'node20'
+  using: 'node24'
   main: 'dist/index.js'

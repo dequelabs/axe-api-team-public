@@ -4,10 +4,14 @@ A GitHub Action that lets the QA team know a release candidate is ready for QA
 
 ## Inputs
 
-| Name            | Required | Description                                                    | Default                      |
-| --------------- | -------- | -------------------------------------------------------------- | ---------------------------- |
-| `sha-rc`        | No       | 8 characters SHA of the release commit from the release branch | git rev-parse --short=8 HEAD |
-| `slack-webhook` | Yes      | A Slack channel webhook URL where the message will be sent     | NA                           |
+| Name                           | Required | Description                                                                                                                             | Default                      |
+| ------------------------------ | -------- | --------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
+| `sha-rc`                       | No       | 8 characters SHA of the release commit from the release branch                                                                          | git rev-parse --short=8 HEAD |
+| `slack-webhook`                | No       | A Slack channel webhook URL where the message will be sent if provided                                                                  | NA                           |
+| `slack-channel`                | No       | A Slack channel where the message will be sent if provided                                                                              | NA                           |
+| `release-issue-project-number` | No       | GitHub Project number that the release issue will be added to                                                                           | NA                           |
+| `release-issue-column-name`    | No       | The column name within the GitHub Project that the release issue will be added to (e.g. "QAToDo")                                       | NA                           |
+| `send-slack-notification`      | No       | Whether to send the built-in Slack notification. Set to `'false'` to opt out (e.g. when notifications are handled by another workflow). | `'true'`                     |
 
 ## Example usage
 
@@ -26,6 +30,9 @@ jobs:
       - uses: dequelabs/axe-api-team-public/.github/actions/release-candidate-ready-for-qa-v1-v1@main
         with:
           slack-webhook: ${{ secrets.SLACK_WEBHOOK }}
+          slack-channel: my-team-channel
+          release-issue-project-number: 1000
+          release-issue-column-name: QAToDo
         env:
           # Required for the GH CLI
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

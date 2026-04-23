@@ -1,5 +1,5 @@
 interface InstallScriptParams {
-    packageManager: 'npm' | 'yarn';
+    packageManager: 'npm' | 'yarn' | 'pnpm';
     pinStrategy: string;
     latestAxeCoreVersion: string;
     dependencyGroup: 'dependencies' | 'devDependencies';

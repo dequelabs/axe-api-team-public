@@ -18,24 +18,48 @@ inputs:
     description: 'Whether or not the version should be locked to axe-core'
     required: false
     default: 'false'
-  docs-repo:
-    description: 'The name of the repo where the release notes live'
-    required: false
-    default: 'null'
-  docs-labels:
-    description: 'Labels for release notes issue. Comma-delimited list of labels (e.x. "release,PRIORITY: high")'
-    required: false
   should-checkout:
     description: 'Whether or not the action should checkout the repository'
     required: false
     default: 'true'
+  docs-repo:
+    description: 'The name of the repo where the release notes live'
+    required: false
+    default: 'null'
+  docs-issue-assignees:
+    description: 'Assignees for the release notes issue'
+    required: false
+  docs-labels:
+    description: 'Labels for release notes issue. Comma-delimited list of labels (e.x. "release,PRIORITY: high")'
+    required: false
+  docs-issue-project-number:
+    description: 'GitHub Project number that the release notes issue will be added to'
+    required: false
+  docs-issue-column-name:
+    description: 'The column name within the GitHub Project that the release notes issue will be added to (e.g. "Todo")'
+    required: false
+  release-issue-assignees:
+    description: 'Assignees for the release issue'
+    required: false
+  release-issue-labels:
+    description: 'Labels for the release issue. Comma-delimited list of labels (e.x. "release,PRIORITY: high")'
+    required: false
+  release-issue-project-number:
+    description: 'GitHub Project number that the release issue will be added to'
+    required: false
+  release-issue-column-name:
+    description: 'The column name within the GitHub Project that the release issue will be added to (e.g. "New")'
+    required: false
+  version-package-path:
+    description: 'The path to the package.json or lerna.json file that contains the version number to be released'
+    required: false
 
 runs:
   using: 'composite'
   steps:
     - name: Checkout repository
       if: ${{ inputs.should-checkout == 'true' }}
-      uses: actions/checkout@v4
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
         # Fetch all history
         fetch-depth: 0
@@ -47,7 +71,7 @@ runs:
         github-token: ${{ inputs.token }}
 
     - name: Generate commit list
-      if: ${{ !steps.is_release_in_progress.outputs.in_progress }}
+      if: ${{ !steps.is_release_in_progress.outputs.is-release-in-progress }}
       uses: dequelabs/axe-api-team-public/.github/actions/generate-commit-list-v1@main
       id: generate_commit_list
       with:
@@ -55,7 +79,7 @@ runs:
         head: ${{ inputs.head }}
 
     - name: Has releasable commits
-      if: ${{ !steps.is_release_in_progress.outputs.in_progress }}
+      if: ${{ !steps.is_release_in_progress.outputs.is-release-in-progress }}
       uses: dequelabs/axe-api-team-public/.github/actions/has-auto-releasable-commits-v1@main
       id: has_releasable_commits
       with:
@@ -64,9 +88,9 @@ runs:
 
     - name: Cancel release if a release is already in progress or there are no releasable commits
       shell: bash
-      if: ${{ steps.is_release_in_progress.outputs.in_progress == 'true' || steps.has_releasable_commits.outputs.should_release == 'false' }}
+      if: ${{ steps.is_release_in_progress.outputs.is-release-in-progress == 'true' || steps.has_releasable_commits.outputs.should_release == 'false' }}
       run: |
-        echo "Release is in progress: ${{ steps.is_release_in_progress.outputs.in_progress }}"
+        echo "Release is in progress: ${{ steps.is_release_in_progress.outputs.is-release-in-progress }}"
         echo "Should release: ${{ steps.has_releasable_commits.outputs.should_release }}"
         gh run cancel ${{ github.run_id }}
         gh run watch ${{ github.run_id }}
@@ -86,15 +110,29 @@ runs:
     - name: Get bumped version number
       shell: bash
       id: get_bumped_version_number
+      env:
+        VERSION_PACKAGE_PATH: ${{ inputs.version-package-path }}
       run: |
         # Get the version number from the prepare_release shell script and set it as an output
         # Monorepos have a lerna.json file that contains the updated version number
         # Non-monorepos, or non-npm repos, have a package.json file that contains the updated version number
-        if [ -f "lerna.json" ]; then
-          echo "version=$(cat lerna.json | jq -r '.version')" >> $GITHUB_OUTPUT
+        if [ -n "$VERSION_PACKAGE_PATH" ]; then
+          if [ -f "$VERSION_PACKAGE_PATH" ]; then
+            version="$(jq -r '.version' "$VERSION_PACKAGE_PATH")"
+          else
+            echo "version-package-path was provided but file does not exist: $VERSION_PACKAGE_PATH" >&2
+            exit 1
+          fi
+        elif [ -f "lerna.json" ]; then
+          version="$(jq -r '.version' lerna.json)"
         else
-          echo "version=$(cat package.json | jq -r '.version')" >> $GITHUB_OUTPUT
+          version="$(jq -r '.version' package.json)"
         fi
+        if [ -z "$version" ] || [ "$version" = "null" ]; then
+          echo "Could not extract a valid version from the package file" >&2
+          exit 1
+        fi
+        echo "version=$version" >> "$GITHUB_OUTPUT"
 
     # https://github.com/dequelabs/axe-core-npm/blob/62fd241fb3748ca8ce4adb30d7976947ccaa18ee/.github/workflows/create-release.yml#L32-L57
     - name: Create release commit
@@ -135,10 +173,8 @@ runs:
           echo EOF
         } >> $GITHUB_ENV
 
-    # https://github.com/dequelabs/axe-core-npm/blob/62fd241fb3748ca8ce4adb30d7976947ccaa18ee/.github/workflows/create-release.yml#L32-L57
     - name: Create pull request
-      # Last commit on v5 tag: https://github.com/peter-evans/create-pull-request/commit/153407881ec5c347639a548ade7d8ad1d6740e38
-      uses: peter-evans/create-pull-request@153407881ec5c347639a548ade7d8ad1d6740e38
+      uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # tag=v8.1.0
       id: create_pull_request
       with:
         token: ${{ inputs.token }}
@@ -154,29 +190,35 @@ runs:
 
     - name: Create release notes issue
       if: ${{ inputs.docs-repo != 'null' }}
-      uses: dequelabs/axe-api-team-public/.github/actions/create-project-issue-v1@main
+      uses: dacbd/create-issue-action@cdb57ab6ff8862aa09fee2be6ba77a59581921c2 # tag=v2.0.0
       id: create_release_notes_issue
       with:
         token: ${{ inputs.token }}
         repo: ${{ inputs.docs-repo }}
         labels: ${{ inputs.docs-labels }}
-        assignees: 'enlarsen'
-        project_number: '193'
-        column_name: 'Todo'
+        assignees: ${{ inputs.docs-issue-assignees }}
         title: '${{ github.repository }} v${{ steps.get_bumped_version_number.outputs.version }} - Release Notes Needed'
         body: |
           PR: ${{ steps.create_pull_request.outputs.pull-request-url }}
 
           Release Notes are needed for ${{ github.repository }} v${{ steps.get_bumped_version_number.outputs.version }}. Please make sure this issue is closed when the PR is merged.
 
+    - name: Move release notes issue to project board
+      if: ${{ steps.create_release_notes_issue.outputs.html_url && inputs.docs-issue-project-number != '' && inputs.docs-issue-column-name != '' }}
+      uses: dequelabs/axe-api-team-public/.github/actions/add-to-board-v1@main
+      with:
+        issue-urls: ${{ steps.create_release_notes_issue.outputs.html_url }}
+        project-number: ${{ inputs.docs-issue-project-number }}
+        column-name: ${{ inputs.docs-issue-column-name }}
+
     - name: Create release issue
-      uses: dequelabs/axe-api-team-public/.github/actions/create-project-issue-v1@main
+      uses: dacbd/create-issue-action@cdb57ab6ff8862aa09fee2be6ba77a59581921c2 # tag=v2.0.0
       id: create_release_issue
       with:
         token: ${{ inputs.token }}
-        labels: 'PRIORITY: high,release'
-        project_number: '188'
-        column_name: 'New'
+        repo: ${{ github.event.repository.name }}
+        labels: ${{ inputs.release-issue-labels }}
+        assignees: ${{ inputs.release-issue-assignees }}
         title: '${{ github.repository }} v${{ steps.get_bumped_version_number.outputs.version }}'
         body: |
           # Below is everything related to this release 
@@ -189,16 +231,13 @@ runs:
 
           ---
 
-          ```[tasklist]
           ### Links
           - [X] Release candidate PR: ${{ steps.create_pull_request.outputs.pull-request-url }}
           - [ ] Release PR:
-          - [X] Docs Issue: ${{ steps.create_release_notes_issue.outputs.issue_url }}
+          ${{ steps.create_release_notes_issue.outputs.issue_url && '- [X] Docs Issue: ' || '' }}${{ steps.create_release_notes_issue.outputs.issue_url || '' }}
           - [ ] Change Management Form:
           - [ ] Notes:
-          ```
 
-          ```[tasklist]
           ### Common Tasks
           - [ ] QA Started
           - [ ] QA Signoff
@@ -209,9 +248,7 @@ runs:
           - [ ] Release Merged CI Success
           - [ ] Verify Deployments of Packages
           - [ ] Done
-          ```
           
-          ```[tasklist]
           ### AWS Deployments
           - [ ] AWS NOT NEEDED
           - [ ] Submitted Change Management Form
@@ -221,4 +258,11 @@ runs:
           - [ ] Added Environment Variables into CMF
           - [ ] Added Docker Image into CMF
           - [ ] Smoke Test Passed
-          ```
+
+    - name: Move release issue to project board
+      if: ${{ inputs.release-issue-project-number != '' && inputs.release-issue-column-name != '' }}
+      uses: dequelabs/axe-api-team-public/.github/actions/add-to-board-v1@main
+      with:
+        issue-urls: ${{ steps.create_release_issue.outputs.html_url }}
+        project-number: ${{ inputs.release-issue-project-number }}
+        column-name: ${{ inputs.release-issue-column-name }}

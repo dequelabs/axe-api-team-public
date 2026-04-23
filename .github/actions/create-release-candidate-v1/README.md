@@ -4,16 +4,23 @@ A GitHub Action to create a release candidate.
 
 ## Inputs
 
-| Name                  | Required | Description                                                                                                                                                                                                                     | Default |
-| --------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| `token`               | Yes      | A GitHub token used for octokit and GH CLI with the [required permissions](#permissions)                                                                                                                                        | NA      |
-| `base`                | Yes      | The branch that should be compared to `head` when identifying commits for the release, usually `main` or `master`. **NOT** the base branch of the release candidate PR (that is not configurable and will always be `release`). | NA      |
-| `head`                | Yes      | The branch that contains the changes the pull request is trying to merge (usually `develop`)                                                                                                                                    | NA      |
-| `release-script-path` | Yes      | The path to the [release script](#release-script-requirements) that creates the changelogs and bumps the version of the package(s)                                                                                              | NA      |
-| `version-locked`      | No       | Whether or not the version bump should treat major/minor as "locked". Repos which version-lock to axe-core should default this to `true`, overriding it to `false` only for releases that update `axe-core`.                    | `false` |
-| `docs-repo`           | No       | The name of the repo where the release notes live                                                                                                                                                                               | `null`  |
-| `docs-labels`         | No       | Labels for release notes issue. Comma-delimited list of labels (e.x. "release,PRIORITY: high")                                                                                                                                  | NA      |
-| `should-checkout`     | No       | Whether or not the action should checkout the repository.                                                                                                                                                                       | `true`  |
+| Name                           | Required | Description                                                                                                                                                                                                                     | Default |
+| ------------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| `token`                        | Yes      | A GitHub token used for octokit and GH CLI with the [required permissions](#permissions)                                                                                                                                        | NA      |
+| `base`                         | Yes      | The branch that should be compared to `head` when identifying commits for the release, usually `main` or `master`. **NOT** the base branch of the release candidate PR (that is not configurable and will always be `release`). | NA      |
+| `head`                         | Yes      | The branch that contains the changes the pull request is trying to merge (usually `develop`)                                                                                                                                    | NA      |
+| `release-script-path`          | Yes      | The path to the [release script](#release-script-requirements) that creates the changelogs and bumps the version of the package(s)                                                                                              | NA      |
+| `version-locked`               | No       | Whether or not the version bump should treat major/minor as "locked". Repos which version-lock to axe-core should default this to `true`, overriding it to `false` only for releases that update `axe-core`.                    | `false` |
+| `should-checkout`              | No       | Whether or not the action should checkout the repository.                                                                                                                                                                       | `true`  |
+| `docs-repo`                    | No       | The name of the repo where the release notes live                                                                                                                                                                               | `null`  |
+| `docs-labels`                  | No       | Labels for release notes issue. Comma-delimited list of labels (e.g. "release,PRIORITY: high")                                                                                                                                  | NA      |
+| `docs-issue-assignees`         | No       | Assignees for the release notes issue.                                                                                                                                                                                          | NA      |
+| `docs-issue-project-number`    | No       | GitHub Project number that the release notes issue will be added to.                                                                                                                                                            | NA      |
+| `docs-issue-column-name`       | No       | The column name within the GitHub Project that the release notes issue will be added to (e.g. "Todo").                                                                                                                          | NA      |
+| `release-issue-assignees`      | No       | Assignees for the release issue.                                                                                                                                                                                                | NA      |
+| `release-issue-labels`         | No       | Labels for the release issue. Comma-delimited list of labels (e.g. "release,PRIORITY: high").                                                                                                                                   | NA      |
+| `release-issue-project-number` | No       | GitHub Project number that the release issue will be added to.                                                                                                                                                                  | NA      |
+| `release-issue-column-name`    | No       | The column name within the GitHub Project that the release issue will be added to (e.g. "New").                                                                                                                                 | NA      |
 
 ## Example usage
 
@@ -31,10 +38,13 @@ jobs:
           token: ${{ secrets.PAT }}
           base: 'main'
           head: 'develop'
-          version-locked: 'false'
           release-script-path: './prepare_release.sh'
           docs-repo: 'my-docs-repo'
           docs-labels: 'release,PRIORITY: high'
+          docs-issue-project-number: '1000'
+          docs-issue-column-name: 'Todo'
+          release-issue-project-number: '2000'
+          release-issue-column-name: 'New'
         env:
           GH_TOKEN: ${{ secrets.PAT }}
 ```

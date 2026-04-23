@@ -36,7 +36,7 @@ runs:
   using: 'composite'
   steps:
     - name: Checkout repo
-      uses: actions/checkout@v3
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
         ref: ${{ inputs.default-branch }}
         token: ${{ inputs.token }}
@@ -115,7 +115,7 @@ runs:
         DEFAULT_BRANCH: ${{ inputs.default-branch }}
 
     - name: Create Docs issue
-      uses: dacbd/create-issue-action@ba4d1c45cccf9c483f2720cefb40e437f0ee6f7d # tag=v1
+      uses: dacbd/create-issue-action@cdb57ab6ff8862aa09fee2be6ba77a59581921c2 # tag=v1
       id: new-docs-issue
       with:
         token: ${{ inputs.project_token }}
@@ -130,7 +130,7 @@ runs:
           ${{ steps.commit-list.outputs.commits }}
 
     - name: Create QA issue
-      uses: dacbd/create-issue-action@ba4d1c45cccf9c483f2720cefb40e437f0ee6f7d # tag=v1
+      uses: dacbd/create-issue-action@cdb57ab6ff8862aa09fee2be6ba77a59581921c2 # tag=v1
       id: new-issue
       with:
         token: ${{ inputs.token }}
@@ -170,7 +170,7 @@ runs:
         # Required for the GH CLI
         GH_TOKEN: ${{ inputs.project_token }}
     - name: Slack Notification
-      uses: rtCamp/action-slack-notify@b24d75fe0e728a4bf9fc42ee217caa686d141ee8 # tag=v2
+      uses: rtCamp/action-slack-notify@e31e87e03dd19038e411e38ae27cbad084a90661 # tag=v2
       env:
         SLACK_CHANNEL: results-team-dev
         SLACK_COLOR: ${{ job.status }} # or a specific color like 'good' or '#ff00ff'
@@ -198,7 +198,7 @@ runs:
         RELEASE_BRANCH: ${{ inputs.release-branch }}
     - name: Create pull request
       id: new-pr
-      uses: peter-evans/create-pull-request@153407881ec5c347639a548ade7d8ad1d6740e38 # tag=v5
+      uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0 # tag=v5
       with:
         token: ${{ inputs.token }}
         branch: release

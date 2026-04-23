@@ -4,6 +4,7 @@ coverage
 .DS_Store
 .vscode
 .idea
+.claude/settings.local.json
 *.log
 yarn-error.log
 yarn.lock
