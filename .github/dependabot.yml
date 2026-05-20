@@ -36,6 +36,8 @@ updates:
         versions: ['>=6']
       - dependency-name: '@actions/github'
         versions: ['>=9']
+      - dependency-name: '@actions/exec'
+        versions: ['>=3']
     groups:
       # Any updates not caught by the group config will get individual PRs
       npm-low-risk:
