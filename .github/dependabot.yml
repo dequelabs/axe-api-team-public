@@ -39,6 +39,11 @@ updates:
       - dependency-name: '@actions/exec'
         versions: ['>=3']
     groups:
+      eslint:
+        patterns:
+          - 'eslint'
+          - '@eslint/*'
+          - 'typescript-eslint'
       # Any updates not caught by the group config will get individual PRs
       npm-low-risk:
         update-types:
