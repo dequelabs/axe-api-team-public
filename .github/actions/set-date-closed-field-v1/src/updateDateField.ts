@@ -49,6 +49,11 @@ export default async function updateDateField({
       }
     )
   } catch (error) {
-    throw new Error(`Failed to update date field: ${(error as Error).message}`)
+    throw new Error(
+      `Failed to update date field: ${(error as Error).message}`,
+      {
+        cause: error
+      }
+    )
   }
 }

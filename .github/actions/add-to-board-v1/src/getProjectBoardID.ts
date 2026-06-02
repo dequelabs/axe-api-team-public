@@ -21,7 +21,8 @@ export default async function getProjectBoardID({
     return JSON.parse(projectBoardID.trim()) as GetProjectBoardIDResponse
   } catch (error) {
     throw new Error(
-      `Error getting project board ID: ${(error as Error).message}`
+      `Error getting project board ID: ${(error as Error).message}`,
+      { cause: error }
     )
   }
 }

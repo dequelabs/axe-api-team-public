@@ -105,7 +105,7 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
 
     // Filter labels to create - only create labels that don't exist in repository
     const existingLabelNames = new Set(
-      repoExistingLabels.map(label => label.name)
+      repoExistingLabels.map((label: { name: string }) => label.name)
     )
     const labelsToCreate = labelsToAdd.filter(
       label => !existingLabelNames.has(label)

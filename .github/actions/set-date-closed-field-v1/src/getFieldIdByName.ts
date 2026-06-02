@@ -27,7 +27,8 @@ export default async function getFieldIdByName({
     return targetField?.id || null
   } catch (error) {
     throw new Error(
-      `Failed to get "${fieldName}" field ID: ${(error as Error).message}`
+      `Failed to get "${fieldName}" field ID: ${(error as Error).message}`,
+      { cause: error }
     )
   }
 }

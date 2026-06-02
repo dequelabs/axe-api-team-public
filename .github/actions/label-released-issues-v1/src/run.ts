@@ -146,7 +146,9 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
             per_page: 100
           }
         )
-        const hasLabel = labels.some(label => label.name === LABEL)
+        const hasLabel = labels.some(
+          (label: { name: string }) => label.name === LABEL
+        )
 
         if (!hasLabel) {
           core.info(

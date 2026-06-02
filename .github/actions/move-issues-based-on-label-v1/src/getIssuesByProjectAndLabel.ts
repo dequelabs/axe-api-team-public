@@ -269,7 +269,8 @@ export default async function getIssuesByProjectAndLabel({
     throw new Error(
       `Failed to get all issues from the project board ${projectNumber}: ${
         (error as Error).message
-      }`
+      }`,
+      { cause: error }
     )
   }
 }

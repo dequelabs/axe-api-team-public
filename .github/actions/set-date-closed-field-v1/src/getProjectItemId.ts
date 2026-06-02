@@ -93,7 +93,8 @@ export default async function getProjectItemId({
       : null
   } catch (error) {
     throw new Error(
-      `Failed to get project item ID: ${(error as Error).message}`
+      `Failed to get project item ID: ${(error as Error).message}`,
+      { cause: error }
     )
   }
 }

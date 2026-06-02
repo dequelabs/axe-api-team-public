@@ -22,7 +22,8 @@ export default async function getRawCommitList({
     return rawCommitList.trimEnd().split('\n')
   } catch (error) {
     throw new Error(
-      `Unable to get raw commit list: \n${(error as Error).message}`
+      `Unable to get raw commit list: \n${(error as Error).message}`,
+      { cause: error }
     )
   }
 }
