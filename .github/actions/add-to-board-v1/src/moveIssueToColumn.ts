@@ -28,6 +28,9 @@ export default async function moveIssueToColumn({
 
     return JSON.parse(issueMoved.trim()) as MoveIssueToColumnResponse
   } catch (error) {
-    throw new Error(`Error moving issue to column: ${(error as Error).message}`)
+    throw new Error(
+      `Error moving issue to column: ${(error as Error).message}`,
+      { cause: error }
+    )
   }
 }

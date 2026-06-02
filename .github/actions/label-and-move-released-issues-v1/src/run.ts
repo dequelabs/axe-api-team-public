@@ -165,7 +165,9 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
           `Found ${labels.data.length} labels for the issue repo ${issueOwner}/${issueRepo}`
         )
 
-        const hasLabel = labels.data.some(label => label.name === LABEL)
+        const hasLabel = labels.data.some(
+          (label: { name: string }) => label.name === LABEL
+        )
 
         if (!hasLabel) {
           core.info(

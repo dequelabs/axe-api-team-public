@@ -29,7 +29,8 @@ export default async function getProjectBoardFieldList({
     return JSON.parse(fieldList.trim()) as ProjectBoardFieldListResponse
   } catch (error) {
     throw new Error(
-      `Error getting project field list: ${(error as Error).message}`
+      `Error getting project field list: ${(error as Error).message}`,
+      { cause: error }
     )
   }
 }

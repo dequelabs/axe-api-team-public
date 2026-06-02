@@ -32,8 +32,11 @@ export default async function run(core: Core, github: GitHub): Promise<void> {
     })
 
     const changedFiles = files
-      .filter(file => file.status !== 'unchanged')
-      .map(file => file.filename)
+      .filter(
+        (file: { status: string; filename: string }) =>
+          file.status !== 'unchanged'
+      )
+      .map((file: { status: string; filename: string }) => file.filename)
 
     const importantFilesChanged = getImportantFilesChanged(
       core.getInput('important-files-path', {

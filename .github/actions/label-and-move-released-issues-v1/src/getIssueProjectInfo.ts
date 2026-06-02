@@ -101,7 +101,8 @@ export default async function getIssueProjectInfo({
     throw new Error(
       `Failed to get project info for issue ${issueNumber}: ${
         (error as Error).message
-      }`
+      }`,
+      { cause: error }
     )
   }
 }

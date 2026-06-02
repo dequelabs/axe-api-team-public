@@ -27,7 +27,8 @@ export default async function addIssueToBoard({
     return JSON.parse(issueAdded.trim()) as AddIssueToBoardResponse
   } catch (error) {
     throw new Error(
-      `Error adding issue to project board: ${(error as Error).message}`
+      `Error adding issue to project board: ${(error as Error).message}`,
+      { cause: error }
     )
   }
 }

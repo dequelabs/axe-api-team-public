@@ -118,7 +118,8 @@ export default async function getProjectBoardFieldList({
     return allFields
   } catch (error) {
     throw new Error(
-      `Error getting project field list: ${(error as Error).message}`
+      `Error getting project field list: ${(error as Error).message}`,
+      { cause: error }
     )
   }
 }

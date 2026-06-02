@@ -107,7 +107,8 @@ export default async function getIssueLabels({
     throw new Error(
       `Failed to get the issue's labels "https://github.com/${issueOwner}/${issueRepo}/issues/${issueNumber}": ${
         (error as Error).message
-      }`
+      }`,
+      { cause: error }
     )
   }
 }

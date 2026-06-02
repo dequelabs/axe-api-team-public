@@ -38,6 +38,8 @@ updates:
         versions: ['>=9']
       - dependency-name: '@actions/exec'
         versions: ['>=3']
+      - dependency-name: '@actions/core'
+        versions: ['>=3']
     groups:
       eslint:
         patterns:

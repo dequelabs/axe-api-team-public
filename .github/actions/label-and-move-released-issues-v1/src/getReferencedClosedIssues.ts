@@ -85,7 +85,8 @@ export default async function getReferencedClosedIssues({
     throw new Error(
       `Failed to get referenced closed issue for pull request ID ${pullRequestID}: ${
         (error as Error).message
-      }`
+      }`,
+      { cause: error }
     )
   }
 }
