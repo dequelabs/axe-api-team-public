@@ -24,7 +24,7 @@
     "@actions/core": "^2.0.2",
     "@actions/exec": "^2.0.0",
     "@actions/github": "^8.0.1",
-    "@eslint/js": "^9.39.2",
+    "@eslint/js": "^10.0.1",
     "@octokit/types": "^16.0.0",
     "@types/chai": "^4.3.11",
     "@types/conventional-commits-parser": "^5.0.0",
@@ -37,7 +37,7 @@
     "conventional-commit-types": "^3.0.0",
     "conventional-commits-parser": "^5.0.0",
     "dedent": "^1.7.2",
-    "eslint": "^9.39.2",
+    "eslint": "^10.4.0",
     "glob": "^13.0.6",
     "globals": "^17.6.0",
     "husky": "^9.1.7",
@@ -52,7 +52,7 @@
     "sinon": "^22.0.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.59.3"
+    "typescript-eslint": "^8.60.0"
   },
   "lint-staged": {
     "*.{md,json,js,ts,html}": [
