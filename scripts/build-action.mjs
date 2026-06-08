@@ -26,7 +26,26 @@ try {
     banner: { js: banner },
     plugins: [
       license({
-        thirdParty: { includePrivate: false, output: { file: 'dist/licenses.txt' } }
+        thirdParty: {
+          includePrivate: false,
+          output: {
+            file: 'dist/licenses.txt',
+            // The default template only lists "name:version -- SPDX". Emit each
+            // bundled dependency's name, SPDX id, AND full license text so the
+            // shipped artifact actually carries the third-party licenses.
+            template(dependencies) {
+              return (
+                dependencies
+                  .map(({ packageJson, licenseText }) =>
+                    [packageJson.name, packageJson.license, (licenseText || '').trim()]
+                      .filter(Boolean)
+                      .join('\n')
+                  )
+                  .join('\n\n') + '\n'
+              )
+            }
+          }
+        }
       })
     ]
   })
