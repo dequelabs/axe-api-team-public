@@ -10,9 +10,10 @@ import license from 'esbuild-plugin-license'
 const banner =
   "import{createRequire as _cr}from'node:module';" +
   "import{fileURLToPath as _f}from'node:url';" +
+  "import{dirname as _d}from'node:path';" +
   'const require=_cr(import.meta.url);' +
   'const __filename=_f(import.meta.url);' +
-  "const __dirname=_f(new URL('.',import.meta.url));"
+  'const __dirname=_d(__filename);'
 
 try {
   await esbuild.build({
@@ -29,6 +30,7 @@ try {
       })
     ]
   })
-} catch {
+} catch (error) {
+  console.error(error)
   process.exit(1)
 }
