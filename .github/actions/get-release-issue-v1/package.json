@@ -16,8 +16,7 @@
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "node ../../../scripts/build-action.mjs",
-    "test": "node --import tsx --experimental-test-module-mocks --test --test-reporter=spec --test-force-exit 'src/**/*.test.ts'",
-    "coverage": "node --import tsx --experimental-test-module-mocks --experimental-test-coverage --test-coverage-lines=100 --test-coverage-branches=100 --test-coverage-functions=100 --test-coverage-include='src/**/*.ts' --test-coverage-exclude='src/**/*.test.ts' --test-coverage-exclude='src/index.ts' --test --test-reporter=spec --test-force-exit 'src/**/*.test.ts'",
+    "test": "node --experimental-default-config-file --experimental-test-module-mocks --experimental-test-coverage --test --test-force-exit 'src/**/*.test.ts'",
     "typecheck": "tsc --noEmit",
     "fmt": "prettier --write \"src/**/*.{js,ts,tsx,json,md,css,html}\"",
     "lint": "eslint \"src/**/*.{ts,tsx}\""
