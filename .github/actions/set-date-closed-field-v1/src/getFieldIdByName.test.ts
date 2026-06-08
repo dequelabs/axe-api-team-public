@@ -1,37 +1,43 @@
-import 'mocha'
-import sinon from 'sinon'
-import { assert } from 'chai'
+import { describe, it, beforeEach, mock } from 'node:test'
+import { strict as assert } from 'node:assert'
 import { getOctokit } from '@actions/github'
 import getFieldIdByName from './getFieldIdByName'
-import * as getProjectBoardFieldListModule from './getProjectBoardFieldList'
+import type { ProjectFieldNode } from './getProjectBoardFieldList'
+
+type Graphql = ReturnType<typeof getOctokit>['graphql']
 
 const owner = 'test-org'
 const projectNumber = 123
 
-const MOCK_FIELDS = [
+const MOCK_FIELDS: ProjectFieldNode[] = [
   { id: 'PVTF_field1', name: 'Title' },
   { id: 'PVTF_field2', name: 'Status' },
   { id: 'PVTF_field3', name: 'DateClosed' },
   { id: 'PVTF_field4', name: 'Priority' }
 ]
 
+const fieldsResponse = (nodes: ProjectFieldNode[]) => ({
+  organization: {
+    projectV2: {
+      fields: {
+        pageInfo: { hasNextPage: false, endCursor: null },
+        nodes
+      }
+    }
+  }
+})
+
 describe('getFieldIdByName', () => {
-  let octokit: ReturnType<typeof getOctokit>
-  let getProjectBoardFieldListStub: sinon.SinonStub
+  const graphql = mock.fn<Graphql>()
+  const octokit = { graphql } as unknown as ReturnType<typeof getOctokit>
 
   beforeEach(() => {
-    octokit = getOctokit('token')
-    getProjectBoardFieldListStub = sinon.stub(
-      getProjectBoardFieldListModule,
-      'default'
-    )
+    graphql.mock.resetCalls()
+    graphql.mock.mockImplementation((() =>
+      Promise.resolve(fieldsResponse(MOCK_FIELDS))) as unknown as Graphql)
   })
 
-  afterEach(sinon.restore)
-
   it('should return field ID when field is found', async () => {
-    getProjectBoardFieldListStub.resolves(MOCK_FIELDS)
-
     const result = await getFieldIdByName({
       octokit,
       owner,
@@ -39,12 +45,10 @@ describe('getFieldIdByName', () => {
       fieldName: 'DateClosed'
     })
 
-    assert.equal(result, 'PVTF_field3')
+    assert.strictEqual(result, 'PVTF_field3')
   })
 
   it('should return field ID for a custom field name', async () => {
-    getProjectBoardFieldListStub.resolves(MOCK_FIELDS)
-
     const result = await getFieldIdByName({
       octokit,
       owner,
@@ -52,12 +56,10 @@ describe('getFieldIdByName', () => {
       fieldName: 'Priority'
     })
 
-    assert.equal(result, 'PVTF_field4')
+    assert.strictEqual(result, 'PVTF_field4')
   })
 
   it('should return null when field is not found', async () => {
-    getProjectBoardFieldListStub.resolves(MOCK_FIELDS)
-
     const result = await getFieldIdByName({
       octokit,
       owner,
@@ -65,11 +67,12 @@ describe('getFieldIdByName', () => {
       fieldName: 'NonExistentField'
     })
 
-    assert.isNull(result)
+    assert.strictEqual(result, null)
   })
 
   it('should return null when fields list is empty', async () => {
-    getProjectBoardFieldListStub.resolves([])
+    graphql.mock.mockImplementation((() =>
+      Promise.resolve(fieldsResponse([]))) as unknown as Graphql)
 
     const result = await getFieldIdByName({
       octokit,
@@ -78,26 +81,29 @@ describe('getFieldIdByName', () => {
       fieldName: 'DateClosed'
     })
 
-    assert.isNull(result)
+    assert.strictEqual(result, null)
   })
 
   it('should throw an error with correct message including field name', async () => {
     const errorMessage = 'API error'
     const fieldName = 'MyCustomField'
-    getProjectBoardFieldListStub.rejects(new Error(errorMessage))
+    graphql.mock.mockImplementation((() =>
+      Promise.reject(new Error(errorMessage))) as unknown as Graphql)
 
-    try {
-      await getFieldIdByName({
+    await assert.rejects(
+      getFieldIdByName({
         octokit,
         owner,
         projectNumber,
         fieldName
-      })
-      assert.fail('Expected error to be thrown')
-    } catch (err) {
-      const error = err as Error
-      assert.include(error.message, `Failed to get "${fieldName}" field ID:`)
-      assert.include(error.message, errorMessage)
-    }
+      }),
+      (err: Error) => {
+        assert.ok(
+          err.message.includes(`Failed to get "${fieldName}" field ID:`)
+        )
+        assert.ok(err.message.includes(errorMessage))
+        return true
+      }
+    )
   })
 })

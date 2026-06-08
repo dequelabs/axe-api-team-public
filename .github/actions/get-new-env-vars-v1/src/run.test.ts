@@ -1,46 +1,58 @@
-import 'mocha'
-import { assert } from 'chai'
-import sinon from 'sinon'
-import * as exec from '@actions/exec'
+import { describe, it, beforeEach, mock } from 'node:test'
+import { strict as assert } from 'node:assert'
 import type { Core } from './types'
-import run from './run'
+
+type ExecOutput = { stdout: string; stderr: string; exitCode: number }
+
+const getExecOutput = mock.fn<(cmd: string) => ExecOutput>(() => ({
+  stdout: '',
+  stderr: '',
+  exitCode: 0
+}))
+mock.module('@actions/exec', { namedExports: { getExecOutput } })
+
+const { default: run } = await import('./run.ts')
+
+function makeCore(inputs: Record<string, string>) {
+  const getInput = mock.fn((name: string, opts?: { required?: boolean }) => {
+    if (name === 'env-file-path' && opts?.required && !inputs[name]) {
+      throw new Error('Input required and not supplied: env-file-path')
+    }
+    return inputs[name] ?? ''
+  })
+  const setFailed = mock.fn()
+  const setOutput = mock.fn()
+  const info = mock.fn()
+  const core = {
+    getInput,
+    setFailed,
+    setOutput,
+    info
+  } as unknown as Core
+  return { core, getInput, setFailed, setOutput, info }
+}
 
 describe('run', () => {
-  let execStub: sinon.SinonStub
-  let inputStub: sinon.SinonStub
-  let setFailedSpy: sinon.SinonSpy
-  let setOutputSpy: sinon.SinonSpy
-  let infoSpy: sinon.SinonSpy
-
   beforeEach(() => {
-    execStub = sinon.stub(exec, 'getExecOutput')
-    inputStub = sinon.stub()
-    setFailedSpy = sinon.spy()
-    setOutputSpy = sinon.spy()
-    infoSpy = sinon.spy()
+    getExecOutput.mock.resetCalls()
+    getExecOutput.mock.mockImplementation(() => ({
+      stdout: '',
+      stderr: '',
+      exitCode: 0
+    }))
   })
-
-  afterEach(sinon.restore)
 
   describe('inputs', () => {
     describe('when `env-file-path` is not provided', () => {
       it('throws an error', async () => {
-        inputStub.withArgs('env-file-path', { required: true }).throws({
-          message: 'Input required and not supplied: env-file-path'
-        })
-
-        const core = {
-          getInput: inputStub,
-          setFailed: setFailedSpy
-        } as unknown as Core
+        const { core, setFailed } = makeCore({})
 
         await run(core)
 
-        assert.isTrue(setFailedSpy.calledOnce)
-        assert.isTrue(
-          setFailedSpy.calledWith(
-            'Input required and not supplied: env-file-path'
-          )
+        assert.strictEqual(setFailed.mock.callCount(), 1)
+        assert.strictEqual(
+          setFailed.mock.calls[0].arguments[0],
+          'Input required and not supplied: env-file-path'
         )
       })
     })
@@ -48,46 +60,32 @@ describe('run', () => {
     describe('`head`', () => {
       describe('when provided', () => {
         it('uses the provided value', async () => {
-          inputStub
-            .withArgs('env-file-path', { required: true })
-            .returns('.env')
-          inputStub.withArgs('head').returns('my-cool-branch')
-
-          const core = {
-            getInput: inputStub,
-            info: infoSpy,
-            setFailed: setFailedSpy
-          } as unknown as Core
+          const { core, info } = makeCore({
+            'env-file-path': '.env',
+            head: 'my-cool-branch'
+          })
 
           await run(core)
 
-          assert.isTrue(infoSpy.calledOnce)
-          assert.isTrue(
-            infoSpy.calledWith(
-              'Finding new env vars from my-cool-branch to main...'
-            )
+          assert.strictEqual(
+            info.mock.calls[0].arguments[0],
+            'Finding new env vars from my-cool-branch to main...'
           )
         })
       })
 
       describe('when not provided', () => {
         it('defaults to `release`', async () => {
-          inputStub
-            .withArgs('env-file-path', { required: true })
-            .returns('.env')
-          inputStub.withArgs('head').returns('')
-
-          const core = {
-            getInput: inputStub,
-            info: infoSpy,
-            setFailed: setFailedSpy
-          } as unknown as Core
+          const { core, info } = makeCore({
+            'env-file-path': '.env',
+            head: ''
+          })
 
           await run(core)
 
-          assert.isTrue(infoSpy.calledOnce)
-          assert.isTrue(
-            infoSpy.calledWith('Finding new env vars from release to main...')
+          assert.strictEqual(
+            info.mock.calls[0].arguments[0],
+            'Finding new env vars from release to main...'
           )
         })
       })
@@ -96,46 +94,32 @@ describe('run', () => {
     describe('`base`', () => {
       describe('when provided', () => {
         it('uses the provided value', async () => {
-          inputStub
-            .withArgs('env-file-path', { required: true })
-            .returns('.env')
-          inputStub.withArgs('base').returns('my-other-cool-branch')
-
-          const core = {
-            getInput: inputStub,
-            info: infoSpy,
-            setFailed: setFailedSpy
-          } as unknown as Core
+          const { core, info } = makeCore({
+            'env-file-path': '.env',
+            base: 'my-other-cool-branch'
+          })
 
           await run(core)
 
-          assert.isTrue(infoSpy.calledOnce)
-          assert.isTrue(
-            infoSpy.calledWith(
-              'Finding new env vars from release to my-other-cool-branch...'
-            )
+          assert.strictEqual(
+            info.mock.calls[0].arguments[0],
+            'Finding new env vars from release to my-other-cool-branch...'
           )
         })
       })
 
       describe('when not provided', () => {
         it('defaults to `main`', async () => {
-          inputStub
-            .withArgs('env-file-path', { required: true })
-            .returns('.env')
-          inputStub.withArgs('base').returns('')
-
-          const core = {
-            getInput: inputStub,
-            info: infoSpy,
-            setFailed: setFailedSpy
-          } as unknown as Core
+          const { core, info } = makeCore({
+            'env-file-path': '.env',
+            base: ''
+          })
 
           await run(core)
 
-          assert.isTrue(infoSpy.calledOnce)
-          assert.isTrue(
-            infoSpy.calledWith('Finding new env vars from release to main...')
+          assert.strictEqual(
+            info.mock.calls[0].arguments[0],
+            'Finding new env vars from release to main...'
           )
         })
       })
@@ -145,24 +129,20 @@ describe('run', () => {
   describe('`git diff` command', () => {
     describe('when the command throws a non-zero exit code', () => {
       it('catches the error', async () => {
-        inputStub.withArgs('env-file-path', { required: true }).returns('.env')
-        execStub.returns({
+        getExecOutput.mock.mockImplementation(() => ({
           stdout: '',
           stderr: 'Some error',
           exitCode: 1
-        })
+        }))
 
-        const core = {
-          getInput: inputStub,
-          info: infoSpy,
-          setFailed: setFailedSpy
-        } as unknown as Core
+        const { core, setFailed } = makeCore({ 'env-file-path': '.env' })
 
         await run(core)
 
-        assert.isTrue(setFailedSpy.calledOnce)
-        assert.isTrue(
-          setFailedSpy.calledWith('Error getting env vars: \nSome error')
+        assert.strictEqual(setFailed.mock.callCount(), 1)
+        assert.strictEqual(
+          setFailed.mock.calls[0].arguments[0],
+          'Error getting env vars: \nSome error'
         )
       })
     })
@@ -170,77 +150,55 @@ describe('run', () => {
     describe('when the command succeeds', () => {
       describe('and there are no new env vars', () => {
         it('does not set the `env-vars` output', async () => {
-          inputStub
-            .withArgs('env-file-path', { required: true })
-            .returns('.env')
-          execStub.returns({
+          getExecOutput.mock.mockImplementation(() => ({
             stdout: '',
             stderr: '',
             exitCode: 0
-          })
+          }))
 
-          const core = {
-            getInput: inputStub,
-            info: infoSpy,
-            setFailed: setFailedSpy,
-            setOutput: setOutputSpy
-          } as unknown as Core
+          const { core, setOutput } = makeCore({ 'env-file-path': '.env' })
 
           await run(core)
 
-          assert.isTrue(setOutputSpy.notCalled)
+          assert.strictEqual(setOutput.mock.callCount(), 0)
         })
       })
 
       describe('and there are new env vars', () => {
         describe('and they are commented out', () => {
           it('does not set the `env-vars` output', async () => {
-            inputStub
-              .withArgs('env-file-path', { required: true })
-              .returns('.env')
-
-            execStub.returns({
+            getExecOutput.mock.mockImplementation(() => ({
               stdout: `+#FOO=bar \n+#BAR=baz \n # I AM A COMMENT!`,
               stderr: '',
               exitCode: 0
-            })
+            }))
 
-            const core = {
-              getInput: inputStub,
-              info: infoSpy,
-              setFailed: setFailedSpy,
-              setOutput: setOutputSpy
-            } as unknown as Core
+            const { core, setOutput } = makeCore({ 'env-file-path': '.env' })
 
             await run(core)
 
-            assert.isTrue(setOutputSpy.notCalled)
+            assert.strictEqual(setOutput.mock.callCount(), 0)
           })
         })
 
         describe('and they are not commented out', () => {
           it('sets the `env-vars` output', async () => {
-            inputStub
-              .withArgs('env-file-path', { required: true })
-              .returns('.env')
-
-            execStub.returns({
+            getExecOutput.mock.mockImplementation(() => ({
               stdout: `+ FOO=bar \n+ BAR=baz`,
               stderr: '',
               exitCode: 0
-            })
+            }))
 
-            const core = {
-              getInput: inputStub,
-              info: infoSpy,
-              setFailed: setFailedSpy,
-              setOutput: setOutputSpy
-            } as unknown as Core
+            const { core, setOutput } = makeCore({ 'env-file-path': '.env' })
 
             await run(core)
 
-            assert.isTrue(setOutputSpy.calledOnce)
-            assert.isTrue(setOutputSpy.calledWith('new-env-vars', 'FOO,BAR'))
+            assert.strictEqual(setOutput.mock.callCount(), 1)
+            assert.strictEqual(
+              setOutput.mock.calls[0].arguments[0],
+              'new-env-vars'
+            )
+            assert.strictEqual(setOutput.mock.calls[0].arguments[1], 'FOO,BAR')
           })
         })
       })
@@ -249,17 +207,18 @@ describe('run', () => {
 
   describe('when an unexpected error occurs', () => {
     it('catches the error', async () => {
+      const setFailed = mock.fn()
       const core = {
         getInput() {
           throw new Error('BOOM!')
         },
-        setFailed: setFailedSpy
+        setFailed
       } as unknown as Core
 
       await run(core)
 
-      assert.isTrue(setFailedSpy.calledOnce)
-      assert.isTrue(setFailedSpy.calledWith('BOOM!'))
+      assert.strictEqual(setFailed.mock.callCount(), 1)
+      assert.strictEqual(setFailed.mock.calls[0].arguments[0], 'BOOM!')
     })
   })
 })

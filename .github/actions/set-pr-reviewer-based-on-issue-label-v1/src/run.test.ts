@@ -1,11 +1,8 @@
-import 'mocha'
-import { assert } from 'chai'
-import sinon from 'sinon'
-import proxyquire from 'proxyquire'
+import { describe, it, beforeEach, mock } from 'node:test'
+import { strict as assert } from 'node:assert'
 import { Core, GitHub } from './types'
-import type { default as runType } from './run'
 import type { GetIssueLabelsResult } from '../../check-and-move-issue-based-on-labels-v1/src/getIssueLabels'
-import type { GetReferencedClosedIssuesResult } from 'label-and-move-released-issues-v1/src/getReferencedClosedIssues'
+import type { GetReferencedClosedIssuesResult } from '../../label-and-move-released-issues-v1/src/getReferencedClosedIssues'
 
 const ghToken = 'github token'
 const owner = 'owner_name'
@@ -79,65 +76,93 @@ const ISSUE_DATA_MOCK: GetIssueLabelsResult = {
   }
 }
 
+type GetReferencedClosedIssuesArgs = {
+  owner: string
+  repo: string
+  pullRequestID: number
+  octokit: unknown
+}
+type GetIssueLabelsArgs = {
+  issueOwner: string
+  issueRepo: string
+  issueNumber: number
+  octokit: unknown
+}
+
+const getReferencedClosedIssues = mock.fn<
+  (
+    args: GetReferencedClosedIssuesArgs
+  ) => Promise<GetReferencedClosedIssuesResult>
+>(() => Promise.resolve(ISSUES_MOCK))
+const getIssueLabels = mock.fn<
+  (args: GetIssueLabelsArgs) => Promise<GetIssueLabelsResult | undefined>
+>(() => Promise.resolve(ISSUE_DATA_MOCK))
+
+mock.module(
+  '../../label-and-move-released-issues-v1/src/getReferencedClosedIssues.ts',
+  { defaultExport: getReferencedClosedIssues }
+)
+mock.module(
+  '../../check-and-move-issue-based-on-labels-v1/src/getIssueLabels.ts',
+  { defaultExport: getIssueLabels }
+)
+
+const { default: run } = await import('./run.ts')
+
+interface GenerateInputsArgs {
+  token?: string
+  pullRequestNumber?: number | string
+  requiredIssueLabel?: string
+  reviewers?: string
+  teamReviewers?: string
+}
+
 describe('run', () => {
+  let octokitRequestReviewers: ReturnType<typeof mock.fn>
+  let info: ReturnType<typeof mock.fn>
+  let warning: ReturnType<typeof mock.fn>
+  let setFailed: ReturnType<typeof mock.fn>
+  let getInput: ReturnType<
+    typeof mock.fn<(name: string, opts?: object) => string>
+  >
   let core: Core
-  let run: typeof runType
-  let octokitRequestReviewersStub: sinon.SinonStub
-  let infoStub: sinon.SinonStub
-  let warningStub: sinon.SinonStub
-  let getInputStub: sinon.SinonStub
-  let setFailedStub: sinon.SinonStub
-  let getIssueLabelsStub: sinon.SinonStub
-  let getReferencedClosedIssuesStub: sinon.SinonStub
-  let github: object
+  let github: GitHub
   let octokitMock: object
 
-  interface GenerateInputsArgs {
-    token?: string
-    pullRequestNumber?: number
-    requiredIssueLabel?: string
-    reviewers?: string
-    teamReviewers?: string
-  }
-
   const generateInputs = (inputs?: Partial<GenerateInputsArgs>) => {
-    const token = getInputStub
-      .withArgs('token', { required: true })
-      .returns(inputs?.token ?? ghToken)
-    const pullRequestNumber = getInputStub
-      .withArgs('pull-request-number', { required: true })
-      .returns(inputs?.pullRequestNumber ?? pullRequest)
-    const requiredIssueLabel = getInputStub
-      .withArgs('required-issue-label', { required: true })
-      .returns(inputs?.requiredIssueLabel ?? requiredLabel)
-    const reviewers = getInputStub
-      .withArgs('reviewers', { required: false })
-      .returns(inputs?.reviewers ?? reviewersString)
-    const teamReviewers = getInputStub
-      .withArgs('team-reviewers', { required: false })
-      .returns(inputs?.teamReviewers ?? teamReviewersString)
-
-    return {
-      token,
-      pullRequestNumber,
-      requiredIssueLabel,
-      reviewers,
-      teamReviewers
+    const values: Record<string, string> = {
+      token: String(inputs?.token ?? ghToken),
+      'pull-request-number': String(inputs?.pullRequestNumber ?? pullRequest),
+      'required-issue-label': String(
+        inputs?.requiredIssueLabel ?? requiredLabel
+      ),
+      reviewers: inputs?.reviewers ?? reviewersString,
+      'team-reviewers': inputs?.teamReviewers ?? teamReviewersString
     }
+
+    getInput.mock.mockImplementation((name: string) => values[name] ?? '')
   }
 
   beforeEach(() => {
-    octokitRequestReviewersStub = sinon.stub()
-    infoStub = sinon.stub()
-    warningStub = sinon.stub()
-    getInputStub = sinon.stub()
-    setFailedStub = sinon.stub()
-    getIssueLabelsStub = sinon.stub()
-    getReferencedClosedIssuesStub = sinon.stub()
+    getReferencedClosedIssues.mock.resetCalls()
+    getReferencedClosedIssues.mock.mockImplementation(() =>
+      Promise.resolve(ISSUES_MOCK)
+    )
+    getIssueLabels.mock.resetCalls()
+    getIssueLabels.mock.mockImplementation(() =>
+      Promise.resolve(ISSUE_DATA_MOCK)
+    )
+
+    octokitRequestReviewers = mock.fn(() => Promise.resolve())
+    info = mock.fn()
+    warning = mock.fn()
+    setFailed = mock.fn()
+    getInput = mock.fn<(name: string, opts?: object) => string>(() => '')
+
     octokitMock = {
       rest: {
         pulls: {
-          requestReviewers: octokitRequestReviewersStub
+          requestReviewers: octokitRequestReviewers
         }
       }
     }
@@ -150,41 +175,31 @@ describe('run', () => {
           repo
         }
       }
-    }
+    } as unknown as GitHub
 
     core = {
-      getInput: getInputStub,
-      info: infoStub,
-      setFailed: setFailedStub,
-      warning: warningStub
-    }
-    ;({ default: run } = proxyquire('./run', {
-      '../../label-and-move-released-issues-v1/src/getReferencedClosedIssues': {
-        default: getReferencedClosedIssuesStub,
-        __esModule: true,
-        '@noCallThru': true
-      },
-      '../../check-and-move-issue-based-on-labels-v1/src/getIssueLabels': {
-        default: getIssueLabelsStub,
-        __esModule: true,
-        '@noCallThru': true
-      }
-    }))
+      getInput,
+      info,
+      setFailed,
+      warning
+    } as unknown as Core
   })
-
-  afterEach(sinon.restore)
 
   describe('when the `token` input is not provided', () => {
     it('throws an error', async () => {
       const errorMessage = 'Input required and not supplied: token'
 
-      getInputStub.withArgs('token', { required: true }).throws({
-        message: errorMessage
+      getInput.mock.mockImplementation((name: string) => {
+        if (name === 'token') {
+          throw new Error(errorMessage)
+        }
+        return ''
       })
 
-      await run(core as unknown as Core, {} as unknown as GitHub)
+      await run(core, {} as unknown as GitHub)
 
-      assert.isTrue(setFailedStub.calledOnceWithExactly(errorMessage))
+      assert.strictEqual(setFailed.mock.callCount(), 1)
+      assert.strictEqual(setFailed.mock.calls[0].arguments[0], errorMessage)
     })
   })
 
@@ -193,24 +208,28 @@ describe('run', () => {
       const errorMessage =
         'Input required and not supplied: pull-request-number'
 
-      getInputStub.withArgs('pull-request-number', { required: true }).throws({
-        message: errorMessage
+      getInput.mock.mockImplementation((name: string) => {
+        if (name === 'pull-request-number') {
+          throw new Error(errorMessage)
+        }
+        return ''
       })
 
-      await run(core as unknown as Core, {} as unknown as GitHub)
+      await run(core, {} as unknown as GitHub)
 
-      assert.isTrue(setFailedStub.calledOnceWithExactly(errorMessage))
+      assert.strictEqual(setFailed.mock.callCount(), 1)
+      assert.strictEqual(setFailed.mock.calls[0].arguments[0], errorMessage)
     })
 
     it('is not a number throws an error', async () => {
-      getInputStub.withArgs('pull-request-number').returns('abc')
+      generateInputs({ pullRequestNumber: 'abc' })
 
-      await run(core as unknown as Core, {} as unknown as GitHub)
+      await run(core, {} as unknown as GitHub)
 
-      assert.isTrue(
-        setFailedStub.calledOnceWithExactly(
-          '`pull-request-number` must be a number'
-        )
+      assert.strictEqual(setFailed.mock.callCount(), 1)
+      assert.strictEqual(
+        setFailed.mock.calls[0].arguments[0],
+        '`pull-request-number` must be a number'
       )
     })
   })
@@ -220,13 +239,17 @@ describe('run', () => {
       const errorMessage =
         'Input required and not supplied: required-issue-label'
 
-      getInputStub.withArgs('required-issue-label', { required: true }).throws({
-        message: errorMessage
+      getInput.mock.mockImplementation((name: string) => {
+        if (name === 'required-issue-label') {
+          throw new Error(errorMessage)
+        }
+        return ''
       })
 
-      await run(core as unknown as Core, {} as unknown as GitHub)
+      await run(core, {} as unknown as GitHub)
 
-      assert.isTrue(setFailedStub.calledOnceWithExactly(errorMessage))
+      assert.strictEqual(setFailed.mock.callCount(), 1)
+      assert.strictEqual(setFailed.mock.calls[0].arguments[0], errorMessage)
     })
   })
 
@@ -234,13 +257,17 @@ describe('run', () => {
     it('throws an error', async () => {
       const errorMessage = 'Input required and not supplied: reviewers'
 
-      getInputStub.withArgs('reviewers', { required: false }).throws({
-        message: errorMessage
+      getInput.mock.mockImplementation((name: string) => {
+        if (name === 'reviewers') {
+          throw new Error(errorMessage)
+        }
+        return ''
       })
 
-      await run(core as unknown as Core, {} as unknown as GitHub)
+      await run(core, {} as unknown as GitHub)
 
-      assert.isTrue(setFailedStub.calledOnceWithExactly(errorMessage))
+      assert.strictEqual(setFailed.mock.callCount(), 1)
+      assert.strictEqual(setFailed.mock.calls[0].arguments[0], errorMessage)
     })
   })
 
@@ -248,31 +275,30 @@ describe('run', () => {
     it('throws an error', async () => {
       const errorMessage = 'Input required and not supplied: team-reviewers'
 
-      getInputStub.withArgs('team-reviewers', { required: false }).throws({
-        message: errorMessage
+      getInput.mock.mockImplementation((name: string) => {
+        if (name === 'team-reviewers') {
+          throw new Error(errorMessage)
+        }
+        return ''
       })
 
-      await run(core as unknown as Core, {} as unknown as GitHub)
+      await run(core, {} as unknown as GitHub)
 
-      assert.isTrue(setFailedStub.calledOnceWithExactly(errorMessage))
+      assert.strictEqual(setFailed.mock.callCount(), 1)
+      assert.strictEqual(setFailed.mock.calls[0].arguments[0], errorMessage)
     })
   })
 
   describe('when neither `reviewers` nor `team-reviewers` inputs are provided', () => {
     it('throws an error', async () => {
-      getInputStub.withArgs('token').returns(ghToken)
-      getInputStub.withArgs('required-issue-label').returns(requiredLabel)
-      getInputStub.withArgs('pull-request-number').returns(pullRequest)
-      // the empty string is the default value for the input is not provided
-      getInputStub.withArgs('reviewers').returns('')
-      getInputStub.withArgs('team-reviewers').returns('')
+      generateInputs({ reviewers: '', teamReviewers: '' })
 
-      await run(core as unknown as Core, {} as unknown as GitHub)
+      await run(core, {} as unknown as GitHub)
 
-      assert.isTrue(
-        setFailedStub.calledOnceWithExactly(
-          'One of the inputs `reviewers` or `team-reviewers` must be provided'
-        )
+      assert.strictEqual(setFailed.mock.callCount(), 1)
+      assert.strictEqual(
+        setFailed.mock.calls[0].arguments[0],
+        'One of the inputs `reviewers` or `team-reviewers` must be provided'
       )
     })
   })
@@ -280,127 +306,146 @@ describe('run', () => {
   describe('given the required inputs', () => {
     describe('when a PR does not have any closed issues', () => {
       it('should stop the process', async () => {
-        getReferencedClosedIssuesStub.resolves({
-          repository: {
-            pullRequest: {
-              closingIssuesReferences: {
-                nodes: []
+        getReferencedClosedIssues.mock.mockImplementation(() =>
+          Promise.resolve({
+            repository: {
+              pullRequest: {
+                closingIssuesReferences: {
+                  nodes: []
+                }
               }
             }
-          }
-        })
+          })
+        )
         generateInputs()
 
-        await run(core as unknown as Core, github as unknown as GitHub)
+        await run(core, github)
 
-        assert.isTrue(
-          getReferencedClosedIssuesStub.calledOnceWithExactly({
+        assert.strictEqual(getReferencedClosedIssues.mock.callCount(), 1)
+        assert.deepStrictEqual(
+          getReferencedClosedIssues.mock.calls[0].arguments[0],
+          {
             owner,
             repo,
             pullRequestID: pullRequest,
             octokit: octokitMock
-          })
+          }
         )
-        assert.isTrue(
-          infoStub.calledWithExactly(
-            `No issues found for the PR "${pullRequestUrl}", stopped the process.`
+        assert.ok(
+          info.mock.calls.some(
+            call =>
+              call.arguments[0] ===
+              `No issues found for the PR "${pullRequestUrl}", stopped the process.`
           )
         )
-        assert.isTrue(setFailedStub.notCalled)
+        assert.strictEqual(setFailed.mock.callCount(), 0)
       })
     })
 
     describe('when a PR has closed issues', () => {
       describe('and one issue is not found', () => {
         it('should show a warning message', async () => {
-          getReferencedClosedIssuesStub.resolves(ISSUES_MOCK)
-          getIssueLabelsStub.onFirstCall().resolves()
-          getIssueLabelsStub.onSecondCall().resolves(ISSUE_DATA_MOCK)
-          octokitRequestReviewersStub.resolves()
+          getReferencedClosedIssues.mock.mockImplementation(() =>
+            Promise.resolve(ISSUES_MOCK)
+          )
+          let callIndex = 0
+          getIssueLabels.mock.mockImplementation(() => {
+            callIndex += 1
+            return Promise.resolve(
+              callIndex === 1 ? undefined : ISSUE_DATA_MOCK
+            )
+          })
           generateInputs()
 
-          await run(core as unknown as Core, github as unknown as GitHub)
+          await run(core, github)
 
-          assert.isTrue(
-            getReferencedClosedIssuesStub.calledOnceWithExactly({
+          assert.strictEqual(getReferencedClosedIssues.mock.callCount(), 1)
+          assert.deepStrictEqual(
+            getReferencedClosedIssues.mock.calls[0].arguments[0],
+            {
               owner,
               repo,
               pullRequestID: pullRequest,
               octokit: octokitMock
-            })
+            }
           )
-          assert.isTrue(
-            getIssueLabelsStub.calledWith({
-              issueOwner: owner,
-              issueRepo: repo,
-              issueNumber,
-              octokit: octokitMock
-            })
-          )
-          assert.isTrue(
-            getIssueLabelsStub.calledWith({
-              issueOwner: owner,
-              issueRepo: repo,
-              issueNumber: issueNumber2,
-              octokit: octokitMock
-            })
-          )
-          assert.isTrue(
-            warningStub.calledOnceWithExactly(
-              `The issue "${issueUrl}" is not found, moving on...`
+          assert.ok(
+            getIssueLabels.mock.calls.some(
+              call =>
+                call.arguments[0].issueOwner === owner &&
+                call.arguments[0].issueRepo === repo &&
+                call.arguments[0].issueNumber === issueNumber &&
+                call.arguments[0].octokit === octokitMock
             )
           )
-          assert.isTrue(setFailedStub.notCalled)
+          assert.ok(
+            getIssueLabels.mock.calls.some(
+              call =>
+                call.arguments[0].issueOwner === owner &&
+                call.arguments[0].issueRepo === repo &&
+                call.arguments[0].issueNumber === issueNumber2 &&
+                call.arguments[0].octokit === octokitMock
+            )
+          )
+          assert.strictEqual(warning.mock.callCount(), 1)
+          assert.strictEqual(
+            warning.mock.calls[0].arguments[0],
+            `The issue "${issueUrl}" is not found, moving on...`
+          )
+          assert.strictEqual(setFailed.mock.callCount(), 0)
         })
       })
 
       describe('and one issue does not have any labels', () => {
         it('should show an info message', async () => {
-          const issueWithoutLabels = JSON.parse(JSON.stringify(ISSUE_DATA_MOCK))
+          const issueWithoutLabels: GetIssueLabelsResult = JSON.parse(
+            JSON.stringify(ISSUE_DATA_MOCK)
+          )
 
           issueWithoutLabels.repository.issue.labels.nodes = []
 
-          getReferencedClosedIssuesStub.resolves(ISSUES_MOCK)
-          getIssueLabelsStub.onFirstCall().resolves(issueWithoutLabels)
-          getIssueLabelsStub.onSecondCall().resolves(ISSUE_DATA_MOCK)
-          octokitRequestReviewersStub.resolves()
+          getReferencedClosedIssues.mock.mockImplementation(() =>
+            Promise.resolve(ISSUES_MOCK)
+          )
+          let callIndex = 0
+          getIssueLabels.mock.mockImplementation(() => {
+            callIndex += 1
+            return Promise.resolve(
+              callIndex === 1 ? issueWithoutLabels : ISSUE_DATA_MOCK
+            )
+          })
           generateInputs({
             teamReviewers: ''
           })
 
-          await run(core as unknown as Core, github as unknown as GitHub)
+          await run(core, github)
 
-          assert.isTrue(
-            getReferencedClosedIssuesStub.calledOnceWithExactly({
-              owner,
-              repo,
-              pullRequestID: pullRequest,
-              octokit: octokitMock
-            })
-          )
-          assert.isTrue(
-            getIssueLabelsStub.calledWith({
-              issueOwner: owner,
-              issueRepo: repo,
-              issueNumber,
-              octokit: octokitMock
-            })
-          )
-          assert.isTrue(
-            getIssueLabelsStub.calledWith({
-              issueOwner: owner,
-              issueRepo: repo,
-              issueNumber: issueNumber2,
-              octokit: octokitMock
-            })
-          )
-          assert.isTrue(
-            infoStub.calledWithExactly(
-              `The issue "${issueUrl}" does not have any labels, skipping the issue...`
+          assert.strictEqual(getReferencedClosedIssues.mock.callCount(), 1)
+          assert.ok(
+            getIssueLabels.mock.calls.some(
+              call =>
+                call.arguments[0].issueNumber === issueNumber &&
+                call.arguments[0].octokit === octokitMock
             )
           )
-          assert.isTrue(
-            octokitRequestReviewersStub.calledOnceWithExactly({
+          assert.ok(
+            getIssueLabels.mock.calls.some(
+              call =>
+                call.arguments[0].issueNumber === issueNumber2 &&
+                call.arguments[0].octokit === octokitMock
+            )
+          )
+          assert.ok(
+            info.mock.calls.some(
+              call =>
+                call.arguments[0] ===
+                `The issue "${issueUrl}" does not have any labels, skipping the issue...`
+            )
+          )
+          assert.strictEqual(octokitRequestReviewers.mock.callCount(), 1)
+          assert.deepStrictEqual(
+            octokitRequestReviewers.mock.calls[0].arguments[0],
+            {
               owner,
               repo,
               pull_number: pullRequest,
@@ -408,63 +453,56 @@ describe('run', () => {
               reviewers: reviewersString
                 .split(',')
                 .map((reviewer: string) => reviewer.trim())
-            })
+            }
           )
-          assert.isTrue(setFailedStub.notCalled)
+          assert.strictEqual(setFailed.mock.callCount(), 0)
         })
       })
 
       describe('and all issues do not have required label', () => {
         it('should show an info message', async () => {
-          const issueWithoutLabels = JSON.parse(JSON.stringify(ISSUE_DATA_MOCK))
+          const issueWithoutLabels: GetIssueLabelsResult = JSON.parse(
+            JSON.stringify(ISSUE_DATA_MOCK)
+          )
 
           issueWithoutLabels.repository.issue.labels.nodes = []
 
-          getReferencedClosedIssuesStub.resolves(ISSUES_MOCK)
-          getIssueLabelsStub.onFirstCall().resolves(issueWithoutLabels)
-          getIssueLabelsStub.onSecondCall().resolves(issueWithoutLabels)
-          octokitRequestReviewersStub.resolves()
+          getReferencedClosedIssues.mock.mockImplementation(() =>
+            Promise.resolve(ISSUES_MOCK)
+          )
+          getIssueLabels.mock.mockImplementation(() =>
+            Promise.resolve(issueWithoutLabels)
+          )
           generateInputs()
 
-          await run(core as unknown as Core, github as unknown as GitHub)
+          await run(core, github)
 
-          assert.isTrue(
-            getReferencedClosedIssuesStub.calledOnceWithExactly({
-              owner,
-              repo,
-              pullRequestID: pullRequest,
-              octokit: octokitMock
-            })
-          )
-          assert.isTrue(
-            getIssueLabelsStub.calledWith({
-              issueOwner: owner,
-              issueRepo: repo,
-              issueNumber,
-              octokit: octokitMock
-            })
-          )
-          assert.isTrue(
-            getIssueLabelsStub.calledWith({
-              issueOwner: owner,
-              issueRepo: repo,
-              issueNumber: issueNumber2,
-              octokit: octokitMock
-            })
-          )
-          assert.isTrue(
-            infoStub.calledWithExactly(
-              `No issues of the PR ${pullRequestUrl} have the required label "${requiredLabel}"`
+          assert.strictEqual(getReferencedClosedIssues.mock.callCount(), 1)
+          assert.ok(
+            getIssueLabels.mock.calls.some(
+              call => call.arguments[0].issueNumber === issueNumber
             )
           )
-          assert.isTrue(octokitRequestReviewersStub.notCalled)
-          assert.isTrue(setFailedStub.notCalled)
+          assert.ok(
+            getIssueLabels.mock.calls.some(
+              call => call.arguments[0].issueNumber === issueNumber2
+            )
+          )
+          assert.ok(
+            info.mock.calls.some(
+              call =>
+                call.arguments[0] ===
+                `No issues of the PR ${pullRequestUrl} have the required label "${requiredLabel}"`
+            )
+          )
+          assert.strictEqual(octokitRequestReviewers.mock.callCount(), 0)
+          assert.strictEqual(setFailed.mock.callCount(), 0)
         })
       })
 
       describe('and one issue does not have required label', () => {
         it('should show an info message', async () => {
-          const issueWithoutRequiredLabel = JSON.parse(
+          const issueWithoutRequiredLabel: GetIssueLabelsResult = JSON.parse(
             JSON.stringify(ISSUE_DATA_MOCK)
           )
 
@@ -473,47 +511,44 @@ describe('run', () => {
             name: 'another-label'
           })
 
-          getReferencedClosedIssuesStub.resolves(ISSUES_MOCK)
-          getIssueLabelsStub.onFirstCall().resolves(issueWithoutRequiredLabel)
-          getIssueLabelsStub.onSecondCall().resolves(ISSUE_DATA_MOCK)
-          octokitRequestReviewersStub.resolves()
+          getReferencedClosedIssues.mock.mockImplementation(() =>
+            Promise.resolve(ISSUES_MOCK)
+          )
+          let callIndex = 0
+          getIssueLabels.mock.mockImplementation(() => {
+            callIndex += 1
+            return Promise.resolve(
+              callIndex === 1 ? issueWithoutRequiredLabel : ISSUE_DATA_MOCK
+            )
+          })
           generateInputs({
             teamReviewers: ''
           })
 
-          await run(core as unknown as Core, github as unknown as GitHub)
+          await run(core, github)
 
-          assert.isTrue(
-            getReferencedClosedIssuesStub.calledOnceWithExactly({
-              owner,
-              repo,
-              pullRequestID: pullRequest,
-              octokit: octokitMock
-            })
-          )
-          assert.isTrue(
-            getIssueLabelsStub.calledWith({
-              issueOwner: owner,
-              issueRepo: repo,
-              issueNumber,
-              octokit: octokitMock
-            })
-          )
-          assert.isTrue(
-            getIssueLabelsStub.calledWith({
-              issueOwner: owner,
-              issueRepo: repo,
-              issueNumber: issueNumber2,
-              octokit: octokitMock
-            })
-          )
-          assert.isTrue(
-            infoStub.calledWithExactly(
-              `The issue "${issueUrl}" does not have the required label "${requiredLabel}", skipping the issue...`
+          assert.strictEqual(getReferencedClosedIssues.mock.callCount(), 1)
+          assert.ok(
+            getIssueLabels.mock.calls.some(
+              call => call.arguments[0].issueNumber === issueNumber
             )
           )
-          assert.isTrue(
-            octokitRequestReviewersStub.calledOnceWithExactly({
+          assert.ok(
+            getIssueLabels.mock.calls.some(
+              call => call.arguments[0].issueNumber === issueNumber2
+            )
+          )
+          assert.ok(
+            info.mock.calls.some(
+              call =>
+                call.arguments[0] ===
+                `The issue "${issueUrl}" does not have the required label "${requiredLabel}", skipping the issue...`
+            )
+          )
+          assert.strictEqual(octokitRequestReviewers.mock.callCount(), 1)
+          assert.deepStrictEqual(
+            octokitRequestReviewers.mock.calls[0].arguments[0],
+            {
               owner,
               repo,
               pull_number: pullRequest,
@@ -521,48 +556,47 @@ describe('run', () => {
               reviewers: reviewersString
                 .split(',')
                 .map((reviewer: string) => reviewer.trim())
-            })
+            }
           )
-          assert.isTrue(setFailedStub.notCalled)
+          assert.strictEqual(setFailed.mock.callCount(), 0)
         })
       })
 
       describe('and only the `reviewers` input is provided', () => {
         it('should set only reviewer users', async () => {
-          getReferencedClosedIssuesStub.resolves(ISSUES_MOCK)
-          getIssueLabelsStub.resolves(ISSUE_DATA_MOCK)
-          octokitRequestReviewersStub.resolves()
+          getReferencedClosedIssues.mock.mockImplementation(() =>
+            Promise.resolve(ISSUES_MOCK)
+          )
+          getIssueLabels.mock.mockImplementation(() =>
+            Promise.resolve(ISSUE_DATA_MOCK)
+          )
           generateInputs({
             teamReviewers: ''
           })
 
-          await run(core as unknown as Core, github as unknown as GitHub)
+          await run(core, github)
 
-          assert.isTrue(
-            getReferencedClosedIssuesStub.calledOnceWithExactly({
-              owner,
-              repo,
-              pullRequestID: pullRequest,
-              octokit: octokitMock
-            })
-          )
-          assert.isTrue(
-            getIssueLabelsStub.calledOnceWithExactly({
-              issueOwner: owner,
-              issueRepo: repo,
-              issueNumber,
-              octokit: octokitMock
-            })
-          )
-          assert.isTrue(
-            infoStub.calledWithExactly(
-              `Reviewers added to PR "${pullRequestUrl}": ` +
-                `reviewers: ${reviewersString}, ` +
-                `no team reviewers`
+          assert.strictEqual(getReferencedClosedIssues.mock.callCount(), 1)
+          assert.strictEqual(getIssueLabels.mock.callCount(), 1)
+          assert.deepStrictEqual(getIssueLabels.mock.calls[0].arguments[0], {
+            issueOwner: owner,
+            issueRepo: repo,
+            issueNumber,
+            octokit: octokitMock
+          })
+          assert.ok(
+            info.mock.calls.some(
+              call =>
+                call.arguments[0] ===
+                `Reviewers added to PR "${pullRequestUrl}": ` +
+                  `reviewers: ${reviewersString}, ` +
+                  `no team reviewers`
             )
           )
-          assert.isTrue(
-            octokitRequestReviewersStub.calledOnceWithExactly({
+          assert.strictEqual(octokitRequestReviewers.mock.callCount(), 1)
+          assert.deepStrictEqual(
+            octokitRequestReviewers.mock.calls[0].arguments[0],
+            {
               owner,
               repo,
               pull_number: pullRequest,
@@ -570,48 +604,47 @@ describe('run', () => {
               reviewers: reviewersString
                 .split(',')
                 .map((reviewer: string) => reviewer.trim())
-            })
+            }
           )
-          assert.isTrue(setFailedStub.notCalled)
+          assert.strictEqual(setFailed.mock.callCount(), 0)
         })
       })
 
       describe('and only the `team-reviewers` input is provided', () => {
         it('should set only team-reviewers', async () => {
-          getReferencedClosedIssuesStub.resolves(ISSUES_MOCK)
-          getIssueLabelsStub.resolves(ISSUE_DATA_MOCK)
-          octokitRequestReviewersStub.resolves()
+          getReferencedClosedIssues.mock.mockImplementation(() =>
+            Promise.resolve(ISSUES_MOCK)
+          )
+          getIssueLabels.mock.mockImplementation(() =>
+            Promise.resolve(ISSUE_DATA_MOCK)
+          )
           generateInputs({
             reviewers: ''
           })
 
-          await run(core as unknown as Core, github as unknown as GitHub)
+          await run(core, github)
 
-          assert.isTrue(
-            getReferencedClosedIssuesStub.calledOnceWithExactly({
-              owner,
-              repo,
-              pullRequestID: pullRequest,
-              octokit: octokitMock
-            })
-          )
-          assert.isTrue(
-            getIssueLabelsStub.calledOnceWithExactly({
-              issueOwner: owner,
-              issueRepo: repo,
-              issueNumber,
-              octokit: octokitMock
-            })
-          )
-          assert.isTrue(
-            infoStub.calledWithExactly(
-              `Reviewers added to PR "${pullRequestUrl}": ` +
-                `no individual reviewers, ` +
-                `team reviewers: ${teamReviewersString}`
+          assert.strictEqual(getReferencedClosedIssues.mock.callCount(), 1)
+          assert.strictEqual(getIssueLabels.mock.callCount(), 1)
+          assert.deepStrictEqual(getIssueLabels.mock.calls[0].arguments[0], {
+            issueOwner: owner,
+            issueRepo: repo,
+            issueNumber,
+            octokit: octokitMock
+          })
+          assert.ok(
+            info.mock.calls.some(
+              call =>
+                call.arguments[0] ===
+                `Reviewers added to PR "${pullRequestUrl}": ` +
+                  `no individual reviewers, ` +
+                  `team reviewers: ${teamReviewersString}`
             )
           )
-          assert.isTrue(
-            octokitRequestReviewersStub.calledOnceWithExactly({
+          assert.strictEqual(octokitRequestReviewers.mock.callCount(), 1)
+          assert.deepStrictEqual(
+            octokitRequestReviewers.mock.calls[0].arguments[0],
+            {
               owner,
               repo,
               pull_number: pullRequest,
@@ -619,46 +652,45 @@ describe('run', () => {
               team_reviewers: teamReviewersString
                 .split(',')
                 .map((reviewer: string) => reviewer.trim())
-            })
+            }
           )
-          assert.isTrue(setFailedStub.notCalled)
+          assert.strictEqual(setFailed.mock.callCount(), 0)
         })
       })
 
       describe('and the `reviewers` and `team-reviewers` inputs are provided together', () => {
         it('should set reviewers and team-reviewers', async () => {
-          getReferencedClosedIssuesStub.resolves(ISSUES_MOCK)
-          getIssueLabelsStub.resolves(ISSUE_DATA_MOCK)
-          octokitRequestReviewersStub.resolves()
+          getReferencedClosedIssues.mock.mockImplementation(() =>
+            Promise.resolve(ISSUES_MOCK)
+          )
+          getIssueLabels.mock.mockImplementation(() =>
+            Promise.resolve(ISSUE_DATA_MOCK)
+          )
           generateInputs()
 
-          await run(core as unknown as Core, github as unknown as GitHub)
+          await run(core, github)
 
-          assert.isTrue(
-            getReferencedClosedIssuesStub.calledOnceWithExactly({
-              owner,
-              repo,
-              pullRequestID: pullRequest,
-              octokit: octokitMock
-            })
-          )
-          assert.isTrue(
-            getIssueLabelsStub.calledOnceWithExactly({
-              issueOwner: owner,
-              issueRepo: repo,
-              issueNumber,
-              octokit: octokitMock
-            })
-          )
-          assert.isTrue(
-            infoStub.calledWithExactly(
-              `Reviewers added to PR "${pullRequestUrl}": ` +
-                `reviewers: ${reviewersString}, ` +
-                `team reviewers: ${teamReviewersString}`
+          assert.strictEqual(getReferencedClosedIssues.mock.callCount(), 1)
+          assert.strictEqual(getIssueLabels.mock.callCount(), 1)
+          assert.deepStrictEqual(getIssueLabels.mock.calls[0].arguments[0], {
+            issueOwner: owner,
+            issueRepo: repo,
+            issueNumber,
+            octokit: octokitMock
+          })
+          assert.ok(
+            info.mock.calls.some(
+              call =>
+                call.arguments[0] ===
+                `Reviewers added to PR "${pullRequestUrl}": ` +
+                  `reviewers: ${reviewersString}, ` +
+                  `team reviewers: ${teamReviewersString}`
             )
           )
-          assert.isTrue(
-            octokitRequestReviewersStub.calledOnceWithExactly({
+          assert.strictEqual(octokitRequestReviewers.mock.callCount(), 1)
+          assert.deepStrictEqual(
+            octokitRequestReviewers.mock.calls[0].arguments[0],
+            {
               owner,
               repo,
               pull_number: pullRequest,
@@ -668,9 +700,9 @@ describe('run', () => {
               team_reviewers: teamReviewersString
                 .split(',')
                 .map((reviewer: string) => reviewer.trim())
-            })
+            }
           )
-          assert.isTrue(setFailedStub.notCalled)
+          assert.strictEqual(setFailed.mock.callCount(), 0)
         })
       })
     })

@@ -7,35 +7,18 @@
   },
   "homepage": "https://github.com/dequelabs/axe-api-team-public#readme",
   "license": "MPL-2.0",
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dequelabs/axe-api-team-public.git"
   },
   "scripts": {
     "prebuild": "rimraf dist",
-    "build": "ncc build src/index.ts --license ../../../licenses.txt",
-    "test": "mocha src/*.test.ts",
-    "coverage": "nyc npm run test",
+    "build": "node ../../../scripts/build-action.mjs",
+    "test": "node --import tsx --experimental-test-module-mocks --test --test-reporter=spec --test-force-exit 'src/**/*.test.ts'",
+    "coverage": "node --import tsx --experimental-test-module-mocks --experimental-test-coverage --test-coverage-lines=100 --test-coverage-branches=100 --test-coverage-functions=100 --test-coverage-include='src/**/*.ts' --test-coverage-exclude='src/**/*.test.ts' --test-coverage-exclude='src/index.ts' --test --test-reporter=spec --test-force-exit 'src/**/*.test.ts'",
+    "typecheck": "tsc --noEmit",
     "fmt": "prettier --write \"src/**/*.{js,ts,tsx,json,md,css,html}\"",
     "lint": "eslint \"src/**/*.{js,ts,tsx}\""
-  },
-  "nyc": {
-    "checkCoverage": true,
-    "extension": [
-      ".ts"
-    ],
-    "reporter": [
-      "text-summary",
-      "html"
-    ],
-    "statements": 100,
-    "branches": 100,
-    "functions": 100,
-    "lines": 100,
-    "exclude": [
-      "dist",
-      "coverage",
-      "**/*.test.ts"
-    ]
   }
 }

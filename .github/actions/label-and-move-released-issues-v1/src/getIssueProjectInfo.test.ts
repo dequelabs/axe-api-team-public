@@ -1,6 +1,5 @@
-import 'mocha'
-import { assert } from 'chai'
-import sinon from 'sinon'
+import { describe, it, beforeEach, mock } from 'node:test'
+import { strict as assert } from 'node:assert'
 import { getOctokit } from '@actions/github'
 import getIssueProjectInfo, {
   GetIssueProjectInfoResult
@@ -34,10 +33,10 @@ describe('getIssueProjectInfo', () => {
     octokit = getOctokit('token')
   })
 
-  afterEach(sinon.restore)
-
   it('should return the project info for an issue', async () => {
-    sinon.stub(octokit, 'graphql').resolves(MOCK_PROJECT_INFO)
+    octokit.graphql = mock.fn(() =>
+      Promise.resolve(MOCK_PROJECT_INFO)
+    ) as unknown as typeof octokit.graphql
 
     const result = await getIssueProjectInfo({
       owner: 'owner',
@@ -46,12 +45,14 @@ describe('getIssueProjectInfo', () => {
       octokit
     })
 
-    assert.deepEqual(result, MOCK_PROJECT_INFO)
+    assert.deepStrictEqual(result, MOCK_PROJECT_INFO)
   })
 
   describe('when an error occurs', () => {
     it('should throw an error', async () => {
-      sinon.stub(octokit, 'graphql').throws(new Error('boom'))
+      octokit.graphql = mock.fn(() => {
+        throw new Error('boom')
+      }) as unknown as typeof octokit.graphql
 
       let error: Error | null = null
 
@@ -66,8 +67,8 @@ describe('getIssueProjectInfo', () => {
         error = err as Error
       }
 
-      assert.isNotNull(error)
-      assert.include(error?.message, 'boom')
+      assert.strictEqual(error !== null, true)
+      assert.ok(error?.message.includes('boom'))
     })
   })
 })

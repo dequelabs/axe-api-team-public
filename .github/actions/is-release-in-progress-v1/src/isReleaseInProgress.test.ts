@@ -1,6 +1,7 @@
-import { assert } from 'chai'
+import { describe, it } from 'node:test'
+import { strict as assert } from 'node:assert'
 import type { PullRequest } from './types'
-import isReleaseInProgress from './isReleaseInProgress'
+import isReleaseInProgress from './isReleaseInProgress.ts'
 
 export const BUG_PULL_REQUEST: PullRequest = {
   id: 1,
@@ -57,7 +58,7 @@ const testCases = [
 describe('isReleaseInProgress()', () => {
   testCases.map(({ input, inputDescription, output }) => {
     it(`returns ${output} for ${inputDescription}`, () => {
-      assert.equal(isReleaseInProgress(input), output)
+      assert.strictEqual(isReleaseInProgress(input), output)
     })
   })
 })

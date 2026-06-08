@@ -1,7 +1,7 @@
-import 'mocha'
-import { assert } from 'chai'
+import { describe, it } from 'node:test'
+import { strict as assert } from 'node:assert'
 import * as conventionalCommitsTypes from 'conventional-commit-types'
-import getCommitType from './getCommitType'
+import getCommitType from './getCommitType.ts'
 
 describe('getCommitType', () => {
   /**
@@ -12,7 +12,7 @@ describe('getCommitType', () => {
     it(`returns true for ${key} type`, () => {
       const type = getCommitType(`${key}: pr title`)
 
-      assert.equal(type, key)
+      assert.strictEqual(type, key)
     })
   })
 
@@ -21,7 +21,7 @@ describe('getCommitType', () => {
       'Revert "fix(app): Add a Content Security Policy"'
     )
 
-    assert.equal(type, 'revert')
+    assert.strictEqual(type, 'revert')
   })
 
   it('returns true for merge commit', () => {
@@ -29,73 +29,73 @@ describe('getCommitType', () => {
       'Merge pull request #1 from user/feature/feature-name'
     )
 
-    assert.equal(type, 'merge')
+    assert.strictEqual(type, 'merge')
   })
 
   it('returns true for release commit', () => {
     const type = getCommitType('Release v4.2.1')
 
-    assert.equal(type, 'release')
+    assert.strictEqual(type, 'release')
   })
 
   it('returns true for title with scope', () => {
     const type = getCommitType('fix(scope,other): fix both')
 
-    assert.equal(type, 'fix')
+    assert.strictEqual(type, 'fix')
   })
 
   it('returns true for uppercase type', () => {
     const type = getCommitType('FIX: fix uppercase')
 
-    assert.equal(type, 'fix')
+    assert.strictEqual(type, 'fix')
   })
 
   it('returns false for title without a colon', () => {
     const type = getCommitType('fix a bug')
 
-    assert.equal(type, null)
+    assert.strictEqual(type, null)
   })
 
   it('returns false for title without a whitespace after the colon', () => {
     const type = getCommitType('fix:a bug')
 
-    assert.equal(type, null)
+    assert.strictEqual(type, null)
   })
 
   it('returns false for invalid type', () => {
     const type = getCommitType('fixture: a bug fix')
 
-    assert.equal(type, 'fixture')
+    assert.strictEqual(type, 'fixture')
   })
 
   it('returns false for merge-like title', () => {
     const type = getCommitType('merge mater into develop')
 
-    assert.equal(type, null)
+    assert.strictEqual(type, null)
   })
 
   it('returns false for release-like title', () => {
     const type = getCommitType('release the kraken')
 
-    assert.equal(type, null)
+    assert.strictEqual(type, null)
   })
 
   it('returns false for revert-like title', () => {
     const type = getCommitType('revert previous commit')
 
-    assert.equal(type, null)
+    assert.strictEqual(type, null)
   })
 
   it('allows comma in scope', () => {
     const type = getCommitType('fix(thing1,thing2): a bug')
 
-    assert.equal(type, 'fix')
+    assert.strictEqual(type, 'fix')
   })
 
   it('allows slash in scope', () => {
     const type = getCommitType('fix(path/thing1,path/thing2): a bug')
 
-    assert.equal(type, 'fix')
+    assert.strictEqual(type, 'fix')
   })
 
   describe('when the commit title contains a breaking change', () => {
@@ -103,7 +103,7 @@ describe('getCommitType', () => {
       it('returns the type with a `!`', () => {
         const type = getCommitType('feat(scope)!: a breaking change')
 
-        assert.equal(type, 'feat!')
+        assert.strictEqual(type, 'feat!')
       })
     })
 
@@ -111,7 +111,7 @@ describe('getCommitType', () => {
       it('returns the type with a `!`', () => {
         const type = getCommitType('feat!: a breaking change')
 
-        assert.equal(type, 'feat!')
+        assert.strictEqual(type, 'feat!')
       })
     })
   })
@@ -120,7 +120,7 @@ describe('getCommitType', () => {
     it('should not have a `!` as part of the type', () => {
       const type = getCommitType('revert: feat(scope)!: a wrench was thrown')
 
-      assert.equal(type, 'revert')
+      assert.strictEqual(type, 'revert')
     })
   })
 })

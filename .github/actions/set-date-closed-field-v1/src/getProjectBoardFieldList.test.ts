@@ -1,10 +1,11 @@
-import 'mocha'
-import sinon from 'sinon'
-import { assert } from 'chai'
+import { describe, it, beforeEach, mock } from 'node:test'
+import { strict as assert } from 'node:assert'
 import { getOctokit } from '@actions/github'
 import getProjectBoardFieldList, {
   ProjectFieldNode
 } from './getProjectBoardFieldList'
+
+type Graphql = ReturnType<typeof getOctokit>['graphql']
 
 const owner = 'test-org'
 const projectNumber = 123
@@ -62,18 +63,16 @@ const SECOND_PAGE_RESPONSE = {
 }
 
 describe('getProjectBoardFieldList', () => {
-  let octokit: ReturnType<typeof getOctokit>
-  let graphql: sinon.SinonStub
+  const graphql = mock.fn<Graphql>()
+  const octokit = { graphql } as unknown as ReturnType<typeof getOctokit>
 
   beforeEach(() => {
-    octokit = getOctokit('token')
-    graphql = sinon.stub(octokit, 'graphql')
+    graphql.mock.resetCalls()
   })
 
-  afterEach(sinon.restore)
-
   it('should return all fields from a single page', async () => {
-    graphql.resolves(SINGLE_PAGE_RESPONSE)
+    graphql.mock.mockImplementation((() =>
+      Promise.resolve(SINGLE_PAGE_RESPONSE)) as unknown as Graphql)
 
     const result = await getProjectBoardFieldList({
       octokit,
@@ -81,13 +80,15 @@ describe('getProjectBoardFieldList', () => {
       owner
     })
 
-    assert.deepEqual(result, FIRST_PAGE_FIELDS)
-    assert.isTrue(graphql.calledOnce)
+    assert.deepStrictEqual(result, FIRST_PAGE_FIELDS)
+    assert.strictEqual(graphql.mock.callCount(), 1)
   })
 
   it('should paginate and return all fields from multiple pages', async () => {
-    graphql.onCall(0).resolves(FIRST_PAGE_RESPONSE)
-    graphql.onCall(1).resolves(SECOND_PAGE_RESPONSE)
+    const responses = [FIRST_PAGE_RESPONSE, SECOND_PAGE_RESPONSE]
+    let callIndex = 0
+    graphql.mock.mockImplementation((() =>
+      Promise.resolve(responses[callIndex++])) as unknown as Graphql)
 
     const result = await getProjectBoardFieldList({
       octokit,
@@ -95,13 +96,18 @@ describe('getProjectBoardFieldList', () => {
       owner
     })
 
-    assert.deepEqual(result, [...FIRST_PAGE_FIELDS, ...SECOND_PAGE_FIELDS])
-    assert.isTrue(graphql.calledTwice)
+    assert.deepStrictEqual(result, [
+      ...FIRST_PAGE_FIELDS,
+      ...SECOND_PAGE_FIELDS
+    ])
+    assert.strictEqual(graphql.mock.callCount(), 2)
   })
 
   it('should pass cursor to subsequent graphql calls', async () => {
-    graphql.onCall(0).resolves(FIRST_PAGE_RESPONSE)
-    graphql.onCall(1).resolves(SECOND_PAGE_RESPONSE)
+    const responses = [FIRST_PAGE_RESPONSE, SECOND_PAGE_RESPONSE]
+    let callIndex = 0
+    graphql.mock.mockImplementation((() =>
+      Promise.resolve(responses[callIndex++])) as unknown as Graphql)
 
     await getProjectBoardFieldList({
       octokit,
@@ -109,25 +115,28 @@ describe('getProjectBoardFieldList', () => {
       owner
     })
 
-    const secondCallArgs = graphql.secondCall.args[1]
-    assert.equal(secondCallArgs.cursor, 'cursor_page_1')
+    const secondCallArgs = graphql.mock.calls[1].arguments[1] as {
+      cursor: string
+    }
+    assert.strictEqual(secondCallArgs.cursor, 'cursor_page_1')
   })
 
   it('should throw an error with correct message when graphql fails', async () => {
     const errorMessage = 'GraphQL error'
-    graphql.rejects(new Error(errorMessage))
+    graphql.mock.mockImplementation((() =>
+      Promise.reject(new Error(errorMessage))) as unknown as Graphql)
 
-    try {
-      await getProjectBoardFieldList({
+    await assert.rejects(
+      getProjectBoardFieldList({
         octokit,
         projectNumber,
         owner
-      })
-      assert.fail('Expected error to be thrown')
-    } catch (err) {
-      const error = err as Error
-      assert.include(error.message, 'Error getting project field list:')
-      assert.include(error.message, errorMessage)
-    }
+      }),
+      (err: Error) => {
+        assert.ok(err.message.includes('Error getting project field list:'))
+        assert.ok(err.message.includes(errorMessage))
+        return true
+      }
+    )
   })
 })

@@ -1,6 +1,6 @@
-import sinon, { type SinonFakeTimers } from 'sinon'
-import { assert } from 'chai'
-import run, { type Core } from './run'
+import { describe, it, mock } from 'node:test'
+import { strict as assert } from 'node:assert'
+import run, { type Core } from './run.ts'
 
 const testCases = [
   {
@@ -22,67 +22,72 @@ const testCases = [
 ]
 
 describe('run', () => {
-  let clock: SinonFakeTimers
-
-  afterEach(() => {
-    sinon.restore()
-  })
-
   it('fails if oddWeek is not given', () => {
+    const setFailed = mock.fn<(message: string) => void>()
     const core = {
-      getInput: sinon
-        .stub()
-        .withArgs('oddWeek', { required: true })
-        .throws({ message: 'oddWeek input is not given' }),
-      setFailed: sinon.spy()
-    }
+      getInput: mock.fn(() => {
+        throw new Error('oddWeek input is not given')
+      }),
+      setFailed
+    } as unknown as Core
 
-    run(core as unknown as Core)
-    assert.isTrue(core.setFailed.calledOnceWith('oddWeek input is not given'))
+    run(core)
+
+    assert.strictEqual(setFailed.mock.callCount(), 1)
+    assert.strictEqual(
+      setFailed.mock.calls[0].arguments[0],
+      'oddWeek input is not given'
+    )
   })
 
   it('fails if oddWeek is not either true or false', () => {
+    const setFailed = mock.fn<(message: string) => void>()
     const core = {
-      getInput: sinon
-        .stub()
-        .withArgs('oddWeek', { required: true })
-        .returns('1'),
-      setFailed: sinon.spy()
-    }
+      getInput: mock.fn(() => '1'),
+      setFailed
+    } as unknown as Core
 
-    run(core as unknown as Core)
-    assert.isTrue(
-      core.setFailed.calledOnceWith('`oddWeek` must be "true" or "false"')
+    run(core)
+
+    assert.strictEqual(setFailed.mock.callCount(), 1)
+    assert.strictEqual(
+      setFailed.mock.calls[0].arguments[0],
+      '`oddWeek` must be "true" or "false"'
     )
   })
 
   testCases.map(({ weekType, today, cases }) => {
     describe(`when it is the ${weekType} week`, () => {
-      beforeEach(() => {
-        clock = sinon.useFakeTimers(today)
-      })
-
-      afterEach(() => {
-        clock.restore()
-      })
-
       cases.map(({ oddWeek, isReleaseWeek }) => {
         describe(`when oddWeek input is ${oddWeek}`, () => {
-          it(`sets isReleaseWeek output to ${isReleaseWeek}`, () => {
-            const core = {
-              getInput: sinon
-                .stub()
-                .withArgs('oddWeek', { required: true })
-                .returns(oddWeek.toString()),
-              setOutput: sinon.spy(),
-              info: sinon.spy()
-            }
+          it(`sets isReleaseWeek output to ${isReleaseWeek}`, t => {
+            t.mock.timers.enable({ apis: ['Date'] })
+            t.mock.timers.setTime(today.getTime())
 
-            run(core as unknown as Core)
-            assert.isTrue(
-              core.setOutput.calledOnceWith('isReleaseWeek', isReleaseWeek)
+            const setOutput = mock.fn<(name: string, value: boolean) => void>()
+            const info = mock.fn<(message: string) => void>()
+            const core = {
+              getInput: mock.fn(() => oddWeek.toString()),
+              setOutput,
+              info
+            } as unknown as Core
+
+            run(core)
+
+            assert.strictEqual(setOutput.mock.callCount(), 1)
+            assert.strictEqual(
+              setOutput.mock.calls[0].arguments[0],
+              'isReleaseWeek'
             )
-            assert.isTrue(core.info.calledOnceWith('Set isReleaseWeek output'))
+            assert.strictEqual(
+              setOutput.mock.calls[0].arguments[1],
+              isReleaseWeek
+            )
+            assert.strictEqual(info.mock.callCount(), 1)
+            assert.strictEqual(
+              info.mock.calls[0].arguments[0],
+              'Set isReleaseWeek output'
+            )
           })
         })
       })
