@@ -1,6 +1,7 @@
 import type { Core } from './types'
 import { glob } from 'glob'
 import { getExecOutput } from '@actions/exec'
+import { readFile } from 'fs/promises'
 import path from 'path'
 import semver from 'semver'
 import type { PackageManager } from './types'
@@ -39,7 +40,7 @@ export default async function run(
 
     for (const filePath of packages) {
       core.info(`package.json found in ${filePath}`)
-      const pkg = await import(filePath)
+      const pkg = JSON.parse(await readFile(filePath, 'utf8'))
 
       const peerDep = pkg.peerDependencies?.['axe-core']
       if (peerDep) {

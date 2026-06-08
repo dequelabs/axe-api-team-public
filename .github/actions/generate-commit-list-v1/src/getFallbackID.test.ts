@@ -1,53 +1,56 @@
-import 'mocha'
-import { assert } from 'chai'
-import sinon from 'sinon'
-import * as exec from '@actions/exec'
-import getFallbackID from './getFallbackID'
+import { describe, it, beforeEach, mock } from 'node:test'
+import { strict as assert } from 'node:assert'
+
+type ExecOutput = { stdout: string; stderr: string; exitCode: number }
+
+const getExecOutput = mock.fn<
+  (cmd: string, args?: string[]) => Promise<ExecOutput>
+>(() => Promise.resolve({ stdout: '', stderr: '', exitCode: 0 }))
+mock.module('@actions/exec', { namedExports: { getExecOutput } })
+
+const { default: getFallbackID } = await import('./getFallbackID.ts')
 
 describe('getFallbackID', () => {
-  let getExecOutputStub: sinon.SinonStub
-
   beforeEach(() => {
-    getExecOutputStub = sinon.stub(exec, 'getExecOutput')
+    getExecOutput.mock.resetCalls()
+    getExecOutput.mock.mockImplementation(() =>
+      Promise.resolve({ stdout: '', stderr: '', exitCode: 0 })
+    )
   })
-
-  afterEach(sinon.restore)
 
   describe('when the fallback method succeeds to get a PR ID', () => {
     it('returns the ID', async () => {
-      getExecOutputStub.resolves({
-        exitCode: 0,
-        stdout: '123',
-        stderr: ''
-      })
+      getExecOutput.mock.mockImplementation(() =>
+        Promise.resolve({ exitCode: 0, stdout: '123', stderr: '' })
+      )
 
       const fallbackID = await getFallbackID('abc')
 
-      assert.equal(fallbackID, '123')
+      assert.strictEqual(fallbackID, '123')
     })
   })
 
   describe('when the fallback method fails to get a PR ID', () => {
     it('returns null', async () => {
-      getExecOutputStub.throws({
-        stdout: ''
+      getExecOutput.mock.mockImplementation(() => {
+        throw { stdout: '' }
       })
 
       const fallbackID = await getFallbackID('abc')
 
-      assert.isNull(fallbackID)
+      assert.strictEqual(fallbackID, null)
     })
   })
 
   describe('when the fallback method throws an error', () => {
     it('returns null', async () => {
-      getExecOutputStub.throws({
-        stdout: ''
+      getExecOutput.mock.mockImplementation(() => {
+        throw { stdout: '' }
       })
 
       const fallbackID = await getFallbackID('abc')
 
-      assert.isNull(fallbackID)
+      assert.strictEqual(fallbackID, null)
     })
   })
 })

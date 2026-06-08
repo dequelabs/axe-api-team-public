@@ -1,42 +1,51 @@
-import 'mocha'
-import { assert } from 'chai'
-import * as exec from '@actions/exec'
-import sinon from 'sinon'
-import getProjectBoardID from './getProjectBoardID'
+import { describe, it, beforeEach, mock } from 'node:test'
+import { strict as assert } from 'node:assert'
+
+type ExecOutput = { stdout: string; stderr: string; exitCode: number }
+
+const getExecOutput = mock.fn<(cmd: string) => Promise<ExecOutput>>(() =>
+  Promise.resolve({ stdout: '', stderr: '', exitCode: 0 })
+)
+mock.module('@actions/exec', { namedExports: { getExecOutput } })
+
+const { default: getProjectBoardID } = await import('./getProjectBoardID.ts')
 
 export const MOCK_PROJECT_BOARD_ID = {
   id: '123'
 }
 
 describe('getProjectBoardID', () => {
-  let getExecOutput: sinon.SinonStub
-
   beforeEach(() => {
-    getExecOutput = sinon.stub(exec, 'getExecOutput')
+    getExecOutput.mock.resetCalls()
+    getExecOutput.mock.mockImplementation(() =>
+      Promise.resolve({ stdout: '', stderr: '', exitCode: 0 })
+    )
   })
-
-  afterEach(sinon.restore)
 
   describe('when given a valid project number and owner', () => {
     it('returns the project board ID', async () => {
-      getExecOutput.resolves({
-        stdout: JSON.stringify(MOCK_PROJECT_BOARD_ID),
-        stderr: '',
-        exitCode: 0
-      })
+      getExecOutput.mock.mockImplementation(() =>
+        Promise.resolve({
+          stdout: JSON.stringify(MOCK_PROJECT_BOARD_ID),
+          stderr: '',
+          exitCode: 0
+        })
+      )
 
       const projectBoardID = await getProjectBoardID({
         projectNumber: 66,
         owner: 'owner'
       })
 
-      assert.deepEqual(projectBoardID, MOCK_PROJECT_BOARD_ID)
+      assert.deepStrictEqual(projectBoardID, MOCK_PROJECT_BOARD_ID)
     })
   })
 
   describe('when getting the project board ID fails', () => {
     it('throws an error', async () => {
-      getExecOutput.rejects(new Error('Error getting project board ID'))
+      getExecOutput.mock.mockImplementation(() =>
+        Promise.reject(new Error('Error getting project board ID'))
+      )
       let error: Error | null = null
 
       try {
@@ -48,8 +57,8 @@ describe('getProjectBoardID', () => {
         error = err as Error
       }
 
-      assert.isNotNull(error)
-      assert.include(error?.message, 'Error getting project board ID')
+      assert.notStrictEqual(error, null)
+      assert.ok(error?.message.includes('Error getting project board ID'))
     })
   })
 })

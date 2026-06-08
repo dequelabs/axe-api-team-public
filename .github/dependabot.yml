@@ -28,18 +28,6 @@ updates:
     open-pull-requests-limit: 10
     commit-message:
       prefix: 'chore'
-    ignore:
-      # Prevent updates to ESM-only versions
-      - dependency-name: 'chai'
-        versions: ['>=5']
-      - dependency-name: 'conventional-commits-parser'
-        versions: ['>=6']
-      - dependency-name: '@actions/github'
-        versions: ['>=9']
-      - dependency-name: '@actions/exec'
-        versions: ['>=3']
-      - dependency-name: '@actions/core'
-        versions: ['>=3']
     groups:
       eslint:
         patterns:

@@ -20,7 +20,6 @@ export default async function getParsedCommitList({
      * it will grow as the repo grows to keep it unique.
      * @see https://git-scm.com/book/en/v2/Git-Tools-Revision-Selection#Short-SHA-1
      */
-    //eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     const shaAndTitle = commit.match(/^([0-9a-f]+) (.+?)(?:\s\(#\d+\))?$/)!
     const sha = shaAndTitle[1]
     const title = shaAndTitle[2]

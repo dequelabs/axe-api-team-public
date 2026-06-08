@@ -1,10 +1,12 @@
 {
   "compilerOptions": {
     "target": "es2024",
-    "module": "commonjs",
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "lib": ["dom", "es2024"],
-    "declaration": true,
-    "outDir": "dist",
+    "types": ["node"],
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
     "noImplicitReturns": true,
     "esModuleInterop": true,
     "noFallthroughCasesInSwitch": true,
@@ -12,10 +14,8 @@
     "forceConsistentCasingInFileNames": true,
     "pretty": true,
     "strict": true,
-    "sourceMap": true,
     "noImplicitAny": true,
-    "resolveJsonModule": true,
-    "removeComments": true
+    "resolveJsonModule": true
   },
-  "exclude": ["**/*.test.ts", "**/test/**/*.ts"]
+  "exclude": ["**/node_modules", "**/dist"]
 }

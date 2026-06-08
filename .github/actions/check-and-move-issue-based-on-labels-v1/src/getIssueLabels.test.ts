@@ -1,8 +1,7 @@
-import 'mocha'
-import sinon from 'sinon'
-import { assert } from 'chai'
-import { getOctokit } from '@actions/github'
-import getIssueLabels, { GetIssueLabelsResult } from './getIssueLabels'
+import { describe, it, beforeEach, mock } from 'node:test'
+import { strict as assert } from 'node:assert'
+import type { getOctokit } from '@actions/github'
+import type { GetIssueLabelsResult } from './getIssueLabels.ts'
 
 const MOCK_ISSUES: GetIssueLabelsResult = {
   repository: {
@@ -37,18 +36,20 @@ const MOCK_ISSUES: GetIssueLabelsResult = {
   }
 }
 
-describe('getIssueLabels', () => {
-  let octokit: ReturnType<typeof getOctokit>
+const graphql = mock.fn<() => Promise<GetIssueLabelsResult>>(() =>
+  Promise.resolve(MOCK_ISSUES)
+)
+const octokit = { graphql } as unknown as ReturnType<typeof getOctokit>
 
+const { default: getIssueLabels } = await import('./getIssueLabels.ts')
+
+describe('getIssueLabels', () => {
   beforeEach(() => {
-    octokit = getOctokit('token')
+    graphql.mock.resetCalls()
+    graphql.mock.mockImplementation(() => Promise.resolve(MOCK_ISSUES))
   })
 
-  afterEach(sinon.restore)
-
   it('should return issues with their labels', async () => {
-    sinon.stub(octokit, 'graphql').resolves(MOCK_ISSUES)
-
     const result = await getIssueLabels({
       issueOwner: 'owner',
       issueRepo: 'repo',
@@ -56,14 +57,16 @@ describe('getIssueLabels', () => {
       octokit
     })
 
-    assert.deepEqual(result, MOCK_ISSUES)
+    assert.deepStrictEqual(result, MOCK_ISSUES)
   })
 
   describe('when an error occurs', () => {
     it('should throw an error', async () => {
       const errorMessage = 'some error'
 
-      sinon.stub(octokit, 'graphql').throws(new Error(errorMessage))
+      graphql.mock.mockImplementation(() => {
+        throw new Error(errorMessage)
+      })
 
       let error: Error | null = null
 
@@ -78,8 +81,8 @@ describe('getIssueLabels', () => {
         error = err as Error
       }
 
-      assert.isNotNull(error)
-      assert.include(error?.message, errorMessage)
+      assert.strictEqual(error !== null, true)
+      assert.ok(error?.message.includes(errorMessage))
     })
   })
 })

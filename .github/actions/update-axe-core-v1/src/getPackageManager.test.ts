@@ -1,79 +1,82 @@
-import 'mocha'
-import { assert } from 'chai'
-import sinon from 'sinon'
-import * as fs from 'fs'
-import getPackageManager from './getPackageManager'
+import { describe, it, beforeEach, mock } from 'node:test'
+import { strict as assert } from 'node:assert'
+
+type StatResult = Record<string, never>
+
+// Set of path substrings that should resolve (file "exists"); anything else throws.
+let existing = new Set<string>()
+
+const stat = mock.fn<(filePath: string) => Promise<StatResult>>(
+  async (filePath: string) => {
+    for (const fragment of existing) {
+      if (filePath.includes(fragment)) {
+        return {}
+      }
+    }
+    throw new Error('ENOENT')
+  }
+)
+
+mock.module('fs', { namedExports: { promises: { stat } } })
+
+const { default: getPackageManager } = await import('./getPackageManager.ts')
 
 describe('getPackageManager', () => {
-  let statStub: sinon.SinonStub
-
   beforeEach(() => {
-    statStub = sinon.stub(fs.promises, 'stat')
-  })
-
-  afterEach(() => {
-    statStub.restore()
+    existing = new Set<string>()
+    stat.mock.resetCalls()
   })
 
   it('returns "npm" if package-lock.json exists', async () => {
-    statStub.withArgs(sinon.match('package-lock.json')).returns({})
+    existing.add('package-lock.json')
     const result = await getPackageManager('path/to/file')
 
-    assert.equal(result, 'npm')
+    assert.strictEqual(result, 'npm')
   })
 
   it('returns "yarn" if yarn.lock exists', async () => {
-    statStub.withArgs(sinon.match('package-lock.json')).throws()
-    statStub.withArgs(sinon.match('yarn.lock')).returns({})
+    existing.add('yarn.lock')
     const result = await getPackageManager('path/to/file')
 
-    assert.equal(result, 'yarn')
+    assert.strictEqual(result, 'yarn')
   })
 
   it('returns "pnpm" if pnpm-lock.yaml exists', async () => {
-    statStub.withArgs(sinon.match('package-lock.json')).throws()
-    statStub.withArgs(sinon.match('yarn.lock')).throws()
-    statStub.withArgs(sinon.match('pnpm-lock.yaml')).returns({})
+    existing.add('pnpm-lock.yaml')
     const result = await getPackageManager('path/to/file')
 
-    assert.equal(result, 'pnpm')
+    assert.strictEqual(result, 'pnpm')
   })
 
   it('prefers npm over yarn and pnpm', async () => {
-    statStub.withArgs(sinon.match('package-lock.json')).returns({})
-    statStub.withArgs(sinon.match('yarn.lock')).returns({})
-    statStub.withArgs(sinon.match('pnpm-lock.yaml')).returns({})
+    existing.add('package-lock.json')
+    existing.add('yarn.lock')
+    existing.add('pnpm-lock.yaml')
     const result = await getPackageManager('path/to/file')
 
-    assert.equal(result, 'npm')
+    assert.strictEqual(result, 'npm')
   })
 
   it('prefers yarn over pnpm', async () => {
-    statStub.withArgs(sinon.match('package-lock.json')).throws()
-    statStub.withArgs(sinon.match('yarn.lock')).returns({})
-    statStub.withArgs(sinon.match('pnpm-lock.yaml')).returns({})
+    existing.add('yarn.lock')
+    existing.add('pnpm-lock.yaml')
     const result = await getPackageManager('path/to/file')
 
-    assert.equal(result, 'yarn')
+    assert.strictEqual(result, 'yarn')
   })
 
   it('returns undefined if no lock file exists', async () => {
-    statStub.withArgs(sinon.match('package-lock.json')).throws()
-    statStub.withArgs(sinon.match('yarn.lock')).throws()
-    statStub.withArgs(sinon.match('pnpm-lock.yaml')).throws()
     const result = await getPackageManager('path/to/file')
 
-    assert.isUndefined(result)
+    assert.strictEqual(result, undefined)
   })
 
   it('uses the passed in path', async () => {
-    statStub.withArgs(sinon.match('package-lock.json')).throws()
-    statStub.withArgs(sinon.match('yarn.lock')).throws()
-    statStub.withArgs(sinon.match('pnpm-lock.yaml')).throws()
     await getPackageManager('path/to/file')
 
-    assert.isTrue(statStub.calledWith('path/to/file/package-lock.json'))
-    assert.isTrue(statStub.calledWith('path/to/file/yarn.lock'))
-    assert.isTrue(statStub.calledWith('path/to/file/pnpm-lock.yaml'))
+    const calledArgs = stat.mock.calls.map(call => call.arguments[0])
+    assert.ok(calledArgs.includes('path/to/file/package-lock.json'))
+    assert.ok(calledArgs.includes('path/to/file/yarn.lock'))
+    assert.ok(calledArgs.includes('path/to/file/pnpm-lock.yaml'))
   })
 })
