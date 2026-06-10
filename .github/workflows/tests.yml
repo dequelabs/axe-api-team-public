@@ -172,7 +172,7 @@ jobs:
           node-version: 24
           cache: 'npm'
       - run: npm ci
-      - run: npm run coverage --workspace=get-release-issue-v1
+      - run: npm run test --workspace=get-release-issue-v1
 
   get-new-env-vars-v1:
     runs-on: ubuntu-latest
