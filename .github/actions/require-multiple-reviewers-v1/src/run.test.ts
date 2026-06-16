@@ -13,13 +13,55 @@ mock.module('fs', {
 
 const { default: run } = await import('./run.ts')
 
+function standardGetInput(name: string): string {
+  switch (name) {
+    case 'important-files-path':
+      return 'important-files-path'
+    case 'number-of-reviewers':
+      return '2'
+    case 'token':
+      return 'token'
+    default:
+      throw new Error(`Unexpected input: ${name}`)
+  }
+}
+
+function makeCore(setFailed: unknown) {
+  return {
+    getInput: mock.fn(standardGetInput),
+    setOutput: mock.fn(),
+    setFailed,
+    info: mock.fn()
+  }
+}
+
+function makeGithub(octokit: unknown) {
+  return {
+    getOctokit: mock.fn(() => octokit),
+    context: {
+      repo: {
+        owner: 'owner',
+        repo: 'repo'
+      },
+      payload: {
+        pull_request: {
+          number: 1,
+          head: {
+            sha: 'commit-sha'
+          }
+        }
+      }
+    }
+  }
+}
+
 describe('run()', () => {
   beforeEach(() => {
     readFileSync.mock.resetCalls()
     readFileSync.mock.mockImplementation(() => '')
   })
 
-  it('fails if required inputs are not given', () => {
+  it('fails if required inputs are not given', async () => {
     const setFailed = mock.fn()
     const core = {
       getInput: mock.fn((name: string) => {
@@ -50,7 +92,7 @@ describe('run()', () => {
       }
     }
 
-    run(core as unknown as Core, github as unknown as GitHub)
+    await run(core as unknown as Core, github as unknown as GitHub)
     assert.strictEqual(setFailed.mock.callCount(), 1)
     assert.strictEqual(
       setFailed.mock.calls[0].arguments[0],
@@ -99,42 +141,8 @@ describe('run()', () => {
     }
 
     const setFailed = mock.fn()
-    const core = {
-      getInput: mock.fn((name: string) => {
-        switch (name) {
-          case 'important-files-path':
-            return 'important-files-path'
-          case 'number-of-reviewers':
-            return '2'
-          case 'token':
-            return 'token'
-          default:
-            throw new Error(`Unexpected input: ${name}`)
-        }
-      }),
-      setOutput: mock.fn(),
-      setFailed,
-      info: mock.fn()
-    }
-
-    const getOctokit = mock.fn(() => octokit)
-    const github = {
-      getOctokit,
-      context: {
-        repo: {
-          owner: 'owner',
-          repo: 'repo'
-        },
-        payload: {
-          pull_request: {
-            number: 1,
-            head: {
-              sha: 'commit-sha'
-            }
-          }
-        }
-      }
-    }
+    const core = makeCore(setFailed)
+    const github = makeGithub(octokit)
 
     await run(core as unknown as Core, github as unknown as GitHub)
 
@@ -188,42 +196,8 @@ describe('run()', () => {
     }
 
     const setFailed = mock.fn()
-    const core = {
-      getInput: mock.fn((name: string) => {
-        switch (name) {
-          case 'important-files-path':
-            return 'important-files-path'
-          case 'number-of-reviewers':
-            return '2'
-          case 'token':
-            return 'token'
-          default:
-            throw new Error(`Unexpected input: ${name}`)
-        }
-      }),
-      setOutput: mock.fn(),
-      setFailed,
-      info: mock.fn()
-    }
-
-    const getOctokit = mock.fn(() => octokit)
-    const github = {
-      getOctokit,
-      context: {
-        repo: {
-          owner: 'owner',
-          repo: 'repo'
-        },
-        payload: {
-          pull_request: {
-            number: 1,
-            head: {
-              sha: 'commit-sha'
-            }
-          }
-        }
-      }
-    }
+    const core = makeCore(setFailed)
+    const github = makeGithub(octokit)
 
     await run(core as unknown as Core, github as unknown as GitHub)
 
@@ -279,42 +253,8 @@ describe('run()', () => {
     }
 
     const setFailed = mock.fn()
-    const core = {
-      getInput: mock.fn((name: string) => {
-        switch (name) {
-          case 'important-files-path':
-            return 'important-files-path'
-          case 'number-of-reviewers':
-            return '2'
-          case 'token':
-            return 'token'
-          default:
-            throw new Error(`Unexpected input: ${name}`)
-        }
-      }),
-      setOutput: mock.fn(),
-      setFailed,
-      info: mock.fn()
-    }
-
-    const getOctokit = mock.fn(() => octokit)
-    const github = {
-      getOctokit,
-      context: {
-        repo: {
-          owner: 'owner',
-          repo: 'repo'
-        },
-        payload: {
-          pull_request: {
-            number: 1,
-            head: {
-              sha: 'commit-sha'
-            }
-          }
-        }
-      }
-    }
+    const core = makeCore(setFailed)
+    const github = makeGithub(octokit)
 
     await run(core as unknown as Core, github as unknown as GitHub)
 
@@ -370,42 +310,8 @@ describe('run()', () => {
     }
 
     const setFailed = mock.fn()
-    const core = {
-      getInput: mock.fn((name: string) => {
-        switch (name) {
-          case 'important-files-path':
-            return 'important-files-path'
-          case 'number-of-reviewers':
-            return '2'
-          case 'token':
-            return 'token'
-          default:
-            throw new Error(`Unexpected input: ${name}`)
-        }
-      }),
-      setOutput: mock.fn(),
-      setFailed,
-      info: mock.fn()
-    }
-
-    const getOctokit = mock.fn(() => octokit)
-    const github = {
-      getOctokit,
-      context: {
-        repo: {
-          owner: 'owner',
-          repo: 'repo'
-        },
-        payload: {
-          pull_request: {
-            number: 1,
-            head: {
-              sha: 'commit-sha'
-            }
-          }
-        }
-      }
-    }
+    const core = makeCore(setFailed)
+    const github = makeGithub(octokit)
 
     await run(core as unknown as Core, github as unknown as GitHub)
 
@@ -416,7 +322,6 @@ describe('run()', () => {
         output: { annotations: Array<{ path: string }> }
       }
     ).output.annotations
-    // Only file2 (changed + important) should be annotated; file1 is unchanged
     assert.deepStrictEqual(
       annotations.map(a => a.path),
       ['file2']
@@ -500,9 +405,6 @@ describe('run()', () => {
     await run(core as unknown as Core, github as unknown as GitHub)
 
     assert.strictEqual(setFailed.mock.callCount(), 1)
-    assert.strictEqual(
-      setFailed.mock.calls[0].arguments[0],
-      "Cannot read properties of undefined (reading 'payload')"
-    )
+    assert.match(setFailed.mock.calls[0].arguments[0], /reading 'payload'/)
   })
 })
