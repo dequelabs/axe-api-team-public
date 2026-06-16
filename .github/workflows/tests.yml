@@ -42,7 +42,7 @@ jobs:
           node-version: 24
           cache: 'npm'
       - run: npm ci
-      - run: npm run coverage --workspace=semantic-pr-footer-v1
+      - run: npm run test --workspace=semantic-pr-footer-v1
 
   is-release-week-v1:
     runs-on: ubuntu-latest

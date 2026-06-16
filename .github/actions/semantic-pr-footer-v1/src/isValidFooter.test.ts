@@ -1,5 +1,6 @@
-import { assert } from 'chai'
-import isValidFooter from './isValidFooter'
+import { describe, it } from 'node:test'
+import { strict as assert } from 'node:assert'
+import isValidFooter from './isValidFooter.ts'
 
 describe('isValidFooter', () => {
   const validCases = [
@@ -35,23 +36,23 @@ describe('isValidFooter', () => {
 
   for (const validCase of validCases) {
     it(`returns true for "${validCase}"`, () => {
-      assert.isTrue(isValidFooter(validCase))
+      assert.ok(isValidFooter(validCase))
     })
   }
 
   it('returns false for empty footer', () => {
-    assert.isFalse(isValidFooter(''))
+    assert.ok(!isValidFooter(''))
   })
 
   it('returns false for invalid footer', () => {
-    assert.isFalse(isValidFooter('No footer'))
+    assert.ok(!isValidFooter('No footer'))
   })
 
   it('returns false without white space after colon', () => {
-    assert.isFalse(isValidFooter('Closes:'))
+    assert.ok(!isValidFooter('Closes:'))
   })
 
   it('ignores case', () => {
-    assert.isTrue(isValidFooter('closes: '))
+    assert.ok(isValidFooter('closes: '))
   })
 })
