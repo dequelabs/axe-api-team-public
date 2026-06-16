@@ -185,4 +185,4 @@ jobs:
           node-version: 24
           cache: 'npm'
       - run: npm ci
-      - run: npm run coverage --workspace=get-new-env-vars-v1
+      - run: npm run test --workspace=get-new-env-vars-v1
