@@ -1,10 +1,15 @@
-import 'mocha'
-import { assert } from 'chai'
-import * as exec from '@actions/exec'
-import sinon from 'sinon'
-import addIssueToBoard, {
-  type AddIssueToBoardResponse
-} from './addIssueToBoard'
+import { describe, it, beforeEach, mock } from 'node:test'
+import { strict as assert } from 'node:assert'
+import type { AddIssueToBoardResponse } from './addIssueToBoard.ts'
+
+type ExecOutput = { stdout: string; stderr: string; exitCode: number }
+
+const getExecOutput = mock.fn<(cmd: string) => Promise<ExecOutput>>(() =>
+  Promise.resolve({ stdout: '', stderr: '', exitCode: 0 })
+)
+mock.module('@actions/exec', { namedExports: { getExecOutput } })
+
+const { default: addIssueToBoard } = await import('./addIssueToBoard.ts')
 
 export const MOCK_ISSUE_ADDED: AddIssueToBoardResponse = {
   id: '123',
@@ -15,21 +20,22 @@ export const MOCK_ISSUE_ADDED: AddIssueToBoardResponse = {
 }
 
 describe('addIssueToBoard', () => {
-  let getExecOutput: sinon.SinonStub
-
   beforeEach(() => {
-    getExecOutput = sinon.stub(exec, 'getExecOutput')
+    getExecOutput.mock.resetCalls()
+    getExecOutput.mock.mockImplementation(() =>
+      Promise.resolve({ stdout: '', stderr: '', exitCode: 0 })
+    )
   })
-
-  afterEach(sinon.restore)
 
   describe('when given a valid project number, owner, and issue URL', () => {
     it('adds the issue to the board', async () => {
-      getExecOutput.resolves({
-        stdout: JSON.stringify(MOCK_ISSUE_ADDED),
-        stderr: '',
-        exitCode: 0
-      })
+      getExecOutput.mock.mockImplementation(() =>
+        Promise.resolve({
+          stdout: JSON.stringify(MOCK_ISSUE_ADDED),
+          stderr: '',
+          exitCode: 0
+        })
+      )
 
       const issueAdded = await addIssueToBoard({
         projectNumber: 66,
@@ -37,13 +43,15 @@ describe('addIssueToBoard', () => {
         issueUrl: 'https://deque.bizzy.com'
       })
 
-      assert.deepEqual(issueAdded, MOCK_ISSUE_ADDED)
+      assert.deepStrictEqual(issueAdded, MOCK_ISSUE_ADDED)
     })
   })
 
   describe('when adding the issue to the board fails', () => {
     it('throws an error', async () => {
-      getExecOutput.rejects(new Error('Error adding issue to board'))
+      getExecOutput.mock.mockImplementation(() =>
+        Promise.reject(new Error('Error adding issue to board'))
+      )
       let error: Error | null = null
 
       try {
@@ -56,8 +64,8 @@ describe('addIssueToBoard', () => {
         error = err as Error
       }
 
-      assert.isNotNull(error)
-      assert.include(error?.message, 'Error adding issue to board')
+      assert.notStrictEqual(error, null)
+      assert.ok(error?.message.includes('Error adding issue to board'))
     })
   })
 })

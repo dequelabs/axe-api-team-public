@@ -120,7 +120,7 @@ jobs:
           node-version: 24
           cache: 'npm'
       - run: npm ci
-      - run: npm run coverage --workspace=add-to-board-v1
+      - run: npm run test --workspace=add-to-board-v1
 
   label-and-move-released-issues-v1:
     runs-on: ubuntu-latest

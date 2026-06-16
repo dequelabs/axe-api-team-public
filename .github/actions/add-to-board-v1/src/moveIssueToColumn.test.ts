@@ -1,10 +1,15 @@
-import 'mocha'
-import { assert } from 'chai'
-import * as exec from '@actions/exec'
-import sinon from 'sinon'
-import moveIssueToColumn, {
-  type MoveIssueToColumnResponse
-} from './moveIssueToColumn'
+import { describe, it, beforeEach, mock } from 'node:test'
+import { strict as assert } from 'node:assert'
+import type { MoveIssueToColumnResponse } from './moveIssueToColumn.ts'
+
+type ExecOutput = { stdout: string; stderr: string; exitCode: number }
+
+const getExecOutput = mock.fn<(cmd: string) => Promise<ExecOutput>>(() =>
+  Promise.resolve({ stdout: '', stderr: '', exitCode: 0 })
+)
+mock.module('@actions/exec', { namedExports: { getExecOutput } })
+
+const { default: moveIssueToColumn } = await import('./moveIssueToColumn.ts')
 
 export const MOCK_ISSUE_MOVED: MoveIssueToColumnResponse = {
   id: '123',
@@ -15,21 +20,22 @@ export const MOCK_ISSUE_MOVED: MoveIssueToColumnResponse = {
 }
 
 describe('moveIssueToColumn', () => {
-  let getExecOutput: sinon.SinonStub
-
   beforeEach(() => {
-    getExecOutput = sinon.stub(exec, 'getExecOutput')
+    getExecOutput.mock.resetCalls()
+    getExecOutput.mock.mockImplementation(() =>
+      Promise.resolve({ stdout: '', stderr: '', exitCode: 0 })
+    )
   })
-
-  afterEach(sinon.restore)
 
   describe('when given a valid issue card ID, field ID, field column ID, and project ID', () => {
     it('moves the issue to the column', async () => {
-      getExecOutput.resolves({
-        stdout: JSON.stringify(MOCK_ISSUE_MOVED),
-        stderr: '',
-        exitCode: 0
-      })
+      getExecOutput.mock.mockImplementation(() =>
+        Promise.resolve({
+          stdout: JSON.stringify(MOCK_ISSUE_MOVED),
+          stderr: '',
+          exitCode: 0
+        })
+      )
 
       const issueMoved = await moveIssueToColumn({
         issueCardID: '123',
@@ -38,13 +44,15 @@ describe('moveIssueToColumn', () => {
         projectID: '101112'
       })
 
-      assert.deepEqual(issueMoved, MOCK_ISSUE_MOVED)
+      assert.deepStrictEqual(issueMoved, MOCK_ISSUE_MOVED)
     })
   })
 
   describe('when moving the issue to the column fails', () => {
     it('throws an error', async () => {
-      getExecOutput.rejects(new Error('Error moving issue to column'))
+      getExecOutput.mock.mockImplementation(() =>
+        Promise.reject(new Error('Error moving issue to column'))
+      )
       let error: Error | null = null
 
       try {
@@ -58,8 +66,8 @@ describe('moveIssueToColumn', () => {
         error = err as Error
       }
 
-      assert.isNotNull(error)
-      assert.include(error?.message, 'Error moving issue to column')
+      assert.notStrictEqual(error, null)
+      assert.ok(error?.message.includes('Error moving issue to column'))
     })
   })
 })
