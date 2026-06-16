@@ -1,8 +1,9 @@
-import 'mocha'
-import sinon from 'sinon'
-import { assert } from 'chai'
+import { describe, it, beforeEach, mock } from 'node:test'
+import { strict as assert } from 'node:assert'
 import { getOctokit } from '@actions/github'
 import getProjectItemId from './getProjectItemId'
+
+type Graphql = ReturnType<typeof getOctokit>['graphql']
 
 const owner = 'test-org'
 const repo = 'test-repo'
@@ -38,18 +39,16 @@ const GRAPHQL_RESPONSE = {
 }
 
 describe('getProjectItemId', () => {
-  let octokit: ReturnType<typeof getOctokit>
-  let graphql: sinon.SinonStub
+  const graphql = mock.fn<Graphql>()
+  const octokit = { graphql } as unknown as ReturnType<typeof getOctokit>
 
   beforeEach(() => {
-    octokit = getOctokit('token')
-    graphql = sinon.stub(octokit, 'graphql')
+    graphql.mock.resetCalls()
   })
 
-  afterEach(sinon.restore)
-
   it('should return itemId and projectId for matching project number', async () => {
-    graphql.resolves(GRAPHQL_RESPONSE)
+    graphql.mock.mockImplementation((() =>
+      Promise.resolve(GRAPHQL_RESPONSE)) as unknown as Graphql)
 
     const result = await getProjectItemId({
       octokit,
@@ -59,30 +58,31 @@ describe('getProjectItemId', () => {
       projectNumber
     })
 
-    assert.deepEqual(result, {
+    assert.deepStrictEqual(result, {
       itemId: MOCK_PROJECT_ITEM_ID,
       projectId: MOCK_PROJECT_ID
     })
   })
 
   it('should return null when issue is not in the specified project', async () => {
-    graphql.resolves({
-      repository: {
-        issue: {
-          projectItems: {
-            nodes: [
-              {
-                id: 'PVTI_other',
-                project: {
-                  number: 999,
-                  id: 'PVT_other'
+    graphql.mock.mockImplementation((() =>
+      Promise.resolve({
+        repository: {
+          issue: {
+            projectItems: {
+              nodes: [
+                {
+                  id: 'PVTI_other',
+                  project: {
+                    number: 999,
+                    id: 'PVT_other'
+                  }
                 }
-              }
-            ]
+              ]
+            }
           }
         }
-      }
-    })
+      })) as unknown as Graphql)
 
     const result = await getProjectItemId({
       octokit,
@@ -92,19 +92,20 @@ describe('getProjectItemId', () => {
       projectNumber
     })
 
-    assert.isNull(result)
+    assert.strictEqual(result, null)
   })
 
   it('should return null when issue has no project items', async () => {
-    graphql.resolves({
-      repository: {
-        issue: {
-          projectItems: {
-            nodes: []
+    graphql.mock.mockImplementation((() =>
+      Promise.resolve({
+        repository: {
+          issue: {
+            projectItems: {
+              nodes: []
+            }
           }
         }
-      }
-    })
+      })) as unknown as Graphql)
 
     const result = await getProjectItemId({
       octokit,
@@ -114,26 +115,27 @@ describe('getProjectItemId', () => {
       projectNumber
     })
 
-    assert.isNull(result)
+    assert.strictEqual(result, null)
   })
 
   it('should throw an error with correct message when graphql fails', async () => {
     const errorMessage = 'GraphQL error'
-    graphql.rejects(new Error(errorMessage))
+    graphql.mock.mockImplementation((() =>
+      Promise.reject(new Error(errorMessage))) as unknown as Graphql)
 
-    try {
-      await getProjectItemId({
+    await assert.rejects(
+      getProjectItemId({
         octokit,
         owner,
         repo,
         issueNumber,
         projectNumber
-      })
-      assert.fail('Expected error to be thrown')
-    } catch (err) {
-      const error = err as Error
-      assert.include(error.message, 'Failed to get project item ID:')
-      assert.include(error.message, errorMessage)
-    }
+      }),
+      (err: Error) => {
+        assert.ok(err.message.includes('Failed to get project item ID:'))
+        assert.ok(err.message.includes(errorMessage))
+        return true
+      }
+    )
   })
 })
