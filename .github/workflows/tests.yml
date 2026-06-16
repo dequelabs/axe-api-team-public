@@ -159,7 +159,7 @@ jobs:
           node-version: 24
           cache: 'npm'
       - run: npm ci
-      - run: npm run coverage --workspace=update-axe-core-v1
+      - run: npm run test --workspace=update-axe-core-v1
 
   get-release-issue-v1:
     runs-on: ubuntu-latest

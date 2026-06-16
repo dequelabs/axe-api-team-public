@@ -1,6 +1,6 @@
-import 'mocha'
-import { assert } from 'chai'
-import installScript from './installScript'
+import { describe, it } from 'node:test'
+import { strict as assert } from 'node:assert'
+import installScript from './installScript.ts'
 
 describe('installScript', () => {
   describe('when the package manager is npm', () => {
@@ -16,7 +16,7 @@ describe('installScript', () => {
         latestAxeCoreVersion,
         dependencyGroup
       })
-      assert.deepEqual(actual, expected)
+      assert.deepStrictEqual(actual, expected)
     })
 
     it('should return the correct install script for dev deps', () => {
@@ -31,7 +31,7 @@ describe('installScript', () => {
         latestAxeCoreVersion,
         dependencyGroup
       })
-      assert.deepEqual(actual, expected)
+      assert.deepStrictEqual(actual, expected)
     })
   })
 
@@ -48,7 +48,7 @@ describe('installScript', () => {
         latestAxeCoreVersion,
         dependencyGroup
       })
-      assert.deepEqual(actual, expected)
+      assert.deepStrictEqual(actual, expected)
     })
 
     it('should return the correct install script for dev deps', () => {
@@ -63,7 +63,7 @@ describe('installScript', () => {
         latestAxeCoreVersion,
         dependencyGroup
       })
-      assert.deepEqual(actual, expected)
+      assert.deepStrictEqual(actual, expected)
     })
   })
 
@@ -80,7 +80,7 @@ describe('installScript', () => {
         latestAxeCoreVersion,
         dependencyGroup
       })
-      assert.deepEqual(actual, expected)
+      assert.deepStrictEqual(actual, expected)
     })
 
     it('should return the correct install script for dev deps', () => {
@@ -95,7 +95,7 @@ describe('installScript', () => {
         latestAxeCoreVersion,
         dependencyGroup
       })
-      assert.deepEqual(actual, expected)
+      assert.deepStrictEqual(actual, expected)
     })
   })
 
@@ -114,7 +114,7 @@ describe('installScript', () => {
             latestAxeCoreVersion,
             dependencyGroup
           }),
-        `unsupported packageManager: ${packageManager}`
+        new RegExp(`unsupported packageManager: ${packageManager}`)
       )
     })
   })
