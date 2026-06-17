@@ -1,0 +1,11 @@
+{
+  "nodeOptions": {
+    "import": ["tsx"],
+    "test-reporter": ["spec"],
+    "test-coverage-include": ["src/**/*.ts"],
+    "test-coverage-exclude": ["src/**/*.test.ts", "src/index.ts"],
+    "test-coverage-lines": 100,
+    "test-coverage-branches": 85,
+    "test-coverage-functions": 100
+  }
+}
