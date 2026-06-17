@@ -1,4 +1,5 @@
 {
+  "type": "module",
   "name": "is-release-in-progress-v1",
   "version": "1.0.0",
   "description": "A GitHub Action to determine if the repository already has a release pr open",
@@ -14,29 +15,10 @@
   "homepage": "https://github.com/dequelabs/axe-api-team-public#readme",
   "scripts": {
     "prebuild": "rimraf dist",
-    "build": "ncc build src/index.ts --license ../../../licenses.txt",
-    "test": "mocha src/*.test.ts",
-    "coverage": "nyc npm run test",
+    "build": "node ../../../scripts/build-action.mjs",
+    "test": "node --experimental-default-config-file --experimental-test-module-mocks --experimental-test-coverage --test --test-force-exit 'src/**/*.test.ts'",
+    "typecheck": "tsc --noEmit",
     "fmt": "prettier --write \"src/**/*.{js,ts,tsx,json,md,css,html}\"",
-    "lint": "eslint \"src/**/*.{js,ts,tsx}\""
-  },
-  "nyc": {
-    "checkCoverage": true,
-    "extension": [
-      ".ts"
-    ],
-    "reporter": [
-      "text-summary",
-      "html"
-    ],
-    "statements": 100,
-    "branches": 100,
-    "functions": 100,
-    "lines": 100,
-    "exclude": [
-      "dist",
-      "coverage",
-      "**/*.test.ts"
-    ]
+    "lint": "eslint \"src/**/*.{ts,tsx}\""
   }
 }

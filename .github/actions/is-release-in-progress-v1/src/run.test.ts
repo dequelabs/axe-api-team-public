@@ -1,12 +1,9 @@
-import sinon from 'sinon'
-import { assert } from 'chai'
+import { describe, it, mock } from 'node:test'
+import { strict as assert } from 'node:assert'
 
-import type { Core, Github } from './types'
-import {
-  BUG_PULL_REQUEST,
-  RELEASE_PULL_REQUEST
-} from './isReleaseInProgress.test'
-import run from './run'
+import type { Core, Github } from './types.ts'
+import { BUG_PULL_REQUEST, RELEASE_PULL_REQUEST } from './fixtures.ts'
+import run from './run.ts'
 
 const testCases = [
   {
@@ -22,49 +19,44 @@ const testCases = [
 ]
 
 describe('run()', () => {
-  afterEach(() => {
-    sinon.restore()
-  })
-
-  it('fails if github-token input is not given', () => {
+  it('fails if github-token input is not given', async () => {
+    const setFailed = mock.fn<(message: string) => void>()
     const core = {
-      getInput: sinon
-        .stub()
-        .withArgs('github-token', { required: true })
-        .throws({ message: 'github-token input is not given' }),
-      setFailed: sinon.spy()
+      getInput: mock.fn(() => {
+        throw new Error('github-token input is not given')
+      }),
+      setFailed
     }
     const github = {}
 
-    run(core as unknown as Core, github as unknown as Github)
-    assert.isTrue(
-      core.setFailed.calledOnceWith('github-token input is not given')
+    await run(core as unknown as Core, github as unknown as Github)
+
+    assert.strictEqual(setFailed.mock.callCount(), 1)
+    assert.strictEqual(
+      setFailed.mock.calls[0].arguments[0],
+      'github-token input is not given'
     )
   })
 
-  testCases.map(({ description, pullRequests, result }) => {
+  testCases.forEach(({ description, pullRequests, result }) => {
     describe(description, () => {
       it(`sets is-release-in-Progress output to ${result}`, async () => {
         const octokit = {
           rest: {
             pulls: {
-              list: sinon.stub().resolves({ data: pullRequests })
+              list: mock.fn(async () => ({ data: pullRequests }))
             }
           }
         }
+        const setOutput = mock.fn<(name: string, value: boolean) => void>()
+        const info = mock.fn<(message: string) => void>()
         const core = {
-          getInput: sinon
-            .stub()
-            .withArgs('github-token', { required: true })
-            .returns('token'),
-          setOutput: sinon.spy(),
-          info: sinon.spy()
+          getInput: mock.fn(() => 'token'),
+          setOutput,
+          info
         }
         const github = {
-          getOctokit: sinon
-            .stub()
-            .withArgs(sinon.match.string)
-            .returns(octokit),
+          getOctokit: mock.fn(() => octokit),
           context: {
             repo: {
               owner: 'OWNER',
@@ -75,13 +67,17 @@ describe('run()', () => {
 
         await run(core as unknown as Core, github as unknown as Github)
 
-        assert.isTrue(
-          core.setOutput.calledOnceWith('is-release-in-progress', result)
+        assert.strictEqual(setOutput.mock.callCount(), 1)
+        assert.strictEqual(
+          setOutput.mock.calls[0].arguments[0],
+          'is-release-in-progress'
         )
-        assert.isTrue(
-          core.info.calledOnceWith(
-            `Set is-release-in-progress output: ${result}`
-          )
+        assert.strictEqual(setOutput.mock.calls[0].arguments[1], result)
+
+        assert.strictEqual(info.mock.callCount(), 1)
+        assert.strictEqual(
+          info.mock.calls[0].arguments[0],
+          `Set is-release-in-progress output: ${result}`
         )
       })
     })
