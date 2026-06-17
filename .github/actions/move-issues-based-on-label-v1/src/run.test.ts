@@ -1,6 +1,6 @@
 import { describe, it, beforeEach, mock } from 'node:test'
 import { strict as assert } from 'node:assert'
-import { Core, GitHub } from './types'
+import type { Core, GitHub } from './types'
 import type { ProjectItemsResponse } from './getIssuesByProjectAndLabel'
 
 const ghToken = 'github token'
@@ -91,13 +91,13 @@ const moveIssueToColumnMock = mock.fn<(args: unknown) => Promise<unknown>>(
   async () => undefined
 )
 
-mock.module('../../add-to-board-v1/src/getProjectBoardID.ts', {
+mock.module('../../add-to-board-v1/src/getProjectBoardID', {
   defaultExport: getProjectBoardIDMock
 })
-mock.module('../../add-to-board-v1/src/getProjectBoardFieldList.ts', {
+mock.module('../../add-to-board-v1/src/getProjectBoardFieldList', {
   defaultExport: getProjectBoardFieldListMock
 })
-mock.module('../../add-to-board-v1/src/moveIssueToColumn.ts', {
+mock.module('../../add-to-board-v1/src/moveIssueToColumn', {
   defaultExport: moveIssueToColumnMock
 })
 
