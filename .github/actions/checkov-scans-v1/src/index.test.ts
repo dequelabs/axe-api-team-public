@@ -4,16 +4,11 @@ import { strict as assert } from 'node:assert'
 import { describe, it, beforeEach, afterEach } from 'node:test'
 import { join, resolve } from 'path'
 import { tmpdir } from 'os'
+import { fileURLToPath } from 'node:url'
 
-const script = resolve(import.meta.dirname, 'index.ts')
-const nodeModules = resolve(
-  import.meta.dirname,
-  '..',
-  '..',
-  '..',
-  '..',
-  'node_modules'
-)
+const here = fileURLToPath(new URL('.', import.meta.url))
+const script = resolve(here, 'index.ts')
+const nodeModules = resolve(here, '..', '..', '..', '..', 'node_modules')
 // Resolve the tsx loader to an absolute URL here (the test runs from the
 // workspace where tsx is installed). The subprocess runs with cwd set to a
 // temp dir, so a bare `tsx` specifier would not resolve there.
