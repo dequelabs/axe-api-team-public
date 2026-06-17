@@ -60,16 +60,16 @@ const moveIssueToColumn = mock.fn<
   }) => Promise<MoveIssueToColumnResponse>
 >(() => Promise.resolve(undefined as unknown as MoveIssueToColumnResponse))
 
-mock.module('../../add-to-board-v1/src/getProjectBoardID.ts', {
+mock.module('../../add-to-board-v1/src/getProjectBoardID', {
   defaultExport: getProjectBoardID
 })
-mock.module('../../add-to-board-v1/src/getProjectBoardFieldList.ts', {
+mock.module('../../add-to-board-v1/src/getProjectBoardFieldList', {
   defaultExport: getProjectBoardFieldList
 })
-mock.module('../../add-to-board-v1/src/addIssueToBoard.ts', {
+mock.module('../../add-to-board-v1/src/addIssueToBoard', {
   defaultExport: addIssueToBoard
 })
-mock.module('../../add-to-board-v1/src/moveIssueToColumn.ts', {
+mock.module('../../add-to-board-v1/src/moveIssueToColumn', {
   defaultExport: moveIssueToColumn
 })
 
@@ -133,7 +133,7 @@ describe('run', () => {
 
     const getInput = mock.fn((name: string) => {
       if (inputErrors[name]) {
-        throw { message: inputErrors[name] }
+        throw new Error(inputErrors[name])
       }
       return inputValues[name] ?? ''
     })
@@ -246,7 +246,7 @@ describe('run', () => {
       assert.strictEqual(setFailed.mock.callCount(), 0)
     })
 
-    it('and released column is not fount should throw an error', async () => {
+    it('and released column is not found should throw an error', async () => {
       const releaseColumn = 'notValidColumnName'
 
       generateInputs({ releaseColumn })
