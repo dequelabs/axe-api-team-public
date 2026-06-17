@@ -1,10 +1,10 @@
 import { describe, it, beforeEach, mock } from 'node:test'
 import { strict as assert } from 'node:assert'
 import type { Endpoints } from '@octokit/types'
-import type { Core, GitHub } from './types.ts'
-import type { ParsedCommitList } from '../../generate-commit-list-v1/src/types.ts'
-import type { GetReferencedClosedIssuesResult } from '../../label-and-move-released-issues-v1/src/getReferencedClosedIssues.ts'
-import type { GetIssueProjectInfoResult } from '../../label-and-move-released-issues-v1/src/getIssueProjectInfo.ts'
+import type { Core, GitHub } from './types'
+import type { ParsedCommitList } from '../../generate-commit-list-v1/src/types'
+import type { GetReferencedClosedIssuesResult } from '../../label-and-move-released-issues-v1/src/getReferencedClosedIssues'
+import type { GetIssueProjectInfoResult } from '../../label-and-move-released-issues-v1/src/getIssueProjectInfo'
 
 const MOCK_COMMIT_LIST: ParsedCommitList[] = [
   {
@@ -84,17 +84,14 @@ const getIssueProjectInfo = mock.fn<() => Promise<GetIssueProjectInfoResult>>(
 )
 
 mock.module(
-  '../../label-and-move-released-issues-v1/src/getReferencedClosedIssues.ts',
+  '../../label-and-move-released-issues-v1/src/getReferencedClosedIssues',
   {
     defaultExport: getReferencedClosedIssues
   }
 )
-mock.module(
-  '../../label-and-move-released-issues-v1/src/getIssueProjectInfo.ts',
-  {
-    defaultExport: getIssueProjectInfo
-  }
-)
+mock.module('../../label-and-move-released-issues-v1/src/getIssueProjectInfo', {
+  defaultExport: getIssueProjectInfo
+})
 
 const { default: run } = await import('./run.ts')
 
@@ -303,12 +300,7 @@ describe('run', () => {
 
   describe('when the `project-number` input is not a number', () => {
     it('throws an error', async () => {
-      getInput.mock.mockImplementation((name: string) => {
-        if (name === 'project-number') {
-          return 'abc'
-        }
-        return ''
-      })
+      generateInputs({ projectNumber: 'abc' })
 
       const core = {
         getInput,
