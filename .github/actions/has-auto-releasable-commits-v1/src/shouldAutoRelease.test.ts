@@ -110,7 +110,7 @@ describe('shouldAutoRelease', () => {
           commitList: [],
           isVersionLocked: false
         })
-        assert.ok(!result)
+        assert.strictEqual(result, false)
       })
     })
 
@@ -120,7 +120,7 @@ describe('shouldAutoRelease', () => {
           commitList: [],
           isVersionLocked: true
         })
-        assert.ok(!result)
+        assert.strictEqual(result, false)
       })
     })
   })
@@ -147,7 +147,7 @@ describe('shouldAutoRelease', () => {
             isVersionLocked: false
           })
 
-          assert.ok(!result)
+          assert.strictEqual(result, false)
         })
       })
     })
@@ -190,7 +190,7 @@ describe('shouldAutoRelease', () => {
             isVersionLocked: true
           })
 
-          assert.ok(!result)
+          assert.strictEqual(result, false)
         })
       })
     })

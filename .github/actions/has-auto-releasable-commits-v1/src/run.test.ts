@@ -20,12 +20,14 @@ describe('run', () => {
 
   describe('when commits input is not provided', () => {
     it('should throw an error', async () => {
-      getInput.mock.mockImplementation((name: string) => {
-        if (name === 'commits') {
-          throw new Error('Input required and not supplied: commits')
+      getInput.mock.mockImplementation(
+        (name: string, options?: { required?: boolean }) => {
+          if (name === 'commits' && options?.required === true) {
+            throw new Error('Input required and not supplied: commits')
+          }
+          return ''
         }
-        return ''
-      })
+      )
 
       const core = {
         getInput,
@@ -44,15 +46,17 @@ describe('run', () => {
 
   describe('when version-locked input is not provided', () => {
     it('should throw an error', async () => {
-      getInput.mock.mockImplementation((name: string) => {
-        if (name === 'commits') {
-          return '[]'
+      getInput.mock.mockImplementation(
+        (name: string, options?: { required?: boolean }) => {
+          if (name === 'commits') {
+            return '[]'
+          }
+          if (name === 'version-locked' && options?.required === true) {
+            throw new Error('Input required and not supplied: version-locked')
+          }
+          return ''
         }
-        if (name === 'version-locked') {
-          throw new Error('Input required and not supplied: version-locked')
-        }
-        return ''
-      })
+      )
 
       const core = {
         getInput,
