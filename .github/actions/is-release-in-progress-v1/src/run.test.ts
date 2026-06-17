@@ -2,10 +2,7 @@ import { describe, it, mock } from 'node:test'
 import { strict as assert } from 'node:assert'
 
 import type { Core, Github } from './types.ts'
-import {
-  BUG_PULL_REQUEST,
-  RELEASE_PULL_REQUEST
-} from './isReleaseInProgress.test.ts'
+import { BUG_PULL_REQUEST, RELEASE_PULL_REQUEST } from './fixtures.ts'
 import run from './run.ts'
 
 const testCases = [
@@ -22,17 +19,17 @@ const testCases = [
 ]
 
 describe('run()', () => {
-  it('fails if github-token input is not given', () => {
+  it('fails if github-token input is not given', async () => {
     const setFailed = mock.fn<(message: string) => void>()
     const core = {
       getInput: mock.fn(() => {
-        throw { message: 'github-token input is not given' }
+        throw new Error('github-token input is not given')
       }),
       setFailed
     }
     const github = {}
 
-    run(core as unknown as Core, github as unknown as Github)
+    await run(core as unknown as Core, github as unknown as Github)
 
     assert.strictEqual(setFailed.mock.callCount(), 1)
     assert.strictEqual(
@@ -41,7 +38,7 @@ describe('run()', () => {
     )
   })
 
-  testCases.map(({ description, pullRequests, result }) => {
+  testCases.forEach(({ description, pullRequests, result }) => {
     describe(description, () => {
       it(`sets is-release-in-Progress output to ${result}`, async () => {
         const octokit = {
