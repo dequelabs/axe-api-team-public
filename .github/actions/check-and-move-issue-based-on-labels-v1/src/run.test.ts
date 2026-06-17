@@ -1,6 +1,6 @@
 import { describe, it, beforeEach, mock } from 'node:test'
 import { strict as assert } from 'node:assert'
-import { Core, GitHub } from './types.ts'
+import type { Core, GitHub } from './types.ts'
 import type { GetIssueLabelsResult } from './getIssueLabels.ts'
 
 const ghToken = 'github token'
@@ -93,13 +93,13 @@ const getProjectBoardFieldList = mock.fn<() => Promise<typeof FIELD_LIST_MOCK>>(
 )
 const moveIssueToColumn = mock.fn<() => Promise<void>>(() => Promise.resolve())
 
-mock.module('../../add-to-board-v1/src/getProjectBoardID.ts', {
+mock.module('../../add-to-board-v1/src/getProjectBoardID', {
   defaultExport: getProjectBoardID
 })
-mock.module('../../add-to-board-v1/src/getProjectBoardFieldList.ts', {
+mock.module('../../add-to-board-v1/src/getProjectBoardFieldList', {
   defaultExport: getProjectBoardFieldList
 })
-mock.module('../../add-to-board-v1/src/moveIssueToColumn.ts', {
+mock.module('../../add-to-board-v1/src/moveIssueToColumn', {
   defaultExport: moveIssueToColumn
 })
 
@@ -314,7 +314,7 @@ describe('run', () => {
     })
   })
 
-  describe('when non of `label-prefixes-to-match` and `label-prefixes-to-match` inputs are provided', () => {
+  describe('when none of `label-prefixes-to-match` and `label-prefixes-to-exclude` inputs are provided', () => {
     it('throws an error', async () => {
       generateInputs()
       inputValues['project-number'] = project
