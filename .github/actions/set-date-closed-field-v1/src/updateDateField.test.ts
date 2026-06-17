@@ -1,6 +1,6 @@
 import { describe, it, beforeEach, mock } from 'node:test'
 import { strict as assert } from 'node:assert'
-import { getOctokit } from '@actions/github'
+import type { getOctokit } from '@actions/github'
 import updateDateField from './updateDateField'
 
 type Graphql = ReturnType<typeof getOctokit>['graphql']
