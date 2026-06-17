@@ -21614,7 +21614,7 @@ async function run(core2) {
   try {
     const envFilePath = core2.getInput("env-file-path", { required: true }).trim();
     const head = (core2.getInput("head") || "release").toLowerCase().trim();
-    const base = (core2.getInput("base") || "main").toLowerCase().trim();
+    const base = (core2.getInput("base") || "master").toLowerCase().trim();
     core2.info(`Finding new env vars from ${head} to ${base}...`);
     const {
       stdout: envVars,

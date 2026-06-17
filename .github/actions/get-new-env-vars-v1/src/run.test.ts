@@ -69,7 +69,7 @@ describe('run', () => {
 
           assert.strictEqual(
             info.mock.calls[0].arguments[0],
-            'Finding new env vars from my-cool-branch to main...'
+            'Finding new env vars from my-cool-branch to master...'
           )
         })
       })
@@ -85,7 +85,7 @@ describe('run', () => {
 
           assert.strictEqual(
             info.mock.calls[0].arguments[0],
-            'Finding new env vars from release to main...'
+            'Finding new env vars from release to master...'
           )
         })
       })
@@ -109,7 +109,7 @@ describe('run', () => {
       })
 
       describe('when not provided', () => {
-        it('defaults to `main`', async () => {
+        it('defaults to `master`', async () => {
           const { core, info } = makeCore({
             'env-file-path': '.env',
             base: ''
@@ -119,7 +119,7 @@ describe('run', () => {
 
           assert.strictEqual(
             info.mock.calls[0].arguments[0],
-            'Finding new env vars from release to main...'
+            'Finding new env vars from release to master...'
           )
         })
       })
@@ -149,7 +149,7 @@ describe('run', () => {
 
     describe('when the command succeeds', () => {
       describe('and there are no new env vars', () => {
-        it('does not set the `env-vars` output', async () => {
+        it('does not set the `new-env-vars` output', async () => {
           getExecOutput.mock.mockImplementation(() => ({
             stdout: '',
             stderr: '',
@@ -166,7 +166,7 @@ describe('run', () => {
 
       describe('and there are new env vars', () => {
         describe('and they are commented out', () => {
-          it('does not set the `env-vars` output', async () => {
+          it('does not set the `new-env-vars` output', async () => {
             getExecOutput.mock.mockImplementation(() => ({
               stdout: `+#FOO=bar \n+#BAR=baz \n # I AM A COMMENT!`,
               stderr: '',
@@ -182,7 +182,7 @@ describe('run', () => {
         })
 
         describe('and they are not commented out', () => {
-          it('sets the `env-vars` output', async () => {
+          it('sets the `new-env-vars` output', async () => {
             getExecOutput.mock.mockImplementation(() => ({
               stdout: `+ FOO=bar \n+ BAR=baz`,
               stderr: '',
