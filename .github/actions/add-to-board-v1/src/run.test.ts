@@ -1,7 +1,7 @@
 import { describe, it, beforeEach, mock } from 'node:test'
 import { strict as assert } from 'node:assert'
-import type { Core, Github } from './types.ts'
-import type { MoveIssueToColumnArgs } from './moveIssueToColumn.ts'
+import type { Core, Github } from './types'
+import type { MoveIssueToColumnArgs } from './moveIssueToColumn'
 
 type ExecOutput = { stdout: string; stderr: string; exitCode: number }
 
@@ -187,9 +187,7 @@ describe('run', () => {
     it('should set failed', async () => {
       getInput.mock.mockImplementation((name: string) => {
         if (name === 'issue-urls') {
-          throw {
-            message: 'Input required and not supplied: issue-urls'
-          }
+          throw new Error('Input required and not supplied: issue-urls')
         }
         return ''
       })
@@ -302,6 +300,53 @@ describe('run', () => {
           )
         )
       })
+    })
+  })
+
+  describe('when the Status field is not found', () => {
+    it('should set failed', async () => {
+      const inputs = generatedInputs()
+      const projectIDCommand = getProjectIdCommand(inputs.projectNumber)
+      const projectFieldListCommand = getProjectFieldListCommand(
+        inputs.projectNumber
+      )
+
+      execResponses.set(projectIDCommand, {
+        stdout: '{"id": "1"}',
+        stderr: '',
+        exitCode: 0
+      })
+      execResponses.set(projectFieldListCommand, {
+        stdout: JSON.stringify({
+          fields: [
+            {
+              id: 'id-assignees',
+              name: 'Assignees',
+              type: 'ProjectV2',
+              options: []
+            }
+          ],
+          totalCount: 1
+        }),
+        stderr: '',
+        exitCode: 0
+      })
+
+      const core = {
+        info,
+        getInput,
+        setFailed
+      }
+
+      await run(core as unknown as Core, github)
+
+      assert.ok(
+        setFailed.mock.calls.some(
+          call =>
+            call.arguments[0] ===
+            `\nStatus field not found in project board ${inputs.projectNumber}`
+        )
+      )
     })
   })
 

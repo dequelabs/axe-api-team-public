@@ -26125,6 +26125,13 @@ async function run(core2, github2) {
     const statusField = fields.find(
       (field) => field.name.toLowerCase() === "status"
     );
+    if (!statusField) {
+      core2.setFailed(
+        `
+Status field not found in project board ${projectNumber}`
+      );
+      return;
+    }
     const column = statusField.options.find(
       (option) => option.name.toLowerCase() === columnName.toLowerCase()
     );

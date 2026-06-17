@@ -27,7 +27,14 @@ export default async function run(core: Core, github: Github): Promise<void> {
     // Status is the default field name for the project board columns e.g. Backlog, In progress, Done etc
     const statusField = fields.find(
       field => field.name.toLowerCase() === 'status'
-    )!
+    )
+
+    if (!statusField) {
+      core.setFailed(
+        `\nStatus field not found in project board ${projectNumber}`
+      )
+      return
+    }
 
     const column = statusField.options.find(
       option => option.name.toLowerCase() === columnName.toLowerCase()

@@ -1,6 +1,6 @@
 import { describe, it, beforeEach, mock } from 'node:test'
 import { strict as assert } from 'node:assert'
-import type { MoveIssueToColumnResponse } from './moveIssueToColumn.ts'
+import type { MoveIssueToColumnResponse } from './moveIssueToColumn'
 
 type ExecOutput = { stdout: string; stderr: string; exitCode: number }
 

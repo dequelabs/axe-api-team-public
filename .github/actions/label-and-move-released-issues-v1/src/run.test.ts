@@ -175,7 +175,12 @@ describe('run', () => {
   const setExecSequence = (stdouts: string[]) => {
     let call = 0
     getExecOutput.mock.mockImplementation(() => {
-      const stdout = stdouts[call] ?? ''
+      if (call >= stdouts.length) {
+        throw new Error(
+          `Unexpected getExecOutput call #${call + 1}; only ${stdouts.length} were planned`
+        )
+      }
+      const stdout = stdouts[call]
       call += 1
       return Promise.resolve({ stdout, stderr: '', exitCode: 0 })
     })

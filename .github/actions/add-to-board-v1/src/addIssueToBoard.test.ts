@@ -1,6 +1,6 @@
 import { describe, it, beforeEach, mock } from 'node:test'
 import { strict as assert } from 'node:assert'
-import type { AddIssueToBoardResponse } from './addIssueToBoard.ts'
+import type { AddIssueToBoardResponse } from './addIssueToBoard'
 
 type ExecOutput = { stdout: string; stderr: string; exitCode: number }
 
