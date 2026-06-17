@@ -99,11 +99,11 @@ const getIssueLabels = mock.fn<
 >(() => Promise.resolve(ISSUE_DATA_MOCK))
 
 mock.module(
-  '../../label-and-move-released-issues-v1/src/getReferencedClosedIssues.ts',
+  '../../label-and-move-released-issues-v1/src/getReferencedClosedIssues',
   { defaultExport: getReferencedClosedIssues }
 )
 mock.module(
-  '../../check-and-move-issue-based-on-labels-v1/src/getIssueLabels.ts',
+  '../../check-and-move-issue-based-on-labels-v1/src/getIssueLabels',
   { defaultExport: getIssueLabels }
 )
 
