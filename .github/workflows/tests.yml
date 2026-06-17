@@ -146,7 +146,7 @@ jobs:
           node-version: 24
           cache: 'npm'
       - run: npm ci
-      - run: npm run coverage --workspace=require-multiple-reviewers-v1
+      - run: npm run test --workspace=require-multiple-reviewers-v1
 
   update-axe-core-v1:
     runs-on: ubuntu-latest

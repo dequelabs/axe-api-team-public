@@ -1,12 +1,18 @@
-import { expect } from 'chai'
-import fs from 'fs'
-import sinon from 'sinon'
-import { Annotation, Review } from './types'
-import {
-  getAnnotations,
-  getImportantFilesChanged,
-  getApproversCount
-} from './utils'
+import { describe, it, beforeEach, mock } from 'node:test'
+import { strict as assert } from 'node:assert'
+import type { Annotation, Review } from './types'
+
+const readFileSync = mock.fn<(path: string, encoding: string) => string>(
+  () => ''
+)
+
+mock.module('fs', {
+  defaultExport: { readFileSync },
+  namedExports: { readFileSync }
+})
+
+const { getAnnotations, getImportantFilesChanged, getApproversCount } =
+  await import('./utils.ts')
 
 describe('utils', () => {
   describe('getAnnotations', () => {
@@ -19,7 +25,7 @@ describe('utils', () => {
         reviewersNumber
       )
 
-      expect(result).to.deep.equal([
+      assert.deepStrictEqual(result, [
         {
           path: 'file1',
           start_line: 1,
@@ -48,7 +54,7 @@ describe('utils', () => {
         reviewersNumber
       )
 
-      expect(result).to.deep.equal([])
+      assert.deepStrictEqual(result, [])
     })
 
     it('should handle a single important file', () => {
@@ -60,7 +66,7 @@ describe('utils', () => {
         reviewersNumber
       )
 
-      expect(result).to.deep.equal([
+      assert.deepStrictEqual(result, [
         {
           path: 'file1',
           start_line: 1,
@@ -81,7 +87,7 @@ describe('utils', () => {
         reviewersNumber
       )
 
-      expect(result).to.deep.equal([
+      assert.deepStrictEqual(result, [
         {
           path: 'file1',
           start_line: 1,
@@ -103,14 +109,9 @@ describe('utils', () => {
   })
 
   describe('getImportantFilesChanged', () => {
-    let readFileSyncStub: sinon.SinonStub
-
     beforeEach(() => {
-      readFileSyncStub = sinon.stub(fs, 'readFileSync')
-    })
-
-    afterEach(() => {
-      sinon.restore()
+      readFileSync.mock.resetCalls()
+      readFileSync.mock.mockImplementation(() => '')
     })
 
     it('should return important files that have changed', () => {
@@ -118,16 +119,14 @@ describe('utils', () => {
       const changedFiles = ['file1', 'file2', 'file3']
       const importantFilesContent = 'file1\nfile3'
 
-      readFileSyncStub
-        .withArgs(IMPORTANT_FILES_PATH, 'utf-8')
-        .returns(importantFilesContent)
+      readFileSync.mock.mockImplementation(() => importantFilesContent)
 
       const result = getImportantFilesChanged(
         IMPORTANT_FILES_PATH,
         changedFiles
       )
 
-      expect(result).to.deep.equal(['file1', 'file3'])
+      assert.deepStrictEqual(result, ['file1', 'file3'])
     })
 
     it('should return an empty array if no important files have changed', () => {
@@ -135,16 +134,14 @@ describe('utils', () => {
       const changedFiles = ['file4', 'file5']
       const importantFilesContent = 'file1\nfile3'
 
-      readFileSyncStub
-        .withArgs(IMPORTANT_FILES_PATH, 'utf-8')
-        .returns(importantFilesContent)
+      readFileSync.mock.mockImplementation(() => importantFilesContent)
 
       const result = getImportantFilesChanged(
         IMPORTANT_FILES_PATH,
         changedFiles
       )
 
-      expect(result).to.deep.equal([])
+      assert.deepStrictEqual(result, [])
     })
 
     it('should handle an empty list of changed files', () => {
@@ -152,16 +149,14 @@ describe('utils', () => {
       const changedFiles: string[] = []
       const importantFilesContent = 'file1\nfile3'
 
-      readFileSyncStub
-        .withArgs(IMPORTANT_FILES_PATH, 'utf-8')
-        .returns(importantFilesContent)
+      readFileSync.mock.mockImplementation(() => importantFilesContent)
 
       const result = getImportantFilesChanged(
         IMPORTANT_FILES_PATH,
         changedFiles
       )
 
-      expect(result).to.deep.equal([])
+      assert.deepStrictEqual(result, [])
     })
 
     it('should handle an empty important files list', () => {
@@ -169,16 +164,14 @@ describe('utils', () => {
       const changedFiles = ['file1', 'file2']
       const importantFilesContent = ''
 
-      readFileSyncStub
-        .withArgs(IMPORTANT_FILES_PATH, 'utf-8')
-        .returns(importantFilesContent)
+      readFileSync.mock.mockImplementation(() => importantFilesContent)
 
       const result = getImportantFilesChanged(
         IMPORTANT_FILES_PATH,
         changedFiles
       )
 
-      expect(result).to.deep.equal([])
+      assert.deepStrictEqual(result, [])
     })
   })
 
@@ -204,7 +197,7 @@ describe('utils', () => {
 
       const result = getApproversCount(reviews as Array<Review>)
 
-      expect(result).to.equal(2)
+      assert.strictEqual(result, 2)
     })
 
     it('should handle multiple reviews from the same user and count only the latest approval', () => {
@@ -233,7 +226,7 @@ describe('utils', () => {
 
       const result = getApproversCount(reviews as Array<Review>)
 
-      expect(result).to.equal(1)
+      assert.strictEqual(result, 1)
     })
 
     it('should return 0 if there are no approvals', () => {
@@ -252,7 +245,7 @@ describe('utils', () => {
 
       const result = getApproversCount(reviews as Array<Review>)
 
-      expect(result).to.equal(0)
+      assert.strictEqual(result, 0)
     })
 
     it('should handle an empty array of reviews', () => {
@@ -260,7 +253,7 @@ describe('utils', () => {
 
       const result = getApproversCount(reviews)
 
-      expect(result).to.equal(0)
+      assert.strictEqual(result, 0)
     })
 
     it('should handle reviews with missing user information', () => {
@@ -275,7 +268,7 @@ describe('utils', () => {
 
       const result = getApproversCount(reviews as Array<Review>)
 
-      expect(result).to.equal(1)
+      assert.strictEqual(result, 1)
     })
   })
 })
