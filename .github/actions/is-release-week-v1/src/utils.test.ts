@@ -1,5 +1,6 @@
-import { assert } from 'chai'
-import { getWeekNumber, isReleaseWeek } from './utils'
+import { describe, it } from 'node:test'
+import { strict as assert } from 'node:assert'
+import { getWeekNumber, isReleaseWeek } from './utils.ts'
 
 describe('is-release-week-v1 utils', () => {
   describe('getWeekNumber()', () => {
@@ -11,8 +12,8 @@ describe('is-release-week-v1 utils', () => {
     ]
 
     it('returns week number of date correctly', () => {
-      testCases.map(({ input, output }) => {
-        assert.equal(getWeekNumber(input), output)
+      testCases.forEach(({ input, output }) => {
+        assert.strictEqual(getWeekNumber(input), output)
       })
     })
   })
@@ -37,12 +38,12 @@ describe('is-release-week-v1 utils', () => {
       }
     ]
 
-    testCases.map(({ weekType, weekNumber, cases }) => {
+    testCases.forEach(({ weekType, weekNumber, cases }) => {
       describe(`when it is the ${weekType} week`, () => {
-        cases.map(({ input, output }) => {
+        cases.forEach(({ input, output }) => {
           describe(`when oddWeek is ${input}`, () => {
             it(`returns ${output}`, () => {
-              assert.equal(isReleaseWeek(weekNumber, input), output)
+              assert.strictEqual(isReleaseWeek(weekNumber, input), output)
             })
           })
         })

@@ -55,7 +55,7 @@ jobs:
           node-version: 24
           cache: 'npm'
       - run: npm ci
-      - run: npm run coverage --workspace=is-release-week-v1
+      - run: npm run test --workspace=is-release-week-v1
 
   is-release-in-progress-v1:
     runs-on: ubuntu-latest
