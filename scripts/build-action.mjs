@@ -82,7 +82,15 @@ function writeLicenseSummary(metafile) {
     const { name, version, license, private: isPrivate } = packageJson
     if (!name || isPrivate || name === selfName) continue
     const existing = byName.get(name)
-    if (!existing || (existing.version && version && existing.version < version)) {
+    // Compare with numeric collation so e.g. 10.0.0 outranks 2.0.0; a plain
+    // string compare would order versions lexicographically.
+    if (
+      !existing ||
+      (existing.version &&
+        version &&
+        existing.version.localeCompare(version, undefined, { numeric: true }) <
+          0)
+    ) {
       byName.set(name, {
         name,
         version,
