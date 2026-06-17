@@ -1,10 +1,9 @@
-import type { Core } from './types'
+import type { Core, PackageManager } from './types'
 import { glob } from 'glob'
 import { getExecOutput } from '@actions/exec'
-import { readFile } from 'fs/promises'
+import { readFile } from 'node:fs/promises'
 import path from 'path'
 import semver from 'semver'
-import type { PackageManager } from './types'
 import installScript from './installScript'
 
 export default async function run(

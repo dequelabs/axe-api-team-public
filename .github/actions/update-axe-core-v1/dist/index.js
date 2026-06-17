@@ -26571,7 +26571,7 @@ Ze.glob = Ze;
 // src/run.ts
 var import_exec = __toESM(require_exec(), 1);
 var import_semver = __toESM(require_semver2(), 1);
-import { readFile } from "fs/promises";
+import { readFile } from "node:fs/promises";
 import path from "path";
 
 // src/installScript.ts
