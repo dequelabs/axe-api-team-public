@@ -12,7 +12,7 @@ describe('is-release-week-v1 utils', () => {
     ]
 
     it('returns week number of date correctly', () => {
-      testCases.map(({ input, output }) => {
+      testCases.forEach(({ input, output }) => {
         assert.strictEqual(getWeekNumber(input), output)
       })
     })
@@ -38,9 +38,9 @@ describe('is-release-week-v1 utils', () => {
       }
     ]
 
-    testCases.map(({ weekType, weekNumber, cases }) => {
+    testCases.forEach(({ weekType, weekNumber, cases }) => {
       describe(`when it is the ${weekType} week`, () => {
-        cases.map(({ input, output }) => {
+        cases.forEach(({ input, output }) => {
           describe(`when oddWeek is ${input}`, () => {
             it(`returns ${output}`, () => {
               assert.strictEqual(isReleaseWeek(weekNumber, input), output)

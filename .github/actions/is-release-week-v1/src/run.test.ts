@@ -56,9 +56,9 @@ describe('run', () => {
     )
   })
 
-  testCases.map(({ weekType, today, cases }) => {
+  testCases.forEach(({ weekType, today, cases }) => {
     describe(`when it is the ${weekType} week`, () => {
-      cases.map(({ oddWeek, isReleaseWeek }) => {
+      cases.forEach(({ oddWeek, isReleaseWeek }) => {
         describe(`when oddWeek input is ${oddWeek}`, () => {
           it(`sets isReleaseWeek output to ${isReleaseWeek}`, t => {
             t.mock.timers.enable({ apis: ['Date'] })
