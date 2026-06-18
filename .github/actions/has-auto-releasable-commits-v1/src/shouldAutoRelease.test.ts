@@ -1,6 +1,6 @@
-import 'mocha'
-import { assert } from 'chai'
-import shouldAutoRelease from './shouldAutoRelease'
+import { describe, it } from 'node:test'
+import { strict as assert } from 'node:assert'
+import shouldAutoRelease from './shouldAutoRelease.ts'
 
 const createCommit = (type: string | null) => ({
   commit: 'PLACEHOLDER',
@@ -110,7 +110,7 @@ describe('shouldAutoRelease', () => {
           commitList: [],
           isVersionLocked: false
         })
-        assert.isFalse(result)
+        assert.strictEqual(result, false)
       })
     })
 
@@ -120,7 +120,7 @@ describe('shouldAutoRelease', () => {
           commitList: [],
           isVersionLocked: true
         })
-        assert.isFalse(result)
+        assert.strictEqual(result, false)
       })
     })
   })
@@ -147,7 +147,7 @@ describe('shouldAutoRelease', () => {
             isVersionLocked: false
           })
 
-          assert.isFalse(result)
+          assert.strictEqual(result, false)
         })
       })
     })
@@ -162,7 +162,7 @@ describe('shouldAutoRelease', () => {
                 isVersionLocked
               })
 
-              assert.equal(result, expected)
+              assert.strictEqual(result, expected)
             })
           }
         )
@@ -177,7 +177,7 @@ describe('shouldAutoRelease', () => {
                 isVersionLocked
               })
 
-              assert.equal(result, expected)
+              assert.strictEqual(result, expected)
             })
           }
         )
@@ -190,7 +190,7 @@ describe('shouldAutoRelease', () => {
             isVersionLocked: true
           })
 
-          assert.isFalse(result)
+          assert.strictEqual(result, false)
         })
       })
     })
