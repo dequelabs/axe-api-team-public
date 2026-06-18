@@ -157,6 +157,44 @@ describe('run', () => {
     assert.strictEqual(updateCallArgs.projectId, MOCK_PROJECT_ID)
   })
 
+  it('should request issue-number and project-number as required inputs', async () => {
+    await run(core, github)
+
+    const inputOptions = (name: string) =>
+      (
+        getInput.mock.calls.find(call => call.arguments[0] === name)
+          ?.arguments as [string, { required?: boolean }?] | undefined
+      )?.[1]
+
+    // Tightening an input to required is a breaking change, so assert the
+    // required option is passed for the inputs that depend on it.
+    assert.strictEqual(inputOptions('issue-number')?.required, true)
+    assert.strictEqual(inputOptions('project-number')?.required, true)
+  })
+
+  it('should fail when a required input is empty', async () => {
+    // Mirror @actions/core.getInput, which throws when a required input is
+    // empty, to prove run surfaces the failure rather than parsing ''.
+    getInput.mock.mockImplementation(
+      (name: string, options?: { required?: boolean }) => {
+        const value =
+          name === 'issue-number' ? '' : (DEFAULT_INPUTS[name] ?? '')
+        if (options?.required && !value) {
+          throw new Error(`Input required and not supplied: ${name}`)
+        }
+        return value
+      }
+    )
+
+    await run(core, github)
+
+    assert.strictEqual(setFailed.mock.callCount(), 1)
+    assert.strictEqual(
+      setFailed.mock.calls[0].arguments[0],
+      'Action failed: Input required and not supplied: issue-number'
+    )
+  })
+
   it('should use custom date-field-name input', async () => {
     const customFieldName = 'MyDateField'
     const customFieldId = 'field_id_custom'
