@@ -7,7 +7,7 @@ export default async function run(core: Core) {
       .getInput('env-file-path', { required: true })
       .trim()
     const head = (core.getInput('head') || 'release').toLowerCase().trim()
-    const base = (core.getInput('base') || 'main').toLowerCase().trim()
+    const base = (core.getInput('base') || 'master').toLowerCase().trim()
 
     core.info(`Finding new env vars from ${head} to ${base}...`)
 
