@@ -140,7 +140,7 @@ runs:
         # Required for the GH CLI
         GH_TOKEN: ${{ inputs.project_token }}
     - name: Slack Notification
-      uses: rtCamp/action-slack-notify@e31e87e03dd19038e411e38ae27cbad084a90661 # tag=v2
+      uses: rtCamp/action-slack-notify@33ca3be66c6f378fe1610fd1d5258632dbed5e58 # tag=v2
       env:
         SLACK_CHANNEL: results-team-dev
         SLACK_COLOR: ${{ job.status }} # or a specific color like 'good' or '#ff00ff'
