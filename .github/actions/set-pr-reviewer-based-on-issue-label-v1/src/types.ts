@@ -1,5 +1,5 @@
-import core from '@actions/core'
-import github from '@actions/github'
+import * as core from '@actions/core'
+import * as github from '@actions/github'
 
 export type GitHub = Pick<typeof github, 'context' | 'getOctokit'>
 export type Core = Pick<

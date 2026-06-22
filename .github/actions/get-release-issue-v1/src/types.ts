@@ -1,5 +1,5 @@
-import type core from '@actions/core'
-import type github from '@actions/github'
+import type * as core from '@actions/core'
+import type * as github from '@actions/github'
 
 export type GitHub = Pick<typeof github, 'context'>
 export type Core = Pick<
