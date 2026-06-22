@@ -1,8 +1,8 @@
-const globals = require('globals')
-const eslint = require('@eslint/js')
-const tseslint = require('typescript-eslint')
+import globals from 'globals'
+import eslint from '@eslint/js'
+import tseslint from 'typescript-eslint'
 
-module.exports = [
+export default [
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {
@@ -18,12 +18,6 @@ module.exports = [
     }
   },
   {
-    files: ['eslint.config.js'],
-    rules: {
-      '@typescript-eslint/no-var-requires': 'off'
-    }
-  },
-  {
-    ignores: ['**/node_modules/', '**/dist/', '**/coverage/', '**/.nyc_output/']
+    ignores: ['**/node_modules/', '**/dist/', '**/coverage/']
   }
 ]

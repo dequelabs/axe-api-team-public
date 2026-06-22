@@ -1,4 +1,4 @@
-import * as conventionalCommitsParser from 'conventional-commits-parser'
+import { CommitParser } from 'conventional-commits-parser'
 
 /**
  * Get the commit type from a commit title
@@ -11,7 +11,7 @@ export default function getCommitType(title: string): string | null {
    * TODO: consolidate https://github.com/dequelabs/semantic-pr-title/blob/v1/src/validate-title.ts#L11
    * into one repository so we can use the same parser and keep things DRY
    */
-  const { type } = conventionalCommitsParser.sync(title, {
+  const parser = new CommitParser({
     // parse merge commits
     mergePattern: /^Merge pull request #(\d+) from (.*)$/,
     mergeCorrespondence: ['id', 'source'],
@@ -19,6 +19,8 @@ export default function getCommitType(title: string): string | null {
     // allow comma and slash in scope
     headerPattern: /^(\w*)(?:\(([\w$.\-*,/ ]*)\))?!?: (.*)$/
   })
+
+  const { type } = parser.parse(title)
 
   // we allow merge, refactor, and release commits as
   // valid pr titles
