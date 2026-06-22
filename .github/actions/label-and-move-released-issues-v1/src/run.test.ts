@@ -1,12 +1,18 @@
-import 'mocha'
-import { assert } from 'chai'
-import sinon from 'sinon'
+import { describe, it, beforeEach, mock } from 'node:test'
+import { strict as assert } from 'node:assert'
 import { getOctokit } from '@actions/github'
 import type { Endpoints } from '@octokit/types'
-import * as exec from '@actions/exec'
 import { Core, GitHub } from './types'
 import type { ParsedCommitList } from '../../generate-commit-list-v1/src/types'
-import run from './run'
+
+type ExecOutput = { stdout: string; stderr?: string; exitCode?: number }
+
+const getExecOutput = mock.fn<(cmd: string) => Promise<ExecOutput>>(() =>
+  Promise.resolve({ stdout: '', stderr: '', exitCode: 0 })
+)
+mock.module('@actions/exec', { namedExports: { getExecOutput } })
+
+const { default: run } = await import('./run.ts')
 
 const MOCK_COMMIT_LIST: ParsedCommitList[] = [
   {
@@ -105,29 +111,42 @@ const MOCK_PROJECT_INFO = {
 }
 
 describe('run', () => {
-  let info: sinon.SinonStub
-  let getInput: sinon.SinonStub
-  let setFailed: sinon.SinonStub
-  let getExecOutput: sinon.SinonStub
-  let listLabelsForRepoStub: sinon.SinonStub
-  let createLabelStub: sinon.SinonStub
-  let addLabelsStub: sinon.SinonStub
+  let info: ReturnType<typeof mock.fn>
+  let getInput: ReturnType<typeof mock.fn<(name: string) => string>>
+  let setFailed: ReturnType<typeof mock.fn>
+  let listLabelsForRepoStub: ReturnType<typeof mock.fn>
+  let createLabelStub: ReturnType<typeof mock.fn>
+  let addLabelsStub: ReturnType<typeof mock.fn>
 
   const octokit = getOctokit('token')
 
   beforeEach(() => {
-    info = sinon.stub()
-    getInput = sinon.stub()
-    setFailed = sinon.stub()
-    listLabelsForRepoStub = sinon.stub()
-    createLabelStub = sinon.stub()
-    addLabelsStub = sinon.stub()
-    getExecOutput = sinon.stub(exec, 'getExecOutput')
-  })
-
-  afterEach(() => {
-    sinon.restore()
-    sinon.resetHistory()
+    info = mock.fn()
+    getInput = mock.fn<(name: string) => string>(() => '')
+    setFailed = mock.fn()
+    listLabelsForRepoStub = mock.fn(() =>
+      Promise.resolve({
+        data: [MOCK_LIST_LABELS],
+        status: 200
+      })
+    )
+    createLabelStub = mock.fn(() =>
+      Promise.resolve({
+        data: MOCK_CREATED_LABEL
+      })
+    )
+    addLabelsStub = mock.fn(() =>
+      Promise.resolve({
+        data: {
+          labels: [MOCK_CREATED_LABEL],
+          status: 200
+        }
+      })
+    )
+    getExecOutput.mock.resetCalls()
+    getExecOutput.mock.mockImplementation(() =>
+      Promise.resolve({ stdout: '', stderr: '', exitCode: 0 })
+    )
   })
 
   interface GenerateInputsArgs {
@@ -139,116 +158,160 @@ describe('run', () => {
   }
 
   const generateInputs = (inputs?: Partial<GenerateInputsArgs>) => {
-    const commitList = getInput
-      .withArgs('commit-list', { required: true })
-      .returns(JSON.stringify(inputs?.commitList ?? MOCK_COMMIT_LIST))
-    const version = getInput
-      .withArgs('version', { required: true })
-      .returns(inputs?.version ?? '1.0.0')
-    const token = getInput
-      .withArgs('token', { required: true })
-      .returns(inputs?.token ?? 'token')
-    const projectNumber = getInput
-      .withArgs('project-number')
-      .returns(inputs?.projectNumber ?? '66')
-    const releaseColumn = getInput
-      .withArgs('column-name')
-      .returns(inputs?.releaseColumn ?? 'released')
-
-    return {
-      commitList,
-      version,
-      token,
-      projectNumber,
-      releaseColumn
+    const values: Record<string, string> = {
+      'commit-list': JSON.stringify(inputs?.commitList ?? MOCK_COMMIT_LIST),
+      version: inputs?.version ?? '1.0.0',
+      token: inputs?.token ?? 'token',
+      'project-number': inputs?.projectNumber ?? '66',
+      'column-name': inputs?.releaseColumn ?? 'released'
     }
+
+    getInput.mock.mockImplementation((name: string) => values[name] ?? '')
+  }
+
+  // Helper to drive the sequence of getExecOutput resolutions used by the
+  // add-to-board helpers (getProjectBoardID, getProjectBoardFieldList,
+  // addIssueToBoard, moveIssueToColumn) which all call getExecOutput.
+  const setExecSequence = (stdouts: string[]) => {
+    let call = 0
+    getExecOutput.mock.mockImplementation(() => {
+      if (call >= stdouts.length) {
+        throw new Error(
+          `Unexpected getExecOutput call #${call + 1}; only ${stdouts.length} were planned`
+        )
+      }
+      const stdout = stdouts[call]
+      call += 1
+      return Promise.resolve({ stdout, stderr: '', exitCode: 0 })
+    })
+  }
+
+  // Returns the graphql mock so call counts can be asserted. The first call
+  // resolves the referenced closed issues, the second resolves project info.
+  const stubGraphql = (referencedClosedIssues: object, projectInfo: object) => {
+    let call = 0
+    const graphql = mock.fn(() => {
+      call += 1
+      return Promise.resolve(call === 1 ? referencedClosedIssues : projectInfo)
+    })
+    octokit.graphql = graphql as unknown as typeof octokit.graphql
+    return graphql
   }
 
   describe('when the `commit-list` input is not provided', () => {
     it('throws an error', async () => {
-      getInput.withArgs('commit-list', { required: true }).throws({
-        message: 'Input required and not supplied: commit-list'
+      getInput.mock.mockImplementation((name: string) => {
+        if (name === 'commit-list') {
+          throw new Error('Input required and not supplied: commit-list')
+        }
+        return ''
       })
 
       const core = {
         getInput,
         setFailed
-      }
+      } as unknown as Core
 
-      await run(core as unknown as Core, {} as unknown as GitHub)
+      await run(core, {} as unknown as GitHub)
 
-      assert.isTrue(listLabelsForRepoStub.notCalled)
-      assert.isTrue(createLabelStub.notCalled)
-      assert.isTrue(addLabelsStub.notCalled)
-      assert.isTrue(setFailed.calledOnce)
-      assert.isTrue(
-        setFailed.calledWith('Input required and not supplied: commit-list')
+      assert.strictEqual(listLabelsForRepoStub.mock.callCount(), 0)
+      assert.strictEqual(createLabelStub.mock.callCount(), 0)
+      assert.strictEqual(addLabelsStub.mock.callCount(), 0)
+      assert.strictEqual(setFailed.mock.callCount(), 1)
+      assert.strictEqual(
+        setFailed.mock.calls[0].arguments[0],
+        'Input required and not supplied: commit-list'
       )
     })
   })
 
   describe('when the `version` input is not provided', () => {
     it('throws an error', async () => {
-      getInput.withArgs('version', { required: true }).throws({
-        message: 'Input required and not supplied: version'
+      getInput.mock.mockImplementation((name: string) => {
+        if (name === 'version') {
+          throw new Error('Input required and not supplied: version')
+        }
+        return ''
       })
 
       const core = {
         getInput,
         setFailed
-      }
+      } as unknown as Core
 
-      await run(core as unknown as Core, {} as unknown as GitHub)
+      await run(core, {} as unknown as GitHub)
 
-      assert.isTrue(listLabelsForRepoStub.notCalled)
-      assert.isTrue(createLabelStub.notCalled)
-      assert.isTrue(addLabelsStub.notCalled)
-      assert.isTrue(setFailed.calledOnce)
-      assert.isTrue(
-        setFailed.calledWith('Input required and not supplied: version')
+      assert.strictEqual(listLabelsForRepoStub.mock.callCount(), 0)
+      assert.strictEqual(createLabelStub.mock.callCount(), 0)
+      assert.strictEqual(addLabelsStub.mock.callCount(), 0)
+      assert.strictEqual(setFailed.mock.callCount(), 1)
+      assert.strictEqual(
+        setFailed.mock.calls[0].arguments[0],
+        'Input required and not supplied: version'
       )
     })
   })
 
   describe('when the `token` input is not provided', () => {
     it('throws an error', async () => {
-      getInput.withArgs('token', { required: true }).throws({
-        message: 'Input required and not supplied: token'
+      getInput.mock.mockImplementation((name: string) => {
+        if (name === 'token') {
+          throw new Error('Input required and not supplied: token')
+        }
+        return ''
       })
 
       const core = {
         getInput,
         setFailed
-      }
+      } as unknown as Core
 
-      await run(core as unknown as Core, {} as unknown as GitHub)
+      await run(core, {} as unknown as GitHub)
 
-      assert.isTrue(listLabelsForRepoStub.notCalled)
-      assert.isTrue(createLabelStub.notCalled)
-      assert.isTrue(addLabelsStub.notCalled)
-      assert.isTrue(setFailed.calledOnce)
-      assert.isTrue(
-        setFailed.calledWith('Input required and not supplied: token')
+      assert.strictEqual(listLabelsForRepoStub.mock.callCount(), 0)
+      assert.strictEqual(createLabelStub.mock.callCount(), 0)
+      assert.strictEqual(addLabelsStub.mock.callCount(), 0)
+      assert.strictEqual(setFailed.mock.callCount(), 1)
+      assert.strictEqual(
+        setFailed.mock.calls[0].arguments[0],
+        'Input required and not supplied: token'
       )
     })
   })
 
   describe('when the `project-number` input is not a number', () => {
     it('throws an error', async () => {
-      getInput.withArgs('project-number').returns('abc')
+      getInput.mock.mockImplementation((name: string) => {
+        if (name === 'project-number') {
+          return 'abc'
+        }
+        if (name === 'commit-list') {
+          return JSON.stringify(MOCK_COMMIT_LIST)
+        }
+        if (name === 'version') {
+          return '1.0.0'
+        }
+        if (name === 'token') {
+          return 'token'
+        }
+        return ''
+      })
 
       const core = {
         getInput,
         setFailed
-      }
+      } as unknown as Core
 
-      await run(core as unknown as Core, {} as unknown as GitHub)
+      await run(core, {} as unknown as GitHub)
 
-      assert.isTrue(listLabelsForRepoStub.notCalled)
-      assert.isTrue(createLabelStub.notCalled)
-      assert.isTrue(addLabelsStub.notCalled)
-      assert.isTrue(setFailed.calledOnce)
-      assert.isTrue(setFailed.calledWith('`project-number` must be a number'))
+      assert.strictEqual(listLabelsForRepoStub.mock.callCount(), 0)
+      assert.strictEqual(createLabelStub.mock.callCount(), 0)
+      assert.strictEqual(addLabelsStub.mock.callCount(), 0)
+      assert.strictEqual(setFailed.mock.callCount(), 1)
+      assert.strictEqual(
+        setFailed.mock.calls[0].arguments[0],
+        '`project-number` must be a number'
+      )
     })
   })
 
@@ -267,20 +330,17 @@ describe('run', () => {
         ]
       })
 
-      // getProjectBoardID Stub
-      getExecOutput.onFirstCall().resolves({
-        stdout: JSON.stringify(MOCK_PROJECT_BOARD_ID)
-      })
-      // getProjectBoardFieldList Stub
-      getExecOutput.onSecondCall().resolves({
-        stdout: JSON.stringify(MOCK_FIELD_LIST)
-      })
+      // getProjectBoardID then getProjectBoardFieldList
+      setExecSequence([
+        JSON.stringify(MOCK_PROJECT_BOARD_ID),
+        JSON.stringify(MOCK_FIELD_LIST)
+      ])
 
       const core = {
         getInput,
         setFailed,
         info
-      }
+      } as unknown as Core
 
       const github = {
         context: {
@@ -309,28 +369,29 @@ describe('run', () => {
             }
           }
         }
-      }
+      } as unknown as GitHub
 
-      await run(core as unknown as Core, github as unknown as GitHub)
+      await run(core, github)
 
-      assert.isTrue(listLabelsForRepoStub.notCalled)
-      assert.isTrue(createLabelStub.notCalled)
-      assert.isTrue(addLabelsStub.notCalled)
-      assert.isTrue(setFailed.notCalled)
-      assert.isTrue(info.calledWith('\nNo PR found for commit, moving on...'))
+      assert.strictEqual(listLabelsForRepoStub.mock.callCount(), 0)
+      assert.strictEqual(createLabelStub.mock.callCount(), 0)
+      assert.strictEqual(addLabelsStub.mock.callCount(), 0)
+      assert.strictEqual(setFailed.mock.callCount(), 0)
+      assert.ok(
+        info.mock.calls.some(
+          call => call.arguments[0] === '\nNo PR found for commit, moving on...'
+        )
+      )
     })
   })
 
   describe('when the release column does not exist', () => {
     it('should error', async () => {
       generateInputs()
-      // getProjectBoardID Stub
-      getExecOutput.onFirstCall().resolves({
-        stdout: JSON.stringify(MOCK_PROJECT_BOARD_ID)
-      })
-      // getProjectBoardFieldList Stub
-      getExecOutput.onSecondCall().resolves({
-        stdout: JSON.stringify({
+      // getProjectBoardID then getProjectBoardFieldList (with no matching column)
+      setExecSequence([
+        JSON.stringify(MOCK_PROJECT_BOARD_ID),
+        JSON.stringify({
           fields: [
             {
               ...MOCK_FIELD_LIST.fields[0],
@@ -343,13 +404,13 @@ describe('run', () => {
             }
           ]
         })
-      })
+      ])
 
       const core = {
         getInput,
         setFailed,
         info
-      }
+      } as unknown as Core
 
       const github = {
         context: {
@@ -378,16 +439,17 @@ describe('run', () => {
             }
           }
         }
-      }
+      } as unknown as GitHub
 
-      await run(core as unknown as Core, github as unknown as GitHub)
+      await run(core, github)
 
-      assert.isTrue(listLabelsForRepoStub.notCalled)
-      assert.isTrue(createLabelStub.notCalled)
-      assert.isTrue(addLabelsStub.notCalled)
-      assert.isTrue(setFailed.calledOnce)
-      assert.isTrue(
-        setFailed.calledWith(`\nColumn released not found in project board 66`)
+      assert.strictEqual(listLabelsForRepoStub.mock.callCount(), 0)
+      assert.strictEqual(createLabelStub.mock.callCount(), 0)
+      assert.strictEqual(addLabelsStub.mock.callCount(), 0)
+      assert.strictEqual(setFailed.mock.callCount(), 1)
+      assert.strictEqual(
+        setFailed.mock.calls[0].arguments[0],
+        `\nColumn released not found in project board 66`
       )
     })
   })
@@ -396,27 +458,12 @@ describe('run', () => {
     it('should not move the issue', async () => {
       generateInputs({ releaseColumn: '' })
 
-      // getProjectBoardID Stub
-      getExecOutput.onFirstCall().resolves({
-        stdout: JSON.stringify(MOCK_PROJECT_BOARD_ID)
-      })
-      // getProjectBoardFieldList Stub
-      getExecOutput.onSecondCall().resolves({
-        stdout: JSON.stringify(MOCK_FIELD_LIST)
-      })
-
-      // addIssueToBoard Stub
-      getExecOutput.onThirdCall().resolves({
-        stdout: JSON.stringify({
-          id: '123'
-        })
-      })
-
-      const core = {
-        getInput,
-        setFailed,
-        info
-      }
+      // getProjectBoardID, getProjectBoardFieldList, addIssueToBoard
+      setExecSequence([
+        JSON.stringify(MOCK_PROJECT_BOARD_ID),
+        JSON.stringify(MOCK_FIELD_LIST),
+        JSON.stringify({ id: '123' })
+      ])
 
       const github = {
         context: {
@@ -430,13 +477,8 @@ describe('run', () => {
             ...octokit,
             rest: {
               issues: {
-                listLabelsForRepo: listLabelsForRepoStub.resolves({
-                  data: [MOCK_LIST_LABELS],
-                  status: 200
-                } as unknown as Endpoints['GET /repos/{owner}/{repo}/labels']['response']),
-                createLabel: createLabelStub.resolves({
-                  data: MOCK_CREATED_LABEL
-                } as unknown as Endpoints['POST /repos/{owner}/{repo}/labels']['response']),
+                listLabelsForRepo: listLabelsForRepoStub,
+                createLabel: createLabelStub,
                 get: () => {
                   return {
                     data: {
@@ -452,30 +494,30 @@ describe('run', () => {
                     status: 200
                   }
                 },
-                addLabels: addLabelsStub.resolves({
-                  data: {
-                    labels: [MOCK_CREATED_LABEL],
-                    status: 200
-                  }
-                } as unknown as Endpoints['POST /repos/{owner}/{repo}/issues/{issue_number}/labels']['response'])
+                addLabels: addLabelsStub
               }
             }
           }
         }
-      }
+      } as unknown as GitHub
 
-      const graphqlStub = sinon.stub(octokit, 'graphql')
+      stubGraphql(MOCK_REFERENCED_CLOSED_ISSUES, MOCK_PROJECT_INFO)
 
-      // getReferencedClosedIssues 1st call
-      graphqlStub.onFirstCall().resolves(MOCK_REFERENCED_CLOSED_ISSUES)
-      // getIssueProjectInfo 1st call
-      graphqlStub.onSecondCall().resolves(MOCK_PROJECT_INFO)
+      const core = {
+        getInput,
+        setFailed,
+        info
+      } as unknown as Core
 
-      await run(core as unknown as Core, github as unknown as GitHub)
+      await run(core, github)
 
-      assert.equal(getExecOutput.callCount, 3)
-      assert.isTrue(
-        info.calledWith(`\nNot moving issue card. No column name provided.`)
+      assert.strictEqual(getExecOutput.mock.callCount(), 3)
+      assert.ok(
+        info.mock.calls.some(
+          call =>
+            call.arguments[0] ===
+            `\nNot moving issue card. No column name provided.`
+        )
       )
     })
   })
@@ -490,90 +532,61 @@ describe('run', () => {
       referencedClosedIssues,
       projectInfo
     }: Partial<GenerateResponsesArgs> = {}) => {
-      // Quiet awkward to test single cases here (individually tested in add-to-board-v1 withArgs, using onCall here instead)
+      // getProjectBoardID, getProjectBoardFieldList, addIssueToBoard,
+      // moveIssueToColumn
+      setExecSequence([
+        JSON.stringify(MOCK_PROJECT_BOARD_ID),
+        JSON.stringify(MOCK_FIELD_LIST),
+        JSON.stringify({ id: '123' }),
+        JSON.stringify({ id: '123' })
+      ])
 
-      // getProjectBoardID Stub
-      getExecOutput.onFirstCall().resolves({
-        stdout: JSON.stringify(MOCK_PROJECT_BOARD_ID)
-      })
-      // getProjectBoardFieldList Stub
-      getExecOutput.onSecondCall().resolves({
-        stdout: JSON.stringify(MOCK_FIELD_LIST)
-      })
-
-      // addIssueToBoard Stub
-      getExecOutput.onThirdCall().resolves({
-        stdout: JSON.stringify({
-          id: '123'
-        })
-      })
-
-      // moveIssueToColumn Stub
-      getExecOutput.onCall(3).resolves({
-        stdout: JSON.stringify({
-          id: '123'
-        })
-      })
-
-      const graphqlStub = sinon.stub(octokit, 'graphql')
-
-      // getReferencedClosedIssues 1st call
-      graphqlStub
-        .onFirstCall()
-        .resolves(referencedClosedIssues ?? MOCK_REFERENCED_CLOSED_ISSUES)
-      // getIssueProjectInfo 1st call
-      graphqlStub.onSecondCall().resolves(projectInfo ?? MOCK_PROJECT_INFO)
+      const graphql = stubGraphql(
+        referencedClosedIssues ?? MOCK_REFERENCED_CLOSED_ISSUES,
+        projectInfo ?? MOCK_PROJECT_INFO
+      )
 
       return {
-        graphqlStub
+        graphql
       }
     }
 
-    const github = {
-      context: {
-        repo: {
-          owner: 'owner',
-          repo: 'repo'
-        }
-      },
-      getOctokit: () => {
-        return {
-          ...octokit,
-          rest: {
-            issues: {
-              listLabelsForRepo: listLabelsForRepoStub.resolves({
-                data: [MOCK_LIST_LABELS],
-                status: 200
-              } as unknown as Endpoints['GET /repos/{owner}/{repo}/labels']['response']),
-              createLabel: createLabelStub.resolves({
-                data: MOCK_CREATED_LABEL
-              } as unknown as Endpoints['POST /repos/{owner}/{repo}/labels']['response']),
-              get: () => {
-                return {
-                  data: {
-                    html_url: 'https://github.com/owner/repo/issues/1',
-                    state: 'open'
-                  },
-                  status: 200
-                }
-              },
-              update: () => {
-                return {
-                  data: {},
-                  status: 200
-                }
-              },
-              addLabels: addLabelsStub.resolves({
-                data: {
-                  labels: [MOCK_CREATED_LABEL],
-                  status: 200
-                }
-              } as unknown as Endpoints['POST /repos/{owner}/{repo}/issues/{issue_number}/labels']['response'])
+    const makeGithub = () =>
+      ({
+        context: {
+          repo: {
+            owner: 'owner',
+            repo: 'repo'
+          }
+        },
+        getOctokit: () => {
+          return {
+            ...octokit,
+            rest: {
+              issues: {
+                listLabelsForRepo: listLabelsForRepoStub,
+                createLabel: createLabelStub,
+                get: () => {
+                  return {
+                    data: {
+                      html_url: 'https://github.com/owner/repo/issues/1',
+                      state: 'open'
+                    },
+                    status: 200
+                  }
+                },
+                update: () => {
+                  return {
+                    data: {},
+                    status: 200
+                  }
+                },
+                addLabels: addLabelsStub
+              }
             }
           }
         }
-      }
-    }
+      }) as unknown as GitHub
 
     it('should move issues to the released column', async () => {
       generateInputs()
@@ -583,42 +596,43 @@ describe('run', () => {
         getInput,
         setFailed,
         info
-      }
+      } as unknown as Core
 
-      await run(core as unknown as Core, github as unknown as GitHub)
+      await run(core, makeGithub())
 
-      assert.isTrue(
-        listLabelsForRepoStub.calledOnceWithExactly({
-          repo: ISSUE_REPO,
-          owner: ISSUE_OWNER
-        })
+      assert.strictEqual(listLabelsForRepoStub.mock.callCount(), 1)
+      assert.deepStrictEqual(listLabelsForRepoStub.mock.calls[0].arguments[0], {
+        repo: ISSUE_REPO,
+        owner: ISSUE_OWNER
+      })
+      assert.strictEqual(createLabelStub.mock.callCount(), 1)
+      assert.deepStrictEqual(createLabelStub.mock.calls[0].arguments[0], {
+        repo: ISSUE_REPO,
+        owner: ISSUE_OWNER,
+        name: MOCK_LABEL_NAME,
+        color: 'FFFFFF'
+      })
+      assert.strictEqual(addLabelsStub.mock.callCount(), 1)
+      assert.deepStrictEqual(addLabelsStub.mock.calls[0].arguments[0], {
+        repo: ISSUE_REPO,
+        owner: ISSUE_OWNER,
+        issue_number:
+          MOCK_REFERENCED_CLOSED_ISSUES.repository.pullRequest
+            .closingIssuesReferences.nodes[0].number,
+        labels: [MOCK_LABEL_NAME]
+      })
+      assert.strictEqual(setFailed.mock.callCount(), 0)
+      assert.ok(
+        info.mock.calls.some(
+          call => call.arguments[0] === `\nSuccessfully moved issue card 123`
+        )
       )
-      assert.isTrue(
-        createLabelStub.calledOnceWithExactly({
-          repo: ISSUE_REPO,
-          owner: ISSUE_OWNER,
-          name: MOCK_LABEL_NAME,
-          color: 'FFFFFF'
-        })
-      )
-      assert.isTrue(
-        addLabelsStub.calledOnceWithExactly({
-          repo: ISSUE_REPO,
-          owner: ISSUE_OWNER,
-          issue_number:
-            MOCK_REFERENCED_CLOSED_ISSUES.repository.pullRequest
-              .closingIssuesReferences.nodes[0].number,
-          labels: [MOCK_LABEL_NAME]
-        })
-      )
-      assert.isTrue(setFailed.notCalled)
-      assert.isTrue(info.calledWith(`\nSuccessfully moved issue card 123`))
     })
 
     describe('when there are no referenced closed issues', () => {
       it('should not move any issues', async () => {
         generateInputs()
-        const { graphqlStub } = generateResponses({
+        const { graphql } = generateResponses({
           referencedClosedIssues: {
             repository: {
               pullRequest: {
@@ -634,26 +648,29 @@ describe('run', () => {
           getInput,
           setFailed,
           info
-        }
+        } as unknown as Core
 
-        await run(core as unknown as Core, github as unknown as GitHub)
+        await run(core, makeGithub())
 
-        assert.isTrue(listLabelsForRepoStub.notCalled)
-        assert.isTrue(createLabelStub.notCalled)
-        assert.isTrue(addLabelsStub.notCalled)
-        assert.isTrue(setFailed.notCalled)
-        assert.isTrue(
-          info.calledWith('\nNo issues found for commit, moving on...')
+        assert.strictEqual(listLabelsForRepoStub.mock.callCount(), 0)
+        assert.strictEqual(createLabelStub.mock.callCount(), 0)
+        assert.strictEqual(addLabelsStub.mock.callCount(), 0)
+        assert.strictEqual(setFailed.mock.callCount(), 0)
+        assert.ok(
+          info.mock.calls.some(
+            call =>
+              call.arguments[0] === '\nNo issues found for commit, moving on...'
+          )
         )
         // Only called once for getting the referenced closed issues
-        assert.equal(graphqlStub.callCount, 1)
+        assert.strictEqual(graphql.mock.callCount(), 1)
       })
     })
 
     describe('when the project board is not found for an issue', () => {
       it('should not move any issues', async () => {
         generateInputs()
-        const { graphqlStub } = generateResponses({
+        const { graphql } = generateResponses({
           projectInfo: {
             repository: {
               issue: {
@@ -681,30 +698,32 @@ describe('run', () => {
           getInput,
           setFailed,
           info
-        }
+        } as unknown as Core
 
-        await run(core as unknown as Core, github as unknown as GitHub)
+        await run(core, makeGithub())
 
-        assert.isTrue(listLabelsForRepoStub.notCalled)
-        assert.isTrue(createLabelStub.notCalled)
-        assert.isTrue(addLabelsStub.notCalled)
-        assert.isTrue(setFailed.notCalled)
-        assert.isTrue(
-          info.calledWith(
-            '\nCould not find the project board "66" for issue 27, moving on...'
+        assert.strictEqual(listLabelsForRepoStub.mock.callCount(), 0)
+        assert.strictEqual(createLabelStub.mock.callCount(), 0)
+        assert.strictEqual(addLabelsStub.mock.callCount(), 0)
+        assert.strictEqual(setFailed.mock.callCount(), 0)
+        assert.ok(
+          info.mock.calls.some(
+            call =>
+              call.arguments[0] ===
+              '\nCould not find the project board "66" for issue 27, moving on...'
           )
         )
         /**
          * Called twice for getting the referenced closed issues and the project info
          */
-        assert.equal(graphqlStub.callCount, 2)
+        assert.strictEqual(graphql.mock.callCount(), 2)
       })
     })
 
     describe('when the issue is not in the done or dev done column', () => {
       it('should not move any issues', async () => {
         generateInputs()
-        const { graphqlStub } = generateResponses({
+        const { graphql } = generateResponses({
           projectInfo: {
             repository: {
               issue: {
@@ -731,23 +750,25 @@ describe('run', () => {
           getInput,
           setFailed,
           info
-        }
+        } as unknown as Core
 
-        await run(core as unknown as Core, github as unknown as GitHub)
+        await run(core, makeGithub())
 
-        assert.isTrue(listLabelsForRepoStub.notCalled)
-        assert.isTrue(createLabelStub.notCalled)
-        assert.isTrue(addLabelsStub.notCalled)
-        assert.isTrue(setFailed.notCalled)
-        assert.isTrue(
-          info.calledWith(
-            '\nIssue 27 is not in the "done" or "dev done" column, moving on...'
+        assert.strictEqual(listLabelsForRepoStub.mock.callCount(), 0)
+        assert.strictEqual(createLabelStub.mock.callCount(), 0)
+        assert.strictEqual(addLabelsStub.mock.callCount(), 0)
+        assert.strictEqual(setFailed.mock.callCount(), 0)
+        assert.ok(
+          info.mock.calls.some(
+            call =>
+              call.arguments[0] ===
+              '\nIssue 27 is not in the "done" or "dev done" column, moving on...'
           )
         )
         /**
          * Called twice for getting the referenced closed issues and the project info
          */
-        assert.equal(graphqlStub.callCount, 2)
+        assert.strictEqual(graphql.mock.callCount(), 2)
       })
     })
 
@@ -755,7 +776,7 @@ describe('run', () => {
       it('should create a new label', async () => {
         generateInputs()
 
-        const { graphqlStub } = generateResponses({
+        const { graphql } = generateResponses({
           projectInfo: {
             repository: {
               issue: {
@@ -782,44 +803,46 @@ describe('run', () => {
           getInput,
           setFailed,
           info
-        }
+        } as unknown as Core
 
-        await run(core as unknown as Core, github as unknown as GitHub)
+        await run(core, makeGithub())
 
-        assert.isTrue(
-          listLabelsForRepoStub.calledOnceWithExactly({
+        assert.strictEqual(listLabelsForRepoStub.mock.callCount(), 1)
+        assert.deepStrictEqual(
+          listLabelsForRepoStub.mock.calls[0].arguments[0],
+          {
             repo: ISSUE_REPO,
             owner: ISSUE_OWNER
-          })
+          }
         )
-        assert.isTrue(
-          createLabelStub.calledOnceWithExactly({
-            repo: ISSUE_REPO,
-            owner: ISSUE_OWNER,
-            name: MOCK_LABEL_NAME,
-            color: 'FFFFFF'
-          })
-        )
-        assert.isTrue(
-          addLabelsStub.calledOnceWithExactly({
-            repo: ISSUE_REPO,
-            owner: ISSUE_OWNER,
-            issue_number:
-              MOCK_REFERENCED_CLOSED_ISSUES.repository.pullRequest
-                .closingIssuesReferences.nodes[0].number,
-            labels: [MOCK_LABEL_NAME]
-          })
-        )
-        assert.isTrue(setFailed.notCalled)
-        assert.isTrue(
-          info.calledWith(
-            `The label "${MOCK_LABEL_NAME}" does not exist for the issue repo ${ISSUE_OWNER}/${ISSUE_REPO}, creating...`
+        assert.strictEqual(createLabelStub.mock.callCount(), 1)
+        assert.deepStrictEqual(createLabelStub.mock.calls[0].arguments[0], {
+          repo: ISSUE_REPO,
+          owner: ISSUE_OWNER,
+          name: MOCK_LABEL_NAME,
+          color: 'FFFFFF'
+        })
+        assert.strictEqual(addLabelsStub.mock.callCount(), 1)
+        assert.deepStrictEqual(addLabelsStub.mock.calls[0].arguments[0], {
+          repo: ISSUE_REPO,
+          owner: ISSUE_OWNER,
+          issue_number:
+            MOCK_REFERENCED_CLOSED_ISSUES.repository.pullRequest
+              .closingIssuesReferences.nodes[0].number,
+          labels: [MOCK_LABEL_NAME]
+        })
+        assert.strictEqual(setFailed.mock.callCount(), 0)
+        assert.ok(
+          info.mock.calls.some(
+            call =>
+              call.arguments[0] ===
+              `The label "${MOCK_LABEL_NAME}" does not exist for the issue repo ${ISSUE_OWNER}/${ISSUE_REPO}, creating...`
           )
         )
         /**
          * Called twice for getting the referenced closed issues and the project info
          */
-        assert.equal(graphqlStub.callCount, 2)
+        assert.strictEqual(graphql.mock.callCount(), 2)
       })
 
       it('should set existing label', async () => {
@@ -835,24 +858,38 @@ describe('run', () => {
           default: true
         }
 
-        const { graphqlStub } = generateResponses({
-          projectInfo: {
-            repository: {
-              issue: {
-                projectItems: {
-                  nodes: [
-                    {
-                      id: '123',
-                      type: 'ISSUE',
-                      project: {
-                        number: 66
-                      },
-                      fieldValueByName: {
-                        name: 'Done'
-                      }
+        listLabelsForRepoStub.mock.mockImplementation(() =>
+          Promise.resolve({
+            data: [MOCK_EXIST_LABEL],
+            status: 200
+          })
+        )
+
+        // getProjectBoardID, getProjectBoardFieldList, addIssueToBoard,
+        // moveIssueToColumn
+        setExecSequence([
+          JSON.stringify(MOCK_PROJECT_BOARD_ID),
+          JSON.stringify(MOCK_FIELD_LIST),
+          JSON.stringify({ id: '123' }),
+          JSON.stringify({ id: '123' })
+        ])
+
+        const graphql = stubGraphql(MOCK_REFERENCED_CLOSED_ISSUES, {
+          repository: {
+            issue: {
+              projectItems: {
+                nodes: [
+                  {
+                    id: '123',
+                    type: 'ISSUE',
+                    project: {
+                      number: 66
+                    },
+                    fieldValueByName: {
+                      name: 'Done'
                     }
-                  ]
-                }
+                  }
+                ]
               }
             }
           }
@@ -870,13 +907,8 @@ describe('run', () => {
               ...octokit,
               rest: {
                 issues: {
-                  listLabelsForRepo: listLabelsForRepoStub.resolves({
-                    data: [MOCK_EXIST_LABEL],
-                    status: 200
-                  } as unknown as Endpoints['GET /repos/{owner}/{repo}/labels']['response']),
-                  createLabel: createLabelStub.resolves({
-                    data: MOCK_CREATED_LABEL
-                  } as unknown as Endpoints['POST /repos/{owner}/{repo}/labels']['response']),
+                  listLabelsForRepo: listLabelsForRepoStub,
+                  createLabel: createLabelStub,
                   get: () => {
                     return {
                       data: {
@@ -892,48 +924,44 @@ describe('run', () => {
                       status: 200
                     }
                   },
-                  addLabels: addLabelsStub.resolves({
-                    data: {
-                      labels: [MOCK_CREATED_LABEL],
-                      status: 200
-                    }
-                  } as unknown as Endpoints['POST /repos/{owner}/{repo}/issues/{issue_number}/labels']['response'])
+                  addLabels: addLabelsStub
                 }
               }
             }
           }
-        }
+        } as unknown as GitHub
 
         const core = {
           getInput,
           setFailed,
           info
-        }
+        } as unknown as Core
 
-        await run(core as unknown as Core, github as unknown as GitHub)
+        await run(core, github)
 
-        assert.isTrue(
-          listLabelsForRepoStub.calledOnceWithExactly({
+        assert.strictEqual(listLabelsForRepoStub.mock.callCount(), 1)
+        assert.deepStrictEqual(
+          listLabelsForRepoStub.mock.calls[0].arguments[0],
+          {
             repo: ISSUE_REPO,
             owner: ISSUE_OWNER
-          })
+          }
         )
-        assert.isTrue(createLabelStub.notCalled)
-        assert.isTrue(
-          addLabelsStub.calledOnceWithExactly({
-            repo: ISSUE_REPO,
-            owner: ISSUE_OWNER,
-            issue_number:
-              MOCK_REFERENCED_CLOSED_ISSUES.repository.pullRequest
-                .closingIssuesReferences.nodes[0].number,
-            labels: [MOCK_LABEL_NAME]
-          })
-        )
-        assert.isTrue(setFailed.notCalled)
+        assert.strictEqual(createLabelStub.mock.callCount(), 0)
+        assert.strictEqual(addLabelsStub.mock.callCount(), 1)
+        assert.deepStrictEqual(addLabelsStub.mock.calls[0].arguments[0], {
+          repo: ISSUE_REPO,
+          owner: ISSUE_OWNER,
+          issue_number:
+            MOCK_REFERENCED_CLOSED_ISSUES.repository.pullRequest
+              .closingIssuesReferences.nodes[0].number,
+          labels: [MOCK_LABEL_NAME]
+        })
+        assert.strictEqual(setFailed.mock.callCount(), 0)
         /**
          * Called twice for getting the referenced closed issues and the project info
          */
-        assert.equal(graphqlStub.callCount, 2)
+        assert.strictEqual(graphql.mock.callCount(), 2)
       })
     })
   })

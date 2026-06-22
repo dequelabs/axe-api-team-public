@@ -1,10 +1,25 @@
-import 'mocha'
-import { assert } from 'chai'
-import sinon from 'sinon'
-import * as exec from '@actions/exec'
+import { describe, it, beforeEach, mock } from 'node:test'
+import { strict as assert } from 'node:assert'
 import type { Core, Github } from './types'
 import type { MoveIssueToColumnArgs } from './moveIssueToColumn'
-import run from './run'
+
+type ExecOutput = { stdout: string; stderr: string; exitCode: number }
+
+// Routing map: command string -> response. Populated per test.
+let execResponses: Map<string, ExecOutput>
+
+const getExecOutput = mock.fn<(cmd: string) => Promise<ExecOutput>>(
+  (cmd: string) => {
+    const response = execResponses.get(cmd)
+    if (!response) {
+      return Promise.reject(new Error(`Unexpected command: ${cmd}`))
+    }
+    return Promise.resolve(response)
+  }
+)
+mock.module('@actions/exec', { namedExports: { getExecOutput } })
+
+const { default: run } = await import('./run.ts')
 
 const getProjectIdCommand = (projectNumber?: string) => {
   const projectNumberArg = projectNumber ?? '66'
@@ -43,10 +58,9 @@ const getMoveIssueToColumnCommand = ({
 }
 
 describe('run', () => {
-  let info: sinon.SinonStub
-  let getInput: sinon.SinonStub
-  let setFailed: sinon.SinonStub
-  let getExecOutputStub: sinon.SinonStub
+  let info: ReturnType<typeof mock.fn>
+  let getInput: ReturnType<typeof mock.fn>
+  let setFailed: ReturnType<typeof mock.fn>
 
   const github = {
     context: {
@@ -57,14 +71,18 @@ describe('run', () => {
     }
   } as unknown as Github
 
-  beforeEach(() => {
-    info = sinon.stub()
-    getInput = sinon.stub()
-    setFailed = sinon.stub()
-    getExecOutputStub = sinon.stub(exec, 'getExecOutput')
-  })
+  // simple input store used by the getInput mock
+  let inputStore: Record<string, string>
 
-  afterEach(sinon.restore)
+  beforeEach(() => {
+    execResponses = new Map()
+    inputStore = {}
+    getExecOutput.mock.resetCalls()
+
+    info = mock.fn()
+    getInput = mock.fn((name: string) => inputStore[name] ?? '')
+    setFailed = mock.fn()
+  })
 
   interface GenerateInputArgs {
     projectNumber?: string
@@ -78,9 +96,9 @@ describe('run', () => {
       args?.issueUrls ?? 'https://github.com/owner/repo/issues/1'
     const columnName = args?.columnName ?? 'Backlog'
 
-    getInput.withArgs('project-number').returns(projectNumber)
-    getInput.withArgs('issue-urls').returns(issueUrls)
-    getInput.withArgs('column-name').returns(columnName)
+    inputStore['project-number'] = projectNumber
+    inputStore['issue-urls'] = issueUrls
+    inputStore['column-name'] = columnName
 
     return {
       projectNumber,
@@ -105,10 +123,12 @@ describe('run', () => {
       projectID: '1'
     })
 
-    getExecOutputStub
-      .withArgs(projectIDCommand)
-      .resolves({ stdout: '{"id": "1"}', stderr: '', exitCode: 0 })
-    getExecOutputStub.withArgs(projectFieldListCommand).resolves({
+    execResponses.set(projectIDCommand, {
+      stdout: '{"id": "1"}',
+      stderr: '',
+      exitCode: 0
+    })
+    execResponses.set(projectFieldListCommand, {
       stdout: JSON.stringify({
         fields: [
           {
@@ -125,12 +145,16 @@ describe('run', () => {
       stderr: '',
       exitCode: 0
     })
-    getExecOutputStub
-      .withArgs(addIssueToBoardCommand)
-      .resolves({ stdout: '{"id": "2"}', stderr: '', exitCode: 0 })
-    getExecOutputStub
-      .withArgs(moveIssueToColumnCommand)
-      .resolves({ stdout: '{"id": "3"}', stderr: '', exitCode: 0 })
+    execResponses.set(addIssueToBoardCommand, {
+      stdout: '{"id": "2"}',
+      stderr: '',
+      exitCode: 0
+    })
+    execResponses.set(moveIssueToColumnCommand, {
+      stdout: '{"id": "3"}',
+      stderr: '',
+      exitCode: 0
+    })
 
     return {
       projectIDCommand,
@@ -142,7 +166,7 @@ describe('run', () => {
 
   describe('when projectNumber is not a number', () => {
     it('should set failed', async () => {
-      getInput.withArgs('project-number').returns('not-a-number')
+      inputStore['project-number'] = 'not-a-number'
 
       const core = {
         getInput,
@@ -151,15 +175,21 @@ describe('run', () => {
 
       await run(core as unknown as Core, {} as unknown as Github)
 
-      assert.isTrue(setFailed.calledOnce)
-      assert.isTrue(setFailed.calledWith('`project-number` must be a number'))
+      assert.strictEqual(setFailed.mock.callCount(), 1)
+      assert.strictEqual(
+        setFailed.mock.calls[0].arguments[0],
+        '`project-number` must be a number'
+      )
     })
   })
 
   describe('when issueUrls is not provided', () => {
     it('should set failed', async () => {
-      getInput.withArgs('issue-urls', { required: true }).throws({
-        message: 'Input required and not supplied: issue-urls'
+      getInput.mock.mockImplementation((name: string) => {
+        if (name === 'issue-urls') {
+          throw new Error('Input required and not supplied: issue-urls')
+        }
+        return ''
       })
 
       const core = {
@@ -169,11 +199,10 @@ describe('run', () => {
 
       await run(core as unknown as Core, {} as unknown as Github)
 
-      assert.isTrue(setFailed.calledOnce)
-      assert.isTrue(
-        setFailed.calledWith(
-          'Error adding issue to project board: Input required and not supplied: issue-urls'
-        )
+      assert.strictEqual(setFailed.mock.callCount(), 1)
+      assert.strictEqual(
+        setFailed.mock.calls[0].arguments[0],
+        'Error adding issue to project board: Input required and not supplied: issue-urls'
       )
     })
   })
@@ -201,12 +230,12 @@ describe('run', () => {
           [getProjectFieldList],
           [addIssueToBoard],
           [moveIssueToColumn]
-        ] = getExecOutputStub.args
+        ] = getExecOutput.mock.calls.map(call => call.arguments)
 
-        assert.equal(getProjectID, projectIDCommand)
-        assert.equal(addIssueToBoard, addIssueToBoardCommand)
-        assert.equal(getProjectFieldList, projectFieldListCommand)
-        assert.equal(moveIssueToColumn, moveIssueToColumnCommand)
+        assert.strictEqual(getProjectID, projectIDCommand)
+        assert.strictEqual(addIssueToBoard, addIssueToBoardCommand)
+        assert.strictEqual(getProjectFieldList, projectFieldListCommand)
+        assert.strictEqual(moveIssueToColumn, moveIssueToColumnCommand)
       })
     })
 
@@ -232,12 +261,12 @@ describe('run', () => {
           [getProjectFieldList],
           [addIssueToBoard],
           [moveIssueToColumn]
-        ] = getExecOutputStub.args
+        ] = getExecOutput.mock.calls.map(call => call.arguments)
 
-        assert.equal(getProjectID, projectIDCommand)
-        assert.equal(addIssueToBoard, addIssueToBoardCommand)
-        assert.equal(getProjectFieldList, projectFieldListCommand)
-        assert.equal(moveIssueToColumn, moveIssueToColumnCommand)
+        assert.strictEqual(getProjectID, projectIDCommand)
+        assert.strictEqual(addIssueToBoard, addIssueToBoardCommand)
+        assert.strictEqual(getProjectFieldList, projectFieldListCommand)
+        assert.strictEqual(moveIssueToColumn, moveIssueToColumnCommand)
       })
     })
 
@@ -258,16 +287,66 @@ describe('run', () => {
 
         await run(core as unknown as Core, github)
 
-        const [[getProjectID], [getProjectFieldList]] = getExecOutputStub.args
+        const [[getProjectID], [getProjectFieldList]] =
+          getExecOutput.mock.calls.map(call => call.arguments)
 
-        assert.equal(getProjectID, projectIDCommand)
-        assert.equal(getProjectFieldList, projectFieldListCommand)
-        assert.isTrue(
-          setFailed.calledWith(
-            `\nColumn ${inputs.columnName} not found in project board ${inputs.projectNumber}`
+        assert.strictEqual(getProjectID, projectIDCommand)
+        assert.strictEqual(getProjectFieldList, projectFieldListCommand)
+        assert.ok(
+          setFailed.mock.calls.some(
+            call =>
+              call.arguments[0] ===
+              `\nColumn ${inputs.columnName} not found in project board ${inputs.projectNumber}`
           )
         )
       })
+    })
+  })
+
+  describe('when the Status field is not found', () => {
+    it('should set failed', async () => {
+      const inputs = generatedInputs()
+      const projectIDCommand = getProjectIdCommand(inputs.projectNumber)
+      const projectFieldListCommand = getProjectFieldListCommand(
+        inputs.projectNumber
+      )
+
+      execResponses.set(projectIDCommand, {
+        stdout: '{"id": "1"}',
+        stderr: '',
+        exitCode: 0
+      })
+      execResponses.set(projectFieldListCommand, {
+        stdout: JSON.stringify({
+          fields: [
+            {
+              id: 'id-assignees',
+              name: 'Assignees',
+              type: 'ProjectV2',
+              options: []
+            }
+          ],
+          totalCount: 1
+        }),
+        stderr: '',
+        exitCode: 0
+      })
+
+      const core = {
+        info,
+        getInput,
+        setFailed
+      }
+
+      await run(core as unknown as Core, github)
+
+      assert.ok(
+        setFailed.mock.calls.some(
+          call =>
+            call.arguments[0] ===
+            `\nStatus field not found in project board ${inputs.projectNumber}`
+        )
+      )
     })
   })
 
@@ -288,12 +367,12 @@ describe('run', () => {
       const projectFieldListCommand = getProjectFieldListCommand(
         inputs.projectNumber
       )
-      getExecOutputStub.withArgs(projectIDCommand).resolves({
+      execResponses.set(projectIDCommand, {
         stdout: JSON.stringify({ id: 1 }),
         stderr: '',
         exitCode: 0
       })
-      getExecOutputStub.withArgs(projectFieldListCommand).resolves({
+      execResponses.set(projectFieldListCommand, {
         stdout: JSON.stringify({
           fields: [
             {
@@ -329,13 +408,13 @@ describe('run', () => {
           projectID: '1'
         })
 
-        getExecOutputStub.withArgs(addIssueToBoardCommand).resolves({
+        execResponses.set(addIssueToBoardCommand, {
           stdout: JSON.stringify({ id: index }),
           stderr: '',
           exitCode: 0
         })
 
-        getExecOutputStub.withArgs(moveIssueToColumnCommand).resolves({
+        execResponses.set(moveIssueToColumnCommand, {
           stdout: JSON.stringify({ id: index }),
           stderr: '',
           exitCode: 0
@@ -347,8 +426,8 @@ describe('run', () => {
 
       await run(core as unknown as Core, github)
 
-      assert.lengthOf(addIssueToBoardCommands, urlsSplit.length)
-      assert.lengthOf(moveIssueToColumnCommands, urlsSplit.length)
+      assert.strictEqual(addIssueToBoardCommands.length, urlsSplit.length)
+      assert.strictEqual(moveIssueToColumnCommands.length, urlsSplit.length)
 
       const [
         [getProjectID],
@@ -357,23 +436,34 @@ describe('run', () => {
         [addIssueToBoardSecondCall],
         [moveIssueToColumnFirstCall],
         [moveIssueToColumnSecondCall]
-      ] = getExecOutputStub.args
+      ] = getExecOutput.mock.calls.map(call => call.arguments)
 
-      assert.equal(getProjectID, projectIDCommand)
-      assert.equal(getProjectFieldList, projectFieldListCommand)
+      assert.strictEqual(getProjectID, projectIDCommand)
+      assert.strictEqual(getProjectFieldList, projectFieldListCommand)
 
       // One call for each issue URL
-      assert.equal(addIssueToBoardFirstCall, addIssueToBoardCommands[0])
-      assert.equal(addIssueToBoardSecondCall, addIssueToBoardCommands[1])
+      assert.strictEqual(addIssueToBoardFirstCall, addIssueToBoardCommands[0])
+      assert.strictEqual(addIssueToBoardSecondCall, addIssueToBoardCommands[1])
 
-      assert.equal(moveIssueToColumnFirstCall, moveIssueToColumnCommands[0])
-      assert.equal(moveIssueToColumnSecondCall, moveIssueToColumnCommands[1])
+      assert.strictEqual(
+        moveIssueToColumnFirstCall,
+        moveIssueToColumnCommands[0]
+      )
+      assert.strictEqual(
+        moveIssueToColumnSecondCall,
+        moveIssueToColumnCommands[1]
+      )
     })
   })
 
   describe('when an error occurred', () => {
     it('should catch the error', async () => {
-      getInput.withArgs('issue-urls').throws(new Error('boom'))
+      getInput.mock.mockImplementation((name: string) => {
+        if (name === 'issue-urls') {
+          throw new Error('boom')
+        }
+        return ''
+      })
 
       const core = {
         getInput,
@@ -382,9 +472,10 @@ describe('run', () => {
 
       await run(core as unknown as Core, {} as unknown as Github)
 
-      assert.isTrue(setFailed.calledOnce)
-      assert.isTrue(
-        setFailed.calledWith('Error adding issue to project board: boom')
+      assert.strictEqual(setFailed.mock.callCount(), 1)
+      assert.strictEqual(
+        setFailed.mock.calls[0].arguments[0],
+        'Error adding issue to project board: boom'
       )
     })
   })
