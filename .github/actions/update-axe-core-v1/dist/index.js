@@ -13,7 +13,11 @@ var __require = /* @__PURE__ */ ((x2) => typeof require !== "undefined" ? requir
   throw Error('Dynamic require of "' + x2 + '" is not supported');
 });
 var __commonJS = (cb, mod) => function __require2() {
-  return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+  try {
+    return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+  } catch (e) {
+    throw mod = 0, e;
+  }
 };
 var __export = (target, all) => {
   for (var name in all)
@@ -18822,6 +18826,18 @@ var require_semver = __commonJS({
     var { safeRe: re2, t } = require_re();
     var parseOptions = require_parse_options();
     var { compareIdentifiers } = require_identifiers();
+    var isPrereleaseIdentifier = (prerelease, identifier) => {
+      const identifiers = identifier.split(".");
+      if (identifiers.length > prerelease.length) {
+        return false;
+      }
+      for (let i = 0; i < identifiers.length; i++) {
+        if (compareIdentifiers(prerelease[i], identifiers[i]) !== 0) {
+          return false;
+        }
+      }
+      return true;
+    };
     var SemVer = class _SemVer {
       constructor(version, options) {
         options = parseOptions(options);
@@ -19068,8 +19084,9 @@ var require_semver = __commonJS({
               if (identifierBase === false) {
                 prerelease = [identifier];
               }
-              if (compareIdentifiers(this.prerelease[0], identifier) === 0) {
-                if (isNaN(this.prerelease[1])) {
+              if (isPrereleaseIdentifier(this.prerelease, identifier)) {
+                const prereleaseBase = this.prerelease[identifier.split(".").length];
+                if (isNaN(prereleaseBase)) {
                   this.prerelease = prerelease;
                 }
               } else {
@@ -19739,6 +19756,7 @@ var require_range = __commonJS({
       return comp;
     };
     var isX = (id) => !id || id.toLowerCase() === "x" || id === "*";
+    var invalidXRangeOrder = (M2, m, p) => isX(M2) && !isX(m) || isX(m) && p && !isX(p);
     var replaceTildes = (comp, options) => {
       return comp.trim().split(/\s+/).map((c) => replaceTilde(c, options)).join(" ");
     };
@@ -19798,9 +19816,9 @@ var require_range = __commonJS({
           debug2("no pr");
           if (M2 === "0") {
             if (m === "0") {
-              ret = `>=${M2}.${m}.${p}${z} <${M2}.${m}.${+p + 1}-0`;
+              ret = `>=${M2}.${m}.${p} <${M2}.${m}.${+p + 1}-0`;
             } else {
-              ret = `>=${M2}.${m}.${p}${z} <${M2}.${+m + 1}.0-0`;
+              ret = `>=${M2}.${m}.${p} <${M2}.${+m + 1}.0-0`;
             }
           } else {
             ret = `>=${M2}.${m}.${p} <${+M2 + 1}.0.0-0`;
@@ -19819,6 +19837,9 @@ var require_range = __commonJS({
       const r = options.loose ? re2[t.XRANGELOOSE] : re2[t.XRANGE];
       return comp.replace(r, (ret, gtlt, M2, m, p, pr) => {
         debug2("xRange", comp, ret, gtlt, M2, m, p, pr);
+        if (invalidXRangeOrder(M2, m, p)) {
+          return comp;
+        }
         const xM = isX(M2);
         const xm = xM || isX(m);
         const xp = xm || isX(p);
