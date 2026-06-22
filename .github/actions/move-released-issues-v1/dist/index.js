@@ -26028,7 +26028,7 @@ var github = __toESM(require_github(), 1);
 var core = __toESM(require_core(), 1);
 
 // ../add-to-board-v1/src/getProjectBoardID.ts
-var import_exec = __toESM(require_exec());
+var import_exec = __toESM(require_exec(), 1);
 async function getProjectBoardID({
   projectNumber,
   owner
@@ -26047,7 +26047,7 @@ async function getProjectBoardID({
 }
 
 // ../add-to-board-v1/src/getProjectBoardFieldList.ts
-var import_exec2 = __toESM(require_exec());
+var import_exec2 = __toESM(require_exec(), 1);
 async function getProjectBoardFieldList({
   projectNumber,
   owner
@@ -26066,7 +26066,7 @@ async function getProjectBoardFieldList({
 }
 
 // ../add-to-board-v1/src/addIssueToBoard.ts
-var import_exec3 = __toESM(require_exec());
+var import_exec3 = __toESM(require_exec(), 1);
 async function addIssueToBoard({
   projectNumber,
   owner,
@@ -26086,7 +26086,7 @@ async function addIssueToBoard({
 }
 
 // ../add-to-board-v1/src/moveIssueToColumn.ts
-var import_exec4 = __toESM(require_exec());
+var import_exec4 = __toESM(require_exec(), 1);
 async function moveIssueToColumn({
   issueCardID,
   fieldID,
