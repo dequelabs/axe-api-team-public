@@ -94,7 +94,7 @@ jobs:
           node-version: 24
           cache: 'npm'
       - run: npm ci
-      - run: npm run coverage --workspace=checkov-scans-v1
+      - run: npm run test --workspace=checkov-scans-v1
 
   generate-commit-list-v1:
     runs-on: ubuntu-latest

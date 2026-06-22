@@ -1,16 +1,21 @@
 import { execFileSync } from 'child_process'
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'fs'
-import { expect } from 'chai'
+import { strict as assert } from 'node:assert'
+import { describe, it, beforeEach, afterEach } from 'node:test'
 import { join, resolve } from 'path'
 import { tmpdir } from 'os'
+import { fileURLToPath } from 'node:url'
 
-const script = resolve(__dirname, 'index.ts')
-const nodeModules = resolve(__dirname, '..', '..', '..', '..', 'node_modules')
-const tsconfig = resolve(__dirname, '..', 'tsconfig.json')
+const here = fileURLToPath(new URL('.', import.meta.url))
+const script = resolve(here, 'index.ts')
+const nodeModules = resolve(here, '..', '..', '..', '..', 'node_modules')
+// Resolve the tsx loader to an absolute URL here (the test runs from the
+// workspace where tsx is installed). The subprocess runs with cwd set to a
+// temp dir, so a bare `tsx` specifier would not resolve there.
+const tsxLoader = import.meta.resolve('tsx')
 const childEnv = {
   ...process.env,
-  NODE_PATH: nodeModules,
-  TS_NODE_PROJECT: tsconfig
+  NODE_PATH: nodeModules
 }
 const fixtureContent = `lockfileVersion: '6.0'
 
@@ -45,26 +50,26 @@ describe('index', () => {
   it('converts pnpm-lock.yaml to package-lock.json', () => {
     execFileSync(
       process.execPath,
-      ['-r', 'ts-node/register', script, 'pnpm-lock.yaml'],
+      ['--import', tsxLoader, script, 'pnpm-lock.yaml'],
       { cwd: tmpDir, env: childEnv }
     )
 
     const outputPath = join(tmpDir, 'package-lock.json')
     const lockfile = JSON.parse(readFileSync(outputPath, 'utf8'))
-    expect(lockfile).to.have.property('lockfileVersion')
-    expect(lockfile).to.have.property('packages')
+    assert.ok(Object.prototype.hasOwnProperty.call(lockfile, 'lockfileVersion'))
+    assert.ok(Object.prototype.hasOwnProperty.call(lockfile, 'packages'))
   })
 
   it('exits with code 1 when no path is provided', () => {
     try {
-      execFileSync(process.execPath, ['-r', 'ts-node/register', script], {
+      execFileSync(process.execPath, ['--import', tsxLoader, script], {
         cwd: tmpDir,
         stdio: 'pipe',
         env: childEnv
       })
-      expect.fail('should have thrown')
+      assert.fail('should have thrown')
     } catch (err: unknown) {
-      expect((err as { status: number }).status).to.equal(1)
+      assert.strictEqual((err as { status: number }).status, 1)
     }
   })
 
@@ -72,12 +77,12 @@ describe('index', () => {
     try {
       execFileSync(
         process.execPath,
-        ['-r', 'ts-node/register', script, 'nonexistent.yaml'],
+        ['--import', tsxLoader, script, 'nonexistent.yaml'],
         { cwd: tmpDir, stdio: 'pipe', env: childEnv }
       )
-      expect.fail('should have thrown')
+      assert.fail('should have thrown')
     } catch (err: unknown) {
-      expect((err as { status: number }).status).to.equal(1)
+      assert.strictEqual((err as { status: number }).status, 1)
     }
   })
 })
