@@ -1,6 +1,5 @@
-import 'mocha'
-import sinon from 'sinon'
-import { assert } from 'chai'
+import { describe, it, beforeEach, mock } from 'node:test'
+import { strict as assert } from 'node:assert'
 import { getOctokit } from '@actions/github'
 import type { Core } from './types'
 import getIssuesByProjectAndLabel, {
@@ -154,30 +153,24 @@ const createIssuesResult = (issuesNode: ProjectItemNode[]): IssueResult[] => {
 
 describe('getIssuesByProjectAndLabel', () => {
   let octokit: ReturnType<typeof getOctokit>
-  let info: sinon.SinonStub
-  let getInput: sinon.SinonStub
-  let setFailed: sinon.SinonStub
+  let graphql: ReturnType<typeof mock.fn<() => unknown>>
   let core: Core
-  let graphql: sinon.SinonStub
 
   beforeEach(() => {
-    octokit = getOctokit('token')
-    graphql = sinon.stub(octokit, 'graphql')
-    info = sinon.stub()
-    getInput = sinon.stub()
-    setFailed = sinon.stub()
+    graphql = mock.fn<() => unknown>()
+    octokit = {
+      graphql
+    } as unknown as ReturnType<typeof getOctokit>
     core = {
-      info,
-      getInput,
-      setFailed
-    }
+      info: mock.fn(),
+      getInput: mock.fn(),
+      setFailed: mock.fn()
+    } as unknown as Core
   })
-
-  afterEach(sinon.restore)
 
   describe('should return filtered issues', () => {
     it('by a label prefix AND a source column', async () => {
-      graphql.resolves(ISSUES_NODE_MOCK)
+      graphql.mock.mockImplementation(() => ISSUES_NODE_MOCK)
 
       const result = await getIssuesByProjectAndLabel({
         core,
@@ -190,11 +183,11 @@ describe('getIssuesByProjectAndLabel', () => {
         sourceColumnId
       })
 
-      assert.deepEqual(result, createIssuesResult([SECOND_ISSUE_MOCK]))
+      assert.deepStrictEqual(result, createIssuesResult([SECOND_ISSUE_MOCK]))
     })
 
     it('by a label prefix AND team label', async () => {
-      graphql.resolves(ISSUES_NODE_MOCK)
+      graphql.mock.mockImplementation(() => ISSUES_NODE_MOCK)
 
       const result = await getIssuesByProjectAndLabel({
         core,
@@ -207,11 +200,11 @@ describe('getIssuesByProjectAndLabel', () => {
         teamLabel
       })
 
-      assert.deepEqual(result, createIssuesResult([FIRST_ISSUE_MOCK]))
+      assert.deepStrictEqual(result, createIssuesResult([FIRST_ISSUE_MOCK]))
     })
 
     it('by only label prefix because a source column is not provided', async () => {
-      graphql.resolves(ISSUES_NODE_MOCK)
+      graphql.mock.mockImplementation(() => ISSUES_NODE_MOCK)
 
       const result = await getIssuesByProjectAndLabel({
         core,
@@ -223,7 +216,7 @@ describe('getIssuesByProjectAndLabel', () => {
         targetColumnId
       })
 
-      assert.deepEqual(
+      assert.deepStrictEqual(
         result,
         createIssuesResult([FIRST_ISSUE_MOCK, SECOND_ISSUE_MOCK])
       )
@@ -233,7 +226,7 @@ describe('getIssuesByProjectAndLabel', () => {
       const exactLabel = FIRST_ISSUE_MOCK.content.labels.nodes?.[1]
         .name as string
 
-      graphql.resolves(ISSUES_NODE_MOCK)
+      graphql.mock.mockImplementation(() => ISSUES_NODE_MOCK)
 
       const result = await getIssuesByProjectAndLabel({
         core,
@@ -245,7 +238,7 @@ describe('getIssuesByProjectAndLabel', () => {
         targetColumnId
       })
 
-      assert.deepEqual(result, createIssuesResult([FIRST_ISSUE_MOCK]))
+      assert.deepStrictEqual(result, createIssuesResult([FIRST_ISSUE_MOCK]))
     })
 
     it('that are not in a target column', async () => {
@@ -254,7 +247,7 @@ describe('getIssuesByProjectAndLabel', () => {
       )
 
       issueInTargetColumn.fieldValues.nodes![0].optionId = targetColumnId
-      graphql.resolves({
+      graphql.mock.mockImplementation(() => ({
         organization: {
           projectV2: {
             items: {
@@ -266,7 +259,7 @@ describe('getIssuesByProjectAndLabel', () => {
             }
           }
         }
-      })
+      }))
 
       const result = await getIssuesByProjectAndLabel({
         core,
@@ -278,7 +271,7 @@ describe('getIssuesByProjectAndLabel', () => {
         targetColumnId
       })
 
-      assert.deepEqual(result, createIssuesResult([SECOND_ISSUE_MOCK]))
+      assert.deepStrictEqual(result, createIssuesResult([SECOND_ISSUE_MOCK]))
     })
 
     it('recursively', async () => {
@@ -288,8 +281,12 @@ describe('getIssuesByProjectAndLabel', () => {
 
       firstPageIssues.organization.projectV2.items.pageInfo.hasNextPage = true
 
-      graphql.onCall(0).resolves(firstPageIssues)
-      graphql.onCall(1).resolves(ISSUES_NODE_MOCK)
+      let call = 0
+      graphql.mock.mockImplementation(() => {
+        const response = call === 0 ? firstPageIssues : ISSUES_NODE_MOCK
+        call++
+        return response
+      })
 
       const result = await getIssuesByProjectAndLabel({
         core,
@@ -301,7 +298,7 @@ describe('getIssuesByProjectAndLabel', () => {
         targetColumnId
       })
 
-      assert.deepEqual(
+      assert.deepStrictEqual(
         result,
         createIssuesResult([
           FIRST_ISSUE_MOCK,
@@ -315,7 +312,7 @@ describe('getIssuesByProjectAndLabel', () => {
 
   describe('should return NO issues', () => {
     it('if any of them does not have a label', async () => {
-      graphql.resolves(ISSUES_NODE_MOCK)
+      graphql.mock.mockImplementation(() => ISSUES_NODE_MOCK)
 
       const result = await getIssuesByProjectAndLabel({
         core,
@@ -327,7 +324,7 @@ describe('getIssuesByProjectAndLabel', () => {
         targetColumnId
       })
 
-      assert.deepEqual(result, [])
+      assert.deepStrictEqual(result, [])
     })
   })
 
@@ -336,7 +333,9 @@ describe('getIssuesByProjectAndLabel', () => {
       const errorMessage = 'some-error'
       const originalError = new Error(errorMessage)
 
-      graphql.throws(originalError)
+      graphql.mock.mockImplementation(() => {
+        throw originalError
+      })
 
       try {
         await getIssuesByProjectAndLabel({
@@ -351,11 +350,12 @@ describe('getIssuesByProjectAndLabel', () => {
         assert.fail('Expected error to be thrown')
       } catch (err) {
         const error = err as Error
-        assert.include(
-          error.message,
-          `Failed to get all issues from the project board ${projectNumber}:`
+        assert.ok(
+          error.message.includes(
+            `Failed to get all issues from the project board ${projectNumber}:`
+          )
         )
-        assert.include(error.message, errorMessage)
+        assert.ok(error.message.includes(errorMessage))
       }
     })
   })
