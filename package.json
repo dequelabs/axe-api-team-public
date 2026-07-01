@@ -48,7 +48,7 @@
     "semver": "^7.8.4",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.61.0"
+    "typescript-eslint": "^8.62.0"
   },
   "lint-staged": {
     "*.{md,json,js,ts,html}": [
