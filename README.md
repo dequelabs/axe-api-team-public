@@ -69,6 +69,8 @@ runs:
 
 Other examples: [cancel-if-release-pr-exists](.github/actions/cancel-if-release-pr-exists/action.yml), [create-release-candidate-v1](.github/actions/create-release-candidate-v1/action.yml) (long but still pure orchestration of other actions).
 
+See GitHub's [composite action docs](https://docs.github.com/actions/creating-actions/creating-a-composite-action) for the full syntax.
+
 ### 2. Node action (TypeScript)
 
 A TypeScript project compiled to a single bundled `dist/index.js` that the runner executes via
@@ -95,17 +97,32 @@ parsing), [has-auto-releasable-commits-v1](.github/actions/has-auto-releasable-c
 
 ### Choosing between them
 
-| If the action mainly…                                        | Use           |
-| ------------------------------------------------------------ | ------------- |
-| calls other actions / `gh` / `git` and passes values through | **Composite** |
-| runs a few shell lines with no parsing                       | **Composite** |
-| queries the GitHub API with custom GraphQL/REST              | **Node (TS)** |
-| parses, transforms, or validates structured data             | **Node (TS)** |
-| has conditionals/policy logic you'd want to unit-test        | **Node (TS)** |
+There is no single rule that always gives the right answer — it is a trade-off. Prefer the simplest
+approach that fits the situation, and weigh the following.
 
-Rule of thumb: **YAML for wiring, TypeScript for logic.** When a composite action's `run:` blocks
-start growing `if`/loops/parsing, that logic belongs in a Node action (often a small one the
-composite then calls).
+**A composite (YAML) action** runs in the **caller's job context** — its tools, Node version, and
+environment are the caller's. That makes it debuggable and fixable on the spot, and steps stay
+visible and overridable without rebuilding a bundle. It fits orchestration and shell work that
+`gh`, `git`, `jq`, or `yq` already do well.
+
+**A Node (TypeScript) action** runs in its **own isolated process with its own bundled
+dependencies**, so it behaves the same everywhere and is highly reproducible. Our established test
+infrastructure (Node test runner, 100% coverage) is TypeScript-only today, so complex logic that
+needs unit tests is easier to maintain here.
+
+**Isolation cuts both ways.** That same isolation removes the caller's ability to adjust behavior
+when something breaks. For example, [update-axe-core-v1](.github/actions/update-axe-core-v1)
+installs dependencies, and in some repos that triggered Playwright to download browsers, hitting a
+Node bug that stalled archive extraction — with **no escape hatch** for the caller. The remedy is a
+composite variant that runs in the caller's Node context and hands them control. During a wide,
+multi-repo release push, "fixable on the spot" can matter more than "perfectly idempotent."
+
+No single signal decides it: `gh` covers most GitHub API calls from a shell, `jq`/`yq` cover
+JSON/YAML, and behavior can be tested in any language — so "uses the API", "parses structured
+data", or "needs tests" are not on their own reasons to reach for Node. Size isn't the deciding
+factor either: a large script should be broken into smaller, focused scripts, just as a large Node
+action is split into small modules. Choose the approach — and the abstraction layer — that makes
+the action easiest to run and maintain **in the environments that call it**.
 
 ## Creating a new action
 
@@ -147,8 +164,9 @@ outputs:
 
 ### The Node action source pattern
 
-Keep `index.ts` a one-liner that injects dependencies into `run`, so `run` and the helpers stay
-pure and testable (no hidden globals):
+Keep `index.ts` a thin entry point that wires the real dependencies and calls `run()`. Because that
+call runs at module load, the logic lives in `run.ts` so a test can `import` it without executing
+the action:
 
 ```typescript
 // src/index.ts
@@ -204,10 +222,16 @@ export default async function run(core: Core, github: Github): Promise<void> {
 
 Split each distinct step into its own `<feature>.ts` with a colocated `<feature>.test.ts` (see
 [generate-commit-list-v1/src](.github/actions/generate-commit-list-v1/src) for the example).
-Tests must hit **100% coverage** of
-`src` (lines, branches, functions) — `index.ts` and `*.test.ts` are excluded.
+Tests must hit **100% coverage** of `src` (lines, branches, functions). Coverage thresholds and
+exclusions are set per action in its `node.config.json` (commonly `index.ts` and `*.test.ts`, and
+sometimes `types.ts`).
 
-### Logging (required)
+Tests use Node's built-in runner with `mock.module` to stub imports (`@actions/exec`, the GitHub
+client, …), then `await import('./run.ts')` and call `run` with lightweight `core`/`github` stubs —
+see
+[generate-commit-list-v1/src/run.test.ts](.github/actions/generate-commit-list-v1/src/run.test.ts).
+
+#### Logging (required)
 
 Every Node action **must** log its progress with `core.info` so that a failed run shows _which
 stage_ it reached, _where_ it stopped, and _why_. Add a log line before each meaningful step (input
@@ -230,6 +254,10 @@ instead. GitHub automatically masks values that came from `${{ secrets.* }}`, sh
 in the run log, but that masking is a safety net, not permission: keep secrets and tokens out of
 your `core.info` / `core.setFailed` strings entirely.
 
+For values that are not `${{ secrets.* }}` but still should not leak (e.g. auto-generated tokens),
+call `core.setSecret(value)` to register them for masking (`::add-mask::`) so the runner redacts
+them from logs.
+
 ### Build (Node actions only)
 
 `npm run build` runs the shared [`scripts/build-action.mjs`](scripts/build-action.mjs), which uses
@@ -246,6 +274,7 @@ Run these from the action's directory (or use `--workspace=<action-name>` from t
 
 ```bash
 npm run lint        # eslint
+npm run lint -ws    # from the repo root (no aggregate `lint` script there)
 npm run typecheck   # tsc --noEmit
 npm test            # Node's built-in test runner; enforces 100% coverage
 npm run build       # rebuild dist/ — then commit it
@@ -258,8 +287,13 @@ npm run build       # rebuild dist/ — then commit it
 
 ## Probot Settings
 
-Each repo extends this repo's [Probot Settings](https://probot.github.io/apps/settings/) by
-creating a `.github/settings.yml` file that uses `_extends`:
+Where it is enabled, [Probot Settings](https://probot.github.io/apps/settings/) manages repo and
+branch-protection settings from `.github/settings.yml` (see this repo's own file for teams and
+branch protection). Note that Probot does **not** manage repository rulesets — those are tracked
+separately.
+
+A consuming repo extends this repo's settings by creating a `.github/settings.yml` that uses
+`_extends`:
 
 ```yml
 _extends: 'dequelabs/axe-api-team-public'
