@@ -164,9 +164,11 @@ outputs:
 
 ### The Node action source pattern
 
-Keep `index.ts` a thin entry point that wires the real dependencies and calls `run()`. Because that
-call runs at module load, the logic lives in `run.ts` so a test can `import` it without executing
-the action:
+Keep `index.ts` a thin entry point: it wires the real `@actions/core` and `@actions/github` and
+calls `run(core, github)`. The action's logic lives in `run.ts` as an exported handler that takes
+`core`/`github` as parameters. The runtime auto-executes the entry (`main: dist/index.js`), while
+tests import the handler **without** running it and invoke it repeatedly with different inputs —
+two different responsibilities, hence two files:
 
 ```typescript
 // src/index.ts
