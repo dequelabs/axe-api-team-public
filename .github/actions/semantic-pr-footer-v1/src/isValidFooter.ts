@@ -47,7 +47,7 @@ const validSectionHeadingRegex = new RegExp(
  */
 function stripMarkdown(footer: string): string {
   return footer
-    .replace(/^#{1,6}\s*/, '')
+    .replace(/^\s{0,3}#{1,6}\s*/, '')
     .replace(/[*_`]/g, '')
     .replace(/^\s+/, '')
 }
