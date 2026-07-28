@@ -54,9 +54,9 @@ export default function run(core: Core, github: GitHub) {
     // Checked only after the single-line form fails, so nothing that passed
     // before changes behaviour. The section must have content: a bare heading
     // promising QA notes that never arrive is not a footer.
-    const headingIndex = bodyLines.findLastIndex(line =>
-      /^#{1,6}\s+\S/.test(line)
-    )
+const headingIndex = bodyLines.findLastIndex(line =>
+  /^\s{0,3}#{1,6}\s+\S/.test(line)
+)
     const heading = headingIndex === -1 ? '' : bodyLines[headingIndex]
     const sectionBody = bodyLines
       .slice(headingIndex + 1)
