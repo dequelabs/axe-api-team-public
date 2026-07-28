@@ -25590,13 +25590,22 @@ var validFooterPrefixes = [
   "qa notes"
 ];
 var validFooters = ["no qa needed", "no qa required"];
+var validSectionHeadings = ["qa notes"];
 var validFooterPrefixRegex = new RegExp(
   `^(${validFooterPrefixes.join("|")}):? `,
   "i"
 );
 var validFooterRegex = new RegExp(`^(${validFooters.join("|")})`, "i");
-function isValidFooter(footer) {
-  return validFooterRegex.test(footer) || validFooterPrefixRegex.test(footer);
+var validSectionHeadingRegex = new RegExp(
+  `^(${validSectionHeadings.join("|")}):?\\s*$`,
+  "i"
+);
+function stripMarkdown(footer) {
+  return footer.replace(/^#{1,6}\s*/, "").replace(/[*_`]/g, "").replace(/^\s+/, "");
+}
+function isValidFooter(footer, isSectionHeading = false) {
+  const text = stripMarkdown(footer);
+  return validFooterRegex.test(text) || validFooterPrefixRegex.test(text) || isSectionHeading && validSectionHeadingRegex.test(text);
 }
 
 // src/run.ts
@@ -25624,13 +25633,25 @@ function run(core, github) {
     const bodyLines = body.trim().split(/[\r\n]+/);
     const footer = bodyLines[bodyLines.length - 1];
     core.info(`Validating PR footer: "${footer}"`);
-    if (!isValidFooter(footer)) {
-      core.setFailed(
-        "PR footer does not close an issue (`Closes: `), reference an issue (`Ref: ` or `Refs: `), provide QA notes (`QA notes: `), or state that no QA is needed (`No QA needed` or `No QA required`)"
-      );
+    if (isValidFooter(footer)) {
+      core.info("Footer matches team policy");
       return;
     }
-    core.info("Footer matches team policy");
+    const headingIndex = bodyLines.findLastIndex(
+      (line) => /^#{1,6}\s+\S/.test(line)
+    );
+    const heading = headingIndex === -1 ? "" : bodyLines[headingIndex];
+    const sectionBody = bodyLines.slice(headingIndex + 1).join(" ").trim();
+    if (headingIndex !== -1 && sectionBody.length > 0) {
+      core.info(`Validating trailing section heading: "${heading}"`);
+      if (isValidFooter(heading, true)) {
+        core.info("Footer matches team policy");
+        return;
+      }
+    }
+    core.setFailed(
+      "PR footer does not close an issue (`Closes: `), reference an issue (`Ref: ` or `Refs: `), provide QA notes (`QA notes: `, or a trailing `## QA notes` section), or state that no QA is needed (`No QA needed` or `No QA required`)"
+    );
   } catch (error2) {
     core.setFailed(error2.message);
   }

@@ -234,4 +234,78 @@ describe('run', () => {
       setFailed.mock.calls.some(call => call.arguments[0] === 'failure!')
     )
   })
+  describe('trailing section footers', () => {
+    const runWith = (body: string) => {
+      const info = mock.fn<(message: string) => void>()
+      const setFailed = mock.fn<(message: string) => void>()
+      const core = {
+        info,
+        setFailed,
+        getInput: mock.fn<(name: string) => string>(() => '')
+      }
+      const github = {
+        context: { payload: { pull_request: { number: 1, body } } }
+      }
+
+      run(core as unknown as Core, github as unknown as GitHub)
+
+      return { info, setFailed }
+    }
+
+    const passed = (info: ReturnType<typeof mock.fn>) =>
+      info.mock.calls.some(
+        call => call.arguments[0] === 'Footer matches team policy'
+      )
+
+    const failedWithPolicyMessage = (
+      setFailed: ReturnType<typeof mock.fn>
+    ): boolean =>
+      setFailed.mock.calls.some(call =>
+        String(call.arguments[0]).includes('PR footer does not close an issue')
+      )
+
+    it('passes given a QA notes heading with content beneath it', () => {
+      const { info, setFailed } = runWith(
+        'This pr does some things.\n\n## QA Notes\n\nBuild the binary, then confirm it starts.'
+      )
+
+      assert.ok(passed(info))
+      assert.strictEqual(setFailed.mock.callCount(), 0)
+    })
+
+    it('passes given a lower-level heading', () => {
+      const { info } = runWith('Body.\n\n#### QA notes:\n\nRun the suite.')
+
+      assert.ok(passed(info))
+    })
+
+    it('fails given a QA notes heading with nothing beneath it', () => {
+      const { setFailed } = runWith('This pr does some things.\n\n## QA Notes')
+
+      assert.ok(failedWithPolicyMessage(setFailed))
+    })
+
+    it('fails given an unrelated trailing section', () => {
+      const { setFailed } = runWith('Body.\n\n## Testing\n\nSome prose.')
+
+      assert.ok(failedWithPolicyMessage(setFailed))
+    })
+
+    it('does not let a trailing section rescue an issue-linking keyword', () => {
+      const { setFailed } = runWith('Body.\n\n## Closes\n\n#123')
+
+      assert.ok(failedWithPolicyMessage(setFailed))
+    })
+
+    it('still prefers the single-line footer when present', () => {
+      const { info } = runWith('## QA Notes\n\nSome steps.\n\ncloses: #1')
+
+      assert.ok(
+        info.mock.calls.some(
+          call => call.arguments[0] === 'Validating PR footer: "closes: #1"'
+        )
+      )
+      assert.ok(passed(info))
+    })
+  })
 })
