@@ -19579,6 +19579,7 @@ var require_ignore = __commonJS({
       REGEX_REGEXP_RANGE,
       (match, from, to) => from.charCodeAt(0) <= to.charCodeAt(0) ? match : EMPTY
     );
+    var negateRange = (range) => range.startsWith("!") || range.startsWith("\\^") ? `^${range.slice(range[0] === "!" ? 1 : 2)}` : range;
     var cleanRangeBackSlash = (slashes) => {
       const { length } = slashes;
       return slashes.slice(0, length - length % 2);
@@ -19656,7 +19657,7 @@ var require_ignore = __commonJS({
         // > "**/foo/bar" matches file or directory "bar" anywhere that is directly
         // >   under directory "foo".
         // Notice that the '*'s have been replaced as '\\*'
-        /^\^*\\\*\\\*\\\//,
+        /^\^*(?:\\\*\\\*\\\/)+/,
         // '**/foo' <-> 'foo'
         () => "^(?:.*\\/)?"
       ],
@@ -19711,7 +19712,7 @@ var require_ignore = __commonJS({
         // > can be used to match one of the characters in a range.
         // `\` is escaped by step 3
         /(\\)?\[([^\]/]*?)(\\*)($|\])/g,
-        (match, leadEscape, range, endEscape, close) => leadEscape === ESCAPE ? `\\[${range}${cleanRangeBackSlash(endEscape)}${close}` : close === "]" ? endEscape.length % 2 === 0 ? `[${sanitizeRange(range)}${endEscape}]` : "[]" : "[]"
+        (match, leadEscape, range, endEscape, close) => leadEscape === ESCAPE ? `\\[${range}${cleanRangeBackSlash(endEscape)}${close}` : close === "]" ? endEscape.length % 2 === 0 ? `[${negateRange(sanitizeRange(range))}${endEscape}]` : "[]" : "[]"
       ],
       // ending
       [

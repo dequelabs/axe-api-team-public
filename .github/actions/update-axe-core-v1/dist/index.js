@@ -19762,15 +19762,16 @@ var require_range = __commonJS({
     };
     var replaceTilde = (comp, options) => {
       const r = options.loose ? re2[t.TILDELOOSE] : re2[t.TILDE];
+      const z = options.includePrerelease ? "-0" : "";
       return comp.replace(r, (_2, M2, m, p, pr) => {
         debug2("tilde", comp, _2, M2, m, p, pr);
         let ret;
         if (isX(M2)) {
           ret = "";
         } else if (isX(m)) {
-          ret = `>=${M2}.0.0 <${+M2 + 1}.0.0-0`;
+          ret = `>=${M2}.0.0${z} <${+M2 + 1}.0.0-0`;
         } else if (isX(p)) {
-          ret = `>=${M2}.${m}.0 <${M2}.${+m + 1}.0-0`;
+          ret = `>=${M2}.${m}.0${z} <${M2}.${+m + 1}.0-0`;
         } else if (pr) {
           debug2("replaceTilde pr", pr);
           ret = `>=${M2}.${m}.${p}-${pr} <${M2}.${+m + 1}.0-0`;
