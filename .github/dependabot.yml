@@ -28,6 +28,11 @@ updates:
     open-pull-requests-limit: 10
     commit-message:
       prefix: 'chore'
+    ignore:
+      # Major must track the Node runtime we target (`engines.node`), not the latest release
+      - dependency-name: '@types/node'
+        update-types:
+          - 'version-update:semver-major'
     groups:
       eslint:
         patterns:
