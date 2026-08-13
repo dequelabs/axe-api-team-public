@@ -25606,7 +25606,7 @@ function getNotesRegex(noteKeywords, notesPattern) {
   }
   const noteKeywordsSelection = joinOr(noteKeywords);
   if (!notesPattern) {
-    return new RegExp(`^[\\s|*]*(${noteKeywordsSelection})[:\\s]+(.*)`, "i");
+    return new RegExp(`^(?:\\*\\s+)?(${noteKeywordsSelection}):\\s*(.*)`, "i");
   }
   return notesPattern(noteKeywordsSelection);
 }
@@ -25615,7 +25615,7 @@ function getReferencePartsRegex(issuePrefixes, issuePrefixesCaseSensitive) {
     return nomatchRegex;
   }
   const flags = issuePrefixesCaseSensitive ? "g" : "gi";
-  return new RegExp(`(?:.*?)??\\s*([\\w-\\.\\/]*?)??(${joinOr(issuePrefixes)})([\\w-]+)(?=\\s|$|[,;)\\]])`, flags);
+  return new RegExp(`(?:.*?)??\\s*([\\w-\\.\\/]*?)??(${joinOr(issuePrefixes)})([\\w-]+)(?=\\s|$|[,;.)\\]])`, flags);
 }
 function getReferencesRegex(referenceActions) {
   if (!referenceActions) {
@@ -25624,14 +25624,20 @@ function getReferencesRegex(referenceActions) {
   const joinedKeywords = joinOr(referenceActions);
   return new RegExp(`(${joinedKeywords})(?:\\s+(.*?))(?=(?:${joinedKeywords})|$)`, "gi");
 }
+function getFooterTokenRegex(issuePrefixes) {
+  const issuePrefixSeparator = issuePrefixes ? `|\\s+(?:${joinOr(issuePrefixes)})` : "";
+  return new RegExp(`^(?:BREAKING CHANGE|[\\w-]+)(?::\\s+${issuePrefixSeparator}).+`, "i");
+}
 function getParserRegexes(options = {}) {
   const notes = getNotesRegex(options.noteKeywords, options.notesPattern);
   const referenceParts = getReferencePartsRegex(options.issuePrefixes, options.issuePrefixesCaseSensitive);
   const references = getReferencesRegex(options.referenceActions);
+  const footerToken = getFooterTokenRegex(options.issuePrefixes);
   return {
     notes,
     referenceParts,
     references,
+    footerToken,
     mentions: /@([\w-]+)/g,
     url: /\b(?:https?):\/\/(?:www\.)?([-a-zA-Z0-9@:%_+.~#?&//=])+\b/
   };
@@ -25700,7 +25706,9 @@ var defaultOptions = {
   ],
   revertPattern: /^Revert\s"([\s\S]*)"\s*This reverts commit (\w*)\.?/,
   revertCorrespondence: ["header", "hash"],
-  fieldPattern: /^-(.*?)-$/
+  // The field name must contain at least one word character so that
+  // YAML document markers like `---` are not treated as field markers.
+  fieldPattern: /^-(?=.*\w)(.*?)-$/
 };
 
 // ../../../node_modules/conventional-commits-parser/dist/CommitParser.js
@@ -25865,7 +25873,7 @@ var CommitParser = class {
       return false;
     }
     const matches = this.currentLine().match(regexes.notes);
-    let references = [];
+    let isFooterToken;
     if (matches) {
       const note = {
         title: matches[1],
@@ -25881,15 +25889,14 @@ var CommitParser = class {
         if (this.parseNotes()) {
           return true;
         }
-        references = this.parseReferences(this.currentLine());
-        if (references.length) {
-          commit.references.push(...references);
-        } else {
+        isFooterToken = regexes.footerToken.test(this.currentLine());
+        commit.references.push(...this.parseReferences(this.currentLine()));
+        if (!isFooterToken) {
           note.text = appendLine(note.text, this.currentLine());
         }
         commit.footer = appendLine(commit.footer, this.currentLine());
         this.nextLine();
-        if (references.length) {
+        if (isFooterToken) {
           break;
         }
       }
@@ -25898,16 +25905,16 @@ var CommitParser = class {
     return false;
   }
   parseBodyAndFooter(isBody) {
-    const { commit } = this;
+    const { commit, regexes } = this;
     if (!this.isLineAvailable()) {
       return isBody;
     }
-    const references = this.parseReferences(this.currentLine());
-    const isStillBody = !references.length && isBody;
+    const isFooterToken = regexes.footerToken.test(this.currentLine());
+    const isStillBody = !isFooterToken && isBody;
+    commit.references.push(...this.parseReferences(this.currentLine()));
     if (isStillBody) {
       commit.body = appendLine(commit.body, this.currentLine());
     } else {
-      commit.references.push(...references);
       commit.footer = appendLine(commit.footer, this.currentLine());
     }
     this.nextLine();
@@ -25947,12 +25954,8 @@ var CommitParser = class {
   }
   cleanupCommit() {
     const { commit } = this;
-    if (commit.body) {
-      commit.body = trimNewLines(commit.body);
-    }
-    if (commit.footer) {
-      commit.footer = trimNewLines(commit.footer);
-    }
+    commit.body &&= trimNewLines(commit.body);
+    commit.footer &&= trimNewLines(commit.footer);
     commit.notes.forEach((note) => {
       note.text = trimNewLines(note.text);
     });
