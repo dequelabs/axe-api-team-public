@@ -34,7 +34,7 @@
     "@types/node": "^24.0.0",
     "@types/semver": "^7.7.1",
     "conventional-commit-types": "^3.0.0",
-    "conventional-commits-parser": "^6.4.0",
+    "conventional-commits-parser": "^7.1.2",
     "dedent": "^1.7.2",
     "esbuild": "^0.28.1",
     "eslint": "^10.8.0",
