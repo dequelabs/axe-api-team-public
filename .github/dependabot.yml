@@ -2,6 +2,7 @@ version: 2
 
 updates:
   - package-ecosystem: 'github-actions'
+    rebase-strategy: disabled
     directories:
       - '/'
       # dependabot only checks for action.yml files in the root directory so we need to add a globstar to all our action directories so dependabot will update them correctly
@@ -22,12 +23,19 @@ updates:
       default-days: 7
 
   - package-ecosystem: 'npm'
+    rebase-strategy: disabled
+    versioning-strategy: 'increase-if-necessary'
     directory: '/'
     schedule:
       interval: 'monthly'
     open-pull-requests-limit: 10
     commit-message:
       prefix: 'chore'
+    ignore:
+      # Major must track the Node runtime we target (`engines.node`), not the latest release
+      - dependency-name: '@types/node'
+        update-types:
+          - 'version-update:semver-major'
     groups:
       eslint:
         patterns:
