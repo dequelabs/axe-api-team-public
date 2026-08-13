@@ -30,7 +30,7 @@
     "@actions/exec": "^3.0.0",
     "@actions/github": "^9.1.1",
     "@eslint/js": "^10.0.1",
-    "@octokit/types": "^16.0.0",
+    "@octokit/types": "^17.0.0",
     "@types/node": "^24.0.0",
     "@types/semver": "^7.7.1",
     "conventional-commit-types": "^3.0.0",
