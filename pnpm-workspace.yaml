@@ -1,0 +1,13 @@
+packages:
+  - '.github/actions/*'
+
+allowBuilds:
+  esbuild: false
+
+minimumReleaseAge: 10020
+minimumReleaseAgeExclude:
+  - '@deque/*'
+  - '@axe-devtools/*'
+  - '@axe-core/*'
+
+engineStrict: true

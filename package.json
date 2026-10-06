@@ -13,17 +13,15 @@
   },
   "homepage": "https://github.com/dequelabs/axe-api-team-public#readme",
   "type": "module",
+  "packageManager": "pnpm@12.8.1",
   "engines": {
     "node": ">=24"
   },
-  "workspaces": [
-    "./.github/actions/*"
-  ],
   "scripts": {
-    "prepare": "husky install",
-    "build": "npm --workspaces run build",
-    "test": "npm --workspaces run test",
-    "typecheck": "npm --workspaces run typecheck --if-present"
+    "prepare": "husky",
+    "build": "pnpm -r run build",
+    "test": "pnpm -r run test",
+    "typecheck": "pnpm -r --if-present run typecheck"
   },
   "devDependencies": {
     "@actions/core": "^3.0.1",

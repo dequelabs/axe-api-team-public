@@ -15,17 +15,18 @@ and inherit shared repo settings via [Probot Settings](#probot-settings).
   settings.yml                # Probot Settings consumed by other repos via `_extends`
 scripts/
   build-action.mjs            # shared esbuild bundler used by every Node action's `build`
-package.json                  # npm workspaces root (`.github/actions/*`); shared dev dependencies
+package.json                  # workspace root; shared dev dependencies
+pnpm-workspace.yaml           # pnpm workspaces (`.github/actions/*`) and install policy
 tsconfig.json                 # base TypeScript config that each action extends
 ```
 
-The root `package.json` defines [npm workspaces](https://docs.npmjs.com/cli/using-npm/workspaces)
-over `.github/actions/*`. Shared dependencies (`@actions/core`, `@actions/github`, `@actions/exec`,
-`semver`, …) live in the root and are hoisted to every action, then **bundled into each action's
-`dist/index.js` at build time** — so actions run with no `npm install` step. An action that needs
+The repo is a [pnpm workspace](https://pnpm.io/workspaces) (`pnpm-workspace.yaml`) over
+`.github/actions/*`. Shared dependencies (`@actions/core`, `@actions/github`, `@actions/exec`,
+`semver`, …) live in the root and resolve from every action, then **bundled into each action's
+`dist/index.js` at build time** — so actions run with no install step. An action that needs
 its own one-off dependency can declare it in its workspace `package.json` (e.g.
 [checkov-scans-v1](.github/actions/checkov-scans-v1)). If a breaking change to an action also needs a breaking dependency bump,
-install the old version under an alias (e.g. `npm install pkg-v1@npm:pkg@1`) alongside the new one.
+install the old version under an alias (e.g. `pnpm add -D pkg-v1@npm:pkg@1`) alongside the new one.
 
 ## Two ways to build an action
 
@@ -262,7 +263,7 @@ them from logs.
 
 ### Build (Node actions only)
 
-`npm run build` runs the shared [`scripts/build-action.mjs`](scripts/build-action.mjs), which uses
+`pnpm run build` runs the shared [`scripts/build-action.mjs`](scripts/build-action.mjs), which uses
 esbuild to bundle `src/index.ts` → `dist/index.js` (single ESM file, `node24` target) and writes a
 `dist/licenses.txt` summary. **`dist/` is committed** — the runner executes the committed bundle,
 not your source. The [update-generated-files](.github/workflows/update-generated-files.yml)
@@ -271,20 +272,20 @@ output.
 
 ## Testing & checks before you open a PR
 
-Run these from the action's directory (or use `--workspace=<action-name>` from the root). CI
+Run these from the action's directory (or use `pnpm --filter <action-name>` from the root). CI
 ([.github/workflows/tests.yml](.github/workflows/tests.yml)) runs the same on every PR:
 
 ```bash
-npm run lint        # eslint
-npm run lint -ws    # from the repo root (no aggregate `lint` script there)
-npm run typecheck   # tsc --noEmit
-npm test            # Node's built-in test runner; enforces 100% coverage
-npm run build       # rebuild dist/ — then commit it
+pnpm run lint       # eslint
+pnpm -r run lint    # from the repo root (no aggregate `lint` script there)
+pnpm run typecheck  # tsc --noEmit
+pnpm test           # Node's built-in test runner; enforces 100% coverage
+pnpm run build      # rebuild dist/ — then commit it
 ```
 
 - **Composite actions** have no unit tests; verify them by running the workflow that uses them
   (or a throwaway workflow on a branch). Still run `lint`/`typecheck` at the root.
-- After **any** change to a Node action's `src/`, re-run `npm test` **and** `npm run build`, then
+- After **any** change to a Node action's `src/`, re-run `pnpm test` **and** `pnpm run build`, then
   commit the updated `dist/index.js`. A stale `dist` is the most common review catch.
 
 ## Probot Settings
