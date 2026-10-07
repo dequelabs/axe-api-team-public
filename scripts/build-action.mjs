@@ -1,7 +1,3 @@
-// Shared esbuild build for every GitHub Action workspace.
-// Run from inside a workspace dir (`npm run build`): bundles src/index.ts into a
-// single ESM artifact at dist/index.js (loaded by the node24 Actions runtime) and
-// writes a third-party license summary to dist/licenses.txt.
 import * as esbuild from 'esbuild'
 import fs from 'node:fs'
 import path from 'node:path'
