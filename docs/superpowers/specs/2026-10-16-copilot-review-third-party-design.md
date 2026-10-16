@@ -39,9 +39,9 @@ The flow runs when a PR is opened, reopened, or marked ready for review.
 5. **Signed: skip if already reviewed.** Stop if Copilot has already submitted a review on this PR.
 6. **Request the Copilot review.** Request `copilot-pull-request-reviewer[bot]` as a reviewer, using the company account's token.
 7. **Wait for the review.** Poll for a review from Copilot for up to 15 minutes. If none arrives, log a warning and stop without failing.
-8. **Ping if there are comments.** If Copilot's review has one or more inline comments, post one comment that @-mentions the author, links the review, and asks them to respond to Copilot's comments. If there are no comments, post nothing.
+8. **Ping unless Copilot recommends approval.** Copilot's review body opens with a verdict heading: `🟢 Approval recommended`, `🟡 Changes recommended`, or `🔵 Needs a closer look`. Post one comment that @-mentions the author, links the review, and asks them to respond, unless the verdict is `Approval recommended`. Older reviews have no verdict heading. For those, ping only if the review has one or more inline comments.
 
-Copilot never submits an approving review. So "anything other than approval" means "Copilot left at least one comment".
+Copilot never submits an approving review, so the verdict heading is the only approval signal. A `Needs a closer look` verdict can come with zero inline comments, so counting comments alone would miss it.
 
 ## Components
 
@@ -66,6 +66,7 @@ Helpers that hold the decisions, each unit-tested:
 - `isThirdParty(author, association, isOrgMember)`
 - `claState(statuses, context)`, which returns `signed`, `unsigned`, or `missing`
 - `findCopilotReview(reviews)`
+- `needsResponse(body, commentCount)`, which reads the verdict heading
 - the two comment bodies
 
 `run.ts` wires these to the GitHub API. Its tests use a mocked Octokit, the same way `semantic-pr-footer-v1/src/run.test.ts` does.

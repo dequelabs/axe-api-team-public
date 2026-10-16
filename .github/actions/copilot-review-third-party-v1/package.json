@@ -1,0 +1,24 @@
+{
+  "type": "module",
+  "name": "copilot-review-third-party-v1",
+  "version": "1.0.0",
+  "description": "Drafts third-party PRs without a signed CLA, and requests a Copilot review on signed ones",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dequelabs/axe-api-team-public.git"
+  },
+  "author": "",
+  "license": "MPL-2.0",
+  "bugs": {
+    "url": "https://github.com/dequelabs/axe-api-team-public/issues"
+  },
+  "homepage": "https://github.com/dequelabs/axe-api-team-public#readme",
+  "scripts": {
+    "prebuild": "rimraf dist",
+    "build": "node ../../../scripts/build-action.mjs",
+    "test": "node --experimental-default-config-file --experimental-test-module-mocks --experimental-test-coverage --test --test-force-exit 'src/**/*.test.ts'",
+    "typecheck": "tsc --noEmit",
+    "fmt": "prettier --write \"src/**/*.{js,ts,tsx,json,md,css,html}\"",
+    "lint": "eslint \"src/**/*.{ts,tsx}\""
+  }
+}
