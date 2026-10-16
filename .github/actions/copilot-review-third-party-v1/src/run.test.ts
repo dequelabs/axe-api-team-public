@@ -38,7 +38,6 @@ function setup(options: Options = {}) {
   let reviewCall = 0
 
   const gh = {
-    graphql: mock.fn(async () => ({})),
     rest: {
       repos: {
         getCombinedStatusForRef: mock.fn(async () => ({
@@ -61,6 +60,7 @@ function setup(options: Options = {}) {
 
   const membership = options.isOrgMember ?? false
   const copilot = {
+    graphql: mock.fn(async () => ({})),
     rest: {
       orgs: {
         checkMembershipForUser: mock.fn(async () => {
@@ -219,12 +219,16 @@ describe('run', () => {
       })
       await exec(ctx)
 
-      const [query, variables] = ctx.gh.graphql.mock.calls[0]
+      const [query, variables] = ctx.copilot.graphql.mock.calls[0]
         .arguments as unknown as [string, { id: string }]
       assert.match(query, /convertPullRequestToDraft/)
       assert.deepEqual(variables, { id: 'PR_node' })
       assert.equal(comments(ctx).length, 1)
       assert.match(comments(ctx)[0], /^@octocat .*moved this PR to draft/)
+      assert.match(
+        comments(ctx)[0],
+        /https:\/\/cla-assistant\.io\/dequelabs\/axe-core-npm\?pullRequest=7/
+      )
       assert.equal(ctx.copilot.rest.pulls.requestReviewers.mock.callCount(), 0)
     })
 
@@ -240,7 +244,7 @@ describe('run', () => {
         ctx.sleep.mock.calls.map(call => call.arguments[0]),
         [10000, 10000]
       )
-      assert.equal(ctx.gh.graphql.mock.callCount(), 1)
+      assert.equal(ctx.copilot.graphql.mock.callCount(), 1)
     })
   })
 
@@ -251,7 +255,7 @@ describe('run', () => {
     await exec(ctx)
 
     assert.equal(ctx.gh.rest.repos.getCombinedStatusForRef.mock.callCount(), 2)
-    assert.equal(ctx.gh.graphql.mock.callCount(), 0)
+    assert.equal(ctx.copilot.graphql.mock.callCount(), 0)
     assert.equal(ctx.copilot.rest.pulls.requestReviewers.mock.callCount(), 1)
   })
 

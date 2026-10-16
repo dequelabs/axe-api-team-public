@@ -38,7 +38,7 @@ interface ReviewLike {
 export function isUnableReview(review: ReviewLike): boolean {
   return (
     review.user?.login === COPILOT_REVIEWER &&
-    !!review.body?.startsWith('Copilot was unable to review')
+    !!review.body?.includes('unable to review this pull request')
   )
 }
 
@@ -60,8 +60,8 @@ export function needsResponse(
   return commentCount > 0
 }
 
-export function draftComment(author: string): string {
-  return `@${author} thanks for the pull request! We moved this PR to draft because the Contributor License Agreement (CLA) is not signed yet. Please sign it using the link in the CLA comment, then mark it ready for review.`
+export function draftComment(author: string, signUrl: string): string {
+  return `@${author} thanks for the pull request! We moved this PR to draft because the Contributor License Agreement (CLA) is not signed yet. Please sign it at ${signUrl}, then mark this PR ready for review. If you already signed, just mark it ready for review.`
 }
 
 export function pingComment(author: string, reviewUrl: string): string {

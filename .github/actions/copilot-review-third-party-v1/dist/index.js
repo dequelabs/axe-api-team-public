@@ -25591,7 +25591,7 @@ function claState(statuses, context3) {
   return status.state === "success" ? "signed" : "unsigned";
 }
 function isUnableReview(review) {
-  return review.user?.login === COPILOT_REVIEWER && !!review.body?.startsWith("Copilot was unable to review");
+  return review.user?.login === COPILOT_REVIEWER && !!review.body?.includes("unable to review this pull request");
 }
 function findCopilotReview(reviews) {
   return reviews.find(
@@ -25604,8 +25604,8 @@ function needsResponse(body, commentCount) {
   }
   return commentCount > 0;
 }
-function draftComment(author) {
-  return `@${author} thanks for the pull request! We moved this PR to draft because the Contributor License Agreement (CLA) is not signed yet. Please sign it using the link in the CLA comment, then mark it ready for review.`;
+function draftComment(author, signUrl) {
+  return `@${author} thanks for the pull request! We moved this PR to draft because the Contributor License Agreement (CLA) is not signed yet. Please sign it at ${signUrl}, then mark this PR ready for review. If you already signed, just mark it ready for review.`;
 }
 function pingComment(author, reviewUrl) {
   return `@${author} Copilot reviewed this PR: ${reviewUrl}. Please respond to its comments, either by pushing changes or by replying to say why a change is not needed. A maintainer will review after that.`;
@@ -25695,7 +25695,7 @@ async function run(core, github, sleep) {
     ) ?? "missing";
     if (cla !== "signed") {
       core.info(`CLA is ${cla}: moving the PR to draft`);
-      await gh.graphql(
+      await copilot.graphql(
         `mutation($id: ID!) {
           convertPullRequestToDraft(input: { pullRequestId: $id }) {
             pullRequest { isDraft }
@@ -25707,7 +25707,10 @@ async function run(core, github, sleep) {
         owner,
         repo,
         issue_number: pull_number,
-        body: draftComment(author)
+        body: draftComment(
+          author,
+          `https://cla-assistant.io/${owner}/${repo}?pullRequest=${pull_number}`
+        )
       });
       return;
     }

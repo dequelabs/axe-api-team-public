@@ -118,7 +118,7 @@ export default async function run(
 
     if (cla !== 'signed') {
       core.info(`CLA is ${cla}: moving the PR to draft`)
-      await gh.graphql(
+      await copilot.graphql(
         `mutation($id: ID!) {
           convertPullRequestToDraft(input: { pullRequestId: $id }) {
             pullRequest { isDraft }
@@ -130,7 +130,10 @@ export default async function run(
         owner,
         repo,
         issue_number: pull_number,
-        body: draftComment(author)
+        body: draftComment(
+          author,
+          `https://cla-assistant.io/${owner}/${repo}?pullRequest=${pull_number}`
+        )
       })
       return
     }

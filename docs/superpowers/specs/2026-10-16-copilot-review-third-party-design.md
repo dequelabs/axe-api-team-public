@@ -35,7 +35,10 @@ The flow runs when a PR is opened, reopened, or marked ready for review.
 1. **Skip non-third-party authors.** Stop if the author is a bot. Stop if the author's association is `OWNER`, `MEMBER`, or `COLLABORATOR`. Also stop if the org membership API says the author is an org member, because members with private membership can appear as `CONTRIBUTOR`.
 2. **Skip drafts.** Stop if the PR is already a draft. The flow runs again when it is marked ready.
 3. **Read the CLA status.** Read the `license/cla` commit status on the PR's head commit. If it does not exist yet, poll for up to 2 minutes, because cla-assistant may not have posted it. Only `success` counts as signed. A status that is `pending`, `failure`, or missing after 2 minutes counts as unsigned.
-4. **Unsigned: move to draft.** Convert the PR to draft. Post one comment that @-mentions the author. It says the PR was moved to draft until the CLA is signed, and that they should mark it ready for review after signing. Then stop.
+4. **Unsigned: move to draft.** Convert the PR to draft. Post one comment that @-mentions the author. It says the PR was moved to draft until the CLA is signed, and links the cla-assistant signing page for the PR. It tells them to mark the PR ready for review after signing, or right away if they already signed. Then stop.
+
+   The company token converts the PR to draft. Public reports show `GITHUB_TOKEN` can fail on this call, and granting it `contents: write` under `pull_request_target` would be broader than needed.
+
 5. **Signed: skip if already reviewed.** Stop if Copilot has already submitted a review on this PR.
 6. **Request the Copilot review.** Request `copilot-pull-request-reviewer[bot]` as a reviewer, using the company account's token.
 7. **Wait for the review.** Poll for a review from Copilot for up to 15 minutes. If none arrives, log a warning and stop without failing.
@@ -53,13 +56,13 @@ It follows the layout of the existing actions: `action.yml`, `src/run.ts`, small
 
 Inputs:
 
-| Input                 | Required | Purpose                                                                                                 |
-| --------------------- | -------- | ------------------------------------------------------------------------------------------------------- |
-| `github-token`        | yes      | The workflow's `GITHUB_TOKEN`. Used to read the PR, read statuses, convert to draft, and post comments. |
-| `copilot-token`       | yes      | A PAT for the company Copilot account. Used to request the Copilot review and to check org membership.  |
-| `cla-context`         | no       | Status context to read. Default `license/cla`.                                                          |
-| `cla-wait-seconds`    | no       | Default `120`.                                                                                          |
-| `review-wait-seconds` | no       | Default `900`.                                                                                          |
+| Input                 | Required | Purpose                                                                                                                |
+| --------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `github-token`        | yes      | The workflow's `GITHUB_TOKEN`. Used to read the PR, read statuses, and post comments.                                  |
+| `copilot-token`       | yes      | A PAT for the company Copilot account. Used to request the Copilot review, convert to draft, and check org membership. |
+| `cla-context`         | no       | Status context to read. Default `license/cla`.                                                                         |
+| `cla-wait-seconds`    | no       | Default `120`.                                                                                                         |
+| `review-wait-seconds` | no       | Default `900`.                                                                                                         |
 
 Helpers that hold the decisions, each unit-tested:
 
@@ -104,7 +107,7 @@ The final pin (branch or commit SHA) follows whatever each repo already does for
 
 `pull_request_target` runs in the base repo's context with write access and secrets. That is required, because fork PRs get a read-only token under `pull_request`. The job never checks out or runs PR code. It only calls the GitHub API with values from the event payload.
 
-`COPILOT_REVIEW_TOKEN` is an org secret available to the 4 repos only. Its scopes: request reviewers on those repos, and read org membership.
+`COPILOT_REVIEW_TOKEN` is an org secret available to the 4 repos only. Its scopes: write access to pull requests on those repos, for requesting reviewers and converting to draft, and read access to org membership.
 
 ## Why approach A
 

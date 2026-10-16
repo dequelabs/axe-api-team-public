@@ -100,6 +100,16 @@ describe('isUnableReview', () => {
     )
   })
 
+  it('is true for a Copilot note that it hit an error', () => {
+    assert.equal(
+      isUnableReview({
+        body: 'Copilot encountered an error and was unable to review this pull request. You can try again by re-requesting a review.',
+        user: { login: COPILOT_REVIEWER }
+      }),
+      true
+    )
+  })
+
   it('is false for a review with no body', () => {
     assert.equal(
       isUnableReview({ body: null, user: { login: COPILOT_REVIEWER } }),
@@ -176,10 +186,17 @@ describe('needsResponse', () => {
 
 describe('comments', () => {
   it('draftComment mentions the author and says how to continue', () => {
-    const body = draftComment('octocat')
+    const body = draftComment('octocat', 'https://cla.test/sign')
     assert.match(body, /^@octocat /)
     assert.match(body, /moved this PR to draft/)
     assert.match(body, /mark it ready for review/)
+  })
+
+  it('draftComment links the signing page and covers an existing signature', () => {
+    const body = draftComment('octocat', 'https://cla.test/sign')
+    assert.match(body, /https:\/\/cla\.test\/sign/)
+    assert.match(body, /already signed/)
+    assert.doesNotMatch(body, /CLA comment/)
   })
 
   it('pingComment mentions the author and links the review', () => {

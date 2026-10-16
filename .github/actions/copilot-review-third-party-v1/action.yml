@@ -3,10 +3,10 @@ description: 'Drafts third-party PRs without a signed CLA, and requests a Copilo
 
 inputs:
   github-token:
-    description: 'The workflow GITHUB_TOKEN. Reads the PR, reads statuses, converts to draft, and posts comments.'
+    description: 'The workflow GITHUB_TOKEN. Reads the PR, reads statuses, and posts comments.'
     required: true
   copilot-token:
-    description: 'A token for the company Copilot account. Requests the Copilot review and checks org membership.'
+    description: 'A token for the company Copilot account. Requests the Copilot review, converts PRs to draft, and checks org membership.'
     required: true
   cla-context:
     description: 'The commit status context that reports the CLA.'
