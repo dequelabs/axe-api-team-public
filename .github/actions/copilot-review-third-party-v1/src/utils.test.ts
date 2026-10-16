@@ -5,6 +5,7 @@ import {
   claState,
   draftComment,
   findCopilotReview,
+  isUnableReview,
   isThirdParty,
   needsResponse,
   pingComment
@@ -74,11 +75,55 @@ describe('claState', () => {
   })
 })
 
+const UNABLE =
+  'Copilot was unable to review this pull request because the user who requested the review has reached their quota limit.'
+
+describe('isUnableReview', () => {
+  it('is true for a Copilot note that it was unable to review', () => {
+    assert.equal(
+      isUnableReview({ body: UNABLE, user: { login: COPILOT_REVIEWER } }),
+      true
+    )
+  })
+
+  it('is false for a real Copilot review', () => {
+    assert.equal(
+      isUnableReview({ body: 'Summary', user: { login: COPILOT_REVIEWER } }),
+      false
+    )
+  })
+
+  it('is false for the same text from someone else', () => {
+    assert.equal(
+      isUnableReview({ body: UNABLE, user: { login: 'someone' } }),
+      false
+    )
+  })
+
+  it('is false for a review with no body', () => {
+    assert.equal(
+      isUnableReview({ body: null, user: { login: COPILOT_REVIEWER } }),
+      false
+    )
+  })
+})
+
 describe('findCopilotReview', () => {
   it('returns the first review by Copilot', () => {
     const review = { id: 2, user: { login: COPILOT_REVIEWER } }
     assert.equal(
       findCopilotReview([{ id: 1, user: { login: 'someone' } }, review]),
+      review
+    )
+  })
+
+  it('skips a note that Copilot was unable to review', () => {
+    const review = { id: 2, body: 'Summary', user: { login: COPILOT_REVIEWER } }
+    assert.equal(
+      findCopilotReview([
+        { id: 1, body: UNABLE, user: { login: COPILOT_REVIEWER } },
+        review
+      ]),
       review
     )
   })

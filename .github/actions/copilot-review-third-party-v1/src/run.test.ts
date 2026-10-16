@@ -118,9 +118,12 @@ function setup(options: Options = {}) {
   return { gh, copilot, core, github, sleep }
 }
 
-function copilotReview(body: string) {
+const UNABLE =
+  'Copilot was unable to review this pull request because the user who requested the review has reached their quota limit.'
+
+function copilotReview(body: string, id = 99) {
   return {
-    id: 99,
+    id,
     body,
     html_url: 'https://github.com/dequelabs/axe-core-npm/pull/7#review-99',
     user: { login: COPILOT_REVIEWER }
@@ -306,6 +309,29 @@ describe('run', () => {
           }
         ]
       )
+      assert.equal(comments(ctx).length, 0)
+    })
+
+    it('requests again when an earlier attempt could not review', async () => {
+      const unable = copilotReview(UNABLE, 50)
+      const ctx = setup({
+        reviews: [[unable], [unable], [unable, copilotReview(CHANGES)]]
+      })
+      await exec(ctx)
+
+      assert.equal(ctx.copilot.rest.pulls.requestReviewers.mock.callCount(), 1)
+      assert.equal(comments(ctx).length, 1)
+    })
+
+    it('warns and stops when Copilot cannot review', async () => {
+      const ctx = setup({ reviews: [[], [copilotReview(UNABLE, 51)]] })
+      await exec(ctx)
+
+      assert.equal(ctx.gh.rest.pulls.listReviews.mock.callCount(), 2)
+      assert.deepEqual(ctx.core.warning.mock.calls[0].arguments, [
+        `Copilot could not review: ${UNABLE}`
+      ])
+      assert.equal(ctx.core.setFailed.mock.callCount(), 0)
       assert.equal(comments(ctx).length, 0)
     })
 

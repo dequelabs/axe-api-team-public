@@ -25590,8 +25590,13 @@ function claState(statuses, context3) {
   }
   return status.state === "success" ? "signed" : "unsigned";
 }
+function isUnableReview(review) {
+  return review.user?.login === COPILOT_REVIEWER && !!review.body?.startsWith("Copilot was unable to review");
+}
 function findCopilotReview(reviews) {
-  return reviews.find((review) => review.user?.login === COPILOT_REVIEWER);
+  return reviews.find(
+    (review) => review.user?.login === COPILOT_REVIEWER && !isUnableReview(review)
+  );
 }
 function needsResponse(body, commentCount) {
   if (body?.includes("## Copilot review overview")) {
@@ -25706,19 +25711,21 @@ async function run(core, github, sleep) {
       });
       return;
     }
-    const listCopilotReview = async () => {
+    const listReviews = async () => {
       const { data } = await gh.rest.pulls.listReviews({
         owner,
         repo,
         pull_number,
         per_page: 100
       });
-      return findCopilotReview(data);
+      return data;
     };
-    if (await listCopilotReview()) {
+    const before = await listReviews();
+    if (findCopilotReview(before)) {
       core.info("Skipping: Copilot already reviewed this PR");
       return;
     }
+    const seen = new Set(before.map((review2) => review2.id));
     core.info("CLA is signed: requesting a Copilot review");
     await copilot.rest.pulls.requestReviewers({
       owner,
@@ -25726,16 +25733,29 @@ async function run(core, github, sleep) {
       pull_number,
       reviewers: [COPILOT_REVIEWER]
     });
-    const review = await poll(
-      listCopilotReview,
+    const outcome = await poll(
+      async () => {
+        const reviews = await listReviews();
+        const review2 = findCopilotReview(reviews);
+        if (review2) {
+          return { review: review2 };
+        }
+        const unable = reviews.find((r) => !seen.has(r.id) && isUnableReview(r));
+        return unable ? { unable } : void 0;
+      },
       reviewWait,
       REVIEW_POLL_SECONDS,
       sleep
     );
-    if (!review) {
+    if (!outcome) {
       core.warning(`Copilot did not review within ${reviewWait} seconds`);
       return;
     }
+    if (!outcome.review) {
+      core.warning(`Copilot could not review: ${outcome.unable.body}`);
+      return;
+    }
+    const { review } = outcome;
     const { data: reviewComments } = await gh.rest.pulls.listCommentsForReview({
       owner,
       repo,

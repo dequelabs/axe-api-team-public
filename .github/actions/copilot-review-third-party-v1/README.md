@@ -18,7 +18,7 @@ The action skips bots, owners, members, collaborators, private org members, and 
 | `cla-wait-seconds`    | No       | How long to wait for the CLA status to appear.                                                    | `120`         |
 | `review-wait-seconds` | No       | How long to wait for the Copilot review.                                                          | `900`         |
 
-A CLA status that is not `success`, or that is still missing after `cla-wait-seconds`, counts as unsigned. If Copilot does not review within `review-wait-seconds`, the action logs a warning and does not fail.
+A CLA status that is not `success`, or that is still missing after `cla-wait-seconds`, counts as unsigned. If Copilot does not review within `review-wait-seconds`, the action logs a warning and does not fail. It does the same if Copilot posts that it was unable to review, for example when the account has reached its quota. That note does not count as a review, so a re-run requests Copilot again.
 
 ## Example usage
 

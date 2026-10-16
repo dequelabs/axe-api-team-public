@@ -30,10 +30,24 @@ export function claState(
   return status.state === 'success' ? 'signed' : 'unsigned'
 }
 
-export function findCopilotReview<T extends { user: { login: string } | null }>(
+interface ReviewLike {
+  body?: string | null
+  user: { login: string } | null
+}
+
+export function isUnableReview(review: ReviewLike): boolean {
+  return (
+    review.user?.login === COPILOT_REVIEWER &&
+    !!review.body?.startsWith('Copilot was unable to review')
+  )
+}
+
+export function findCopilotReview<T extends ReviewLike>(
   reviews: T[]
 ): T | undefined {
-  return reviews.find(review => review.user?.login === COPILOT_REVIEWER)
+  return reviews.find(
+    review => review.user?.login === COPILOT_REVIEWER && !isUnableReview(review)
+  )
 }
 
 export function needsResponse(

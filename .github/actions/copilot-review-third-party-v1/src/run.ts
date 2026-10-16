@@ -4,6 +4,7 @@ import {
   draftComment,
   findCopilotReview,
   isThirdParty,
+  isUnableReview,
   needsResponse,
   pingComment
 } from './utils'
@@ -134,20 +135,22 @@ export default async function run(
       return
     }
 
-    const listCopilotReview = async () => {
+    const listReviews = async () => {
       const { data } = await gh.rest.pulls.listReviews({
         owner,
         repo,
         pull_number,
         per_page: 100
       })
-      return findCopilotReview(data)
+      return data
     }
 
-    if (await listCopilotReview()) {
+    const before = await listReviews()
+    if (findCopilotReview(before)) {
       core.info('Skipping: Copilot already reviewed this PR')
       return
     }
+    const seen = new Set(before.map(review => review.id))
 
     core.info('CLA is signed: requesting a Copilot review')
     await copilot.rest.pulls.requestReviewers({
@@ -157,16 +160,29 @@ export default async function run(
       reviewers: [COPILOT_REVIEWER]
     })
 
-    const review = await poll(
-      listCopilotReview,
+    const outcome = await poll(
+      async () => {
+        const reviews = await listReviews()
+        const review = findCopilotReview(reviews)
+        if (review) {
+          return { review }
+        }
+        const unable = reviews.find(r => !seen.has(r.id) && isUnableReview(r))
+        return unable ? { unable } : undefined
+      },
       reviewWait,
       REVIEW_POLL_SECONDS,
       sleep
     )
-    if (!review) {
+    if (!outcome) {
       core.warning(`Copilot did not review within ${reviewWait} seconds`)
       return
     }
+    if (!outcome.review) {
+      core.warning(`Copilot could not review: ${outcome.unable.body}`)
+      return
+    }
+    const { review } = outcome
 
     const { data: reviewComments } = await gh.rest.pulls.listCommentsForReview({
       owner,

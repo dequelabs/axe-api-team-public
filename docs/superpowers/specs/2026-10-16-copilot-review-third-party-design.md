@@ -116,6 +116,7 @@ The final pin (branch or commit SHA) follows whatever each repo already does for
 
 - A missing `copilot-token`, or a failed review request, fails the job with a clear message. A maintainer then sees the red check.
 - A Copilot review that does not arrive within the wait is a warning, not a failure.
+- Copilot can post a note that it was unable to review, for example when the account has reached its quota. The action logs that note as a warning. The note does not count as a review, so a re-run requests Copilot again.
 - Each step checks state before acting (draft, existing review). So a re-run is safe.
 
 ## Testing
