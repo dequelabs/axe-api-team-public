@@ -96,6 +96,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: 24
+          check-latest: true
       - id: update
         uses: dequelabs/axe-api-team-public/.github/actions/update-axe-core-v1@main
 ```
