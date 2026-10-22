@@ -93,9 +93,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@v7
         with:
           node-version: 24
+          check-latest: true
       - id: update
         uses: dequelabs/axe-api-team-public/.github/actions/update-axe-core-v1@main
 ```
