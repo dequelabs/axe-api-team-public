@@ -1,0 +1,42 @@
+name: Sync Branches
+description: Force-points chore/sync/<head>/into/<base> at the head branch and opens a PR into base when none is open
+inputs:
+  head:
+    description: 'Short name of the branch whose commits should be merged into base'
+    required: true
+  base:
+    description: 'Short name of the branch to bring up to date with head'
+    required: true
+  title:
+    description: 'PR title (blank or omitted uses `chore: merge <head> into <base>`); applied only when a new PR is opened'
+    required: false
+    default: ''
+  body:
+    description: 'PR body (blank or omitted uses a reminder to merge rather than squash); applied only when a new PR is opened'
+    required: false
+    default: ''
+  token:
+    description: 'Token with contents and pull-requests write on the calling repository, plus workflows write if head can carry workflow changes. Must not be GITHUB_TOKEN, or CI will not run on the PR.'
+    required: true
+outputs:
+  branch:
+    description: 'Name of the sync branch (set even when no PR is opened)'
+    value: ${{ steps.sync.outputs.branch }}
+  pr-url:
+    description: 'URL of the open sync PR (empty when base already contains head, in which case any open sync PR is closed)'
+    value: ${{ steps.sync.outputs.pr-url }}
+runs:
+  using: composite
+  steps:
+    - name: Sync Branches
+      id: sync
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        WORKFLOW_TOKEN: ${{ github.token }}
+        REPO: ${{ github.repository }}
+        HEAD_BRANCH: ${{ inputs.head }}
+        BASE_BRANCH: ${{ inputs.base }}
+        PR_TITLE: ${{ inputs.title }}
+        PR_BODY: ${{ inputs.body }}
+      run: '${GITHUB_ACTION_PATH}/sync-branches.sh'
